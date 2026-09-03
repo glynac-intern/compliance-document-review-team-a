@@ -1,0 +1,168 @@
+import enum
+import uuid
+from datetime import datetime
+
+from sqlalchemy import (
+    Column, String, Text, DateTime, ForeignKey, Enum, UniqueConstraint
+)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
+
+from database import Base
+
+# Embedding dimension — 768 matches common models (e.g. Gemini text-embedding-004).
+# Adjust if the AI track picks a different embedding model.
+EMBEDDING_DIM = 768
+
+
+class UserRole(str, enum.Enum):
+    advisor = "advisor"
+    officer = "officer"
+
+
+class DocumentStatus(str, enum.Enum):
+    pending_review = "pending_review"
+    approved = "approved"
+    rejected = "rejected"
+    needs_revision = "needs_revision"
+
+
+class DocumentType(str, enum.Enum):
+    pdf = "pdf"
+    docx = "docx"
+    xlsx = "xlsx"
+
+
+class ReviewStatus(str, enum.Enum):
+    approved = "approved"
+    rejected = "rejected"
+    needs_revision = "needs_revision"
+
+
+class AuditAction(str, enum.Enum):
+    submitted = "submitted"
+    viewed = "viewed"
+    decided = "decided"
+    resubmitted = "resubmitted"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    role = Column(Enum(UserRole), nullable=False)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    documents = relationship("Document", back_populates="advisor")
+    reviews = relationship("Review", back_populates="officer")
+
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    advisor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = Column(Enum(DocumentStatus), nullable=False, default=DocumentStatus.pending_review)
+    file_reference = Column(String, nullable=False)
+    type = Column(Enum(DocumentType), nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    # Revision thread: all documents in one thread share thread_id (the first
+    # submission's own id). replaces_document_id points at the specific
+    # document this one supersedes, forming the ordered chain.
+    thread_id = Column(UUID(as_uuid=True), nullable=False)
+    replaces_document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=True)
+
+    advisor = relationship("User", back_populates="documents")
+    reviews = relationship("Review", back_populates="document")
+    analysis = relationship("AIAnalysis", back_populates="document", uselist=False)
+    audit_events = relationship("AuditEvent", back_populates="document")
+    pii_mappings = relationship("PIIMapping", back_populates="document")
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    officer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = Column(Enum(ReviewStatus), nullable=False)
+    comment = Column(Text, nullable=True)
+    decided_at = Column(DateTime, default=datetime.utcnow)
+
+    document = relationship("Document", back_populates="reviews")
+    officer = relationship("User", back_populates="reviews")
+
+
+class AIAnalysis(Base):
+    __tablename__ = "ai_analysis"
+    __table_args__ = (UniqueConstraint("document_id", name="uq_ai_analysis_document"),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    summary = Column(Text, nullable=True)
+    generated_at = Column(DateTime, default=datetime.utcnow)
+
+    document = relationship("Document", back_populates="analysis")
+    flags = relationship("Flag", back_populates="analysis")
+
+
+class Flag(Base):
+    __tablename__ = "flags"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    analysis_id = Column(UUID(as_uuid=True), ForeignKey("ai_analysis.id"), nullable=False)
+    passage_excerpt = Column(Text, nullable=False)
+    matched_rule_id = Column(UUID(as_uuid=True), ForeignKey("rules.id"), nullable=True)
+    explanation = Column(Text, nullable=False)
+    severity = Column(String, nullable=False)
+
+    analysis = relationship("AIAnalysis", back_populates="flags")
+    matched_rule = relationship("Rule")
+
+
+class AuditEvent(Base):
+    __tablename__ = "audit_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    actor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    action = Column(Enum(AuditAction), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    document = relationship("Document", back_populates="audit_events")
+
+
+class PIIMapping(Base):
+    __tablename__ = "pii_mappings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    placeholder = Column(String, nullable=False)
+    original_value = Column(Text, nullable=False)  # never sent to the AI vendor
+
+    document = relationship("Document", back_populates="pii_mappings")
+
+
+class Rule(Base):
+    __tablename__ = "rules"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    text = Column(Text, nullable=False)
+    type = Column(String, nullable=False)  # e.g. disclosure | prohibited_claim | performance_standard
+    embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
+
+
+class PrecedentIndex(Base):
+    __tablename__ = "precedent_index"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    masked_text = Column(Text, nullable=False)
+    decision = Column(Enum(ReviewStatus), nullable=False)
+    comment = Column(Text, nullable=True)
+    embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
