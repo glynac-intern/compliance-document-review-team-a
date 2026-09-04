@@ -101,6 +101,14 @@ def submit_revision(
     if original.status != DocumentStatus.needs_revision:
         raise HTTPException(status_code=400, detail="Only documents marked 'needs_revision' can be resubmitted")
 
+    existing_revision = (
+        db.query(Document)
+        .filter(Document.replaces_document_id == original.id)
+        .first()
+    )
+    if existing_revision is not None:
+        raise HTTPException(status_code=400, detail="This document has already been revised")
+
     new_id = uuid.uuid4()
     file_path, doc_type = _save_upload(file, new_id)
 
@@ -142,13 +150,23 @@ def get_document_audit(
     if current_user.role.value == "advisor" and document.advisor_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this document")
 
+    thread_document_ids = [
+        d.id for d in db.query(Document.id).filter(Document.thread_id == document.thread_id).all()
+    ]
+
     events = (
         db.query(AuditEvent)
-        .filter(AuditEvent.document_id == document_id)
+        .filter(AuditEvent.document_id.in_(thread_document_ids))
         .order_by(AuditEvent.timestamp)
         .all()
     )
     return [
-        {"id": str(e.id), "actor_id": str(e.actor_id), "action": e.action.value, "timestamp": e.timestamp.isoformat()}
+        {
+            "id": str(e.id),
+            "actor_id": str(e.actor_id),
+            "document_id": str(e.document_id),
+            "action": e.action.value,
+            "timestamp": e.timestamp.isoformat(),
+        }
         for e in events
     ]
