@@ -101,6 +101,14 @@ def submit_revision(
     if original.status != DocumentStatus.needs_revision:
         raise HTTPException(status_code=400, detail="Only documents marked 'needs_revision' can be resubmitted")
 
+    existing_revision = (
+        db.query(Document)
+        .filter(Document.replaces_document_id == original.id)
+        .first()
+    )
+    if existing_revision is not None:
+        raise HTTPException(status_code=400, detail="This document has already been revised")
+
     new_id = uuid.uuid4()
     file_path, doc_type = _save_upload(file, new_id)
 
