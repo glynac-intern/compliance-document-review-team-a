@@ -33,6 +33,7 @@ services:
       - ./backend:/app
       - ./data_pipeline:/app/data_pipeline
       - ./seed:/app/seed
+      - ./ai:/app/ai
 
   frontend:
     build:
