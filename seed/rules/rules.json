@@ -1,0 +1,154 @@
+[
+  {
+    "id": "disc-001",
+    "type": "disclosure",
+    "text": "Past performance is not indicative of future results. All investments involve risk, including the possible loss of principal."
+  },
+  {
+    "id": "disc-002",
+    "type": "disclosure",
+    "text": "This material is for informational purposes only and does not constitute investment, legal, or tax advice. Please consult your own advisors before making any financial decisions."
+  },
+  {
+    "id": "disc-003",
+    "type": "disclosure",
+    "text": "Advisory services are offered through [Firm Name], a registered investment adviser. Fees and expenses will reduce returns."
+  },
+  {
+    "id": "disc-004",
+    "type": "disclosure",
+    "text": "This communication is intended solely for the individual(s) named above and may contain confidential information. If you received this in error, please notify the sender immediately."
+  },
+  {
+    "id": "disc-005",
+    "type": "disclosure",
+    "text": "Diversification does not guarantee a profit or protect against loss in a declining market."
+  },
+  {
+    "id": "disc-006",
+    "type": "disclosure",
+    "text": "Any tax information contained herein is not intended to be used, and cannot be used, for the purpose of avoiding penalties under applicable tax law. Consult a qualified tax professional."
+  },
+  {
+    "id": "disc-007",
+    "type": "disclosure",
+    "text": "Insurance products are not deposits, are not FDIC insured, are not guaranteed by any bank, and may lose value."
+  },
+  {
+    "id": "disc-008",
+    "type": "disclosure",
+    "text": "This proposal is not a binding offer and is subject to change without notice. Final terms will be set out in the executed agreement."
+  },
+  {
+    "id": "disc-009",
+    "type": "disclosure",
+    "text": "Hypothetical or model performance results have inherent limitations and do not reflect actual trading. Results may not reflect the impact of material economic and market factors."
+  },
+  {
+    "id": "disc-010",
+    "type": "disclosure",
+    "text": "The information provided does not constitute a solicitation to buy or sell any security in any jurisdiction where such solicitation would be unlawful."
+  },
+  {
+    "id": "disc-011",
+    "type": "disclosure",
+    "text": "Social media posts by advisors must include a disclosure that the content is for educational purposes only and is not personalized investment advice."
+  },
+  {
+    "id": "disc-012",
+    "type": "disclosure",
+    "text": "Client meeting notes documenting investment recommendations must reference the client's stated risk tolerance and investment objectives on file."
+  },
+
+  {
+    "id": "claim-001",
+    "type": "prohibited_claim",
+    "text": "Advisors may not state or imply a guaranteed rate of return on any investment product, including phrases such as 'guaranteed returns' or 'risk-free profit'."
+  },
+  {
+    "id": "claim-002",
+    "type": "prohibited_claim",
+    "text": "Marketing material may not claim a strategy 'always outperforms the market' or use similarly absolute, unqualified performance language."
+  },
+  {
+    "id": "claim-003",
+    "type": "prohibited_claim",
+    "text": "Advisors may not reference a client testimonial that implies future clients will achieve similar investment results, without a clear and prominent disclaimer."
+  },
+  {
+    "id": "claim-004",
+    "type": "prohibited_claim",
+    "text": "Material may not describe an investment as 'safe' or 'no-risk' unless referring specifically to FDIC-insured deposit products within insured limits."
+  },
+  {
+    "id": "claim-005",
+    "type": "prohibited_claim",
+    "text": "Advisors may not claim exclusive access to an investment opportunity ('only available to my clients') where the product is broadly available through the firm."
+  },
+  {
+    "id": "claim-006",
+    "type": "prohibited_claim",
+    "text": "Comparative claims against named competitor firms or products are prohibited unless supported by a documented, sourced comparison available on request."
+  },
+  {
+    "id": "claim-007",
+    "type": "prohibited_claim",
+    "text": "Advisors may not use scarcity or urgency language ('limited time', 'act now before rates change') to pressure a client into an investment decision."
+  },
+  {
+    "id": "claim-008",
+    "type": "prohibited_claim",
+    "text": "Material may not imply a professional credential or designation the advisor does not currently and verifiably hold."
+  },
+  {
+    "id": "claim-009",
+    "type": "prohibited_claim",
+    "text": "Advisors may not state that a proposed strategy is endorsed or approved by a government agency or regulator."
+  },
+  {
+    "id": "claim-010",
+    "type": "prohibited_claim",
+    "text": "Projected or target returns presented without a clearly labeled assumption set (e.g., time horizon, market conditions) are prohibited."
+  },
+
+  {
+    "id": "perf-001",
+    "type": "performance_standard",
+    "text": "Any performance figures presented must specify the time period covered and whether returns are gross or net of fees."
+  },
+  {
+    "id": "perf-002",
+    "type": "performance_standard",
+    "text": "Performance comparisons to a benchmark index must identify the specific index used and note material differences in composition or risk."
+  },
+  {
+    "id": "perf-003",
+    "type": "performance_standard",
+    "text": "Annualized return figures spanning multiple years must be accompanied by year-by-year performance or a clear reference to where it can be obtained."
+  },
+  {
+    "id": "perf-004",
+    "type": "performance_standard",
+    "text": "Backtested or simulated performance must be clearly labeled as hypothetical and must not be presented alongside actual results without a visual distinction."
+  },
+  {
+    "id": "perf-005",
+    "type": "performance_standard",
+    "text": "Performance data must not selectively present only favorable time periods ('cherry-picking') when longer-term data showing losses is available."
+  },
+  {
+    "id": "perf-006",
+    "type": "performance_standard",
+    "text": "Fee schedules referenced alongside performance figures must be current as of the document's date and must not omit any tier applicable to the client."
+  },
+  {
+    "id": "perf-007",
+    "type": "performance_standard",
+    "text": "Any use of the term 'average annual return' must disclose the calculation methodology (e.g., arithmetic vs. compound annual growth rate)."
+  },
+  {
+    "id": "perf-008",
+    "type": "performance_standard",
+    "text": "Proposal letters presenting a target retirement income figure must state the underlying assumptions, including inflation rate and withdrawal rate used."
+  }
+]
