@@ -31,6 +31,8 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
+      - ./data_pipeline:/app/data_pipeline
+      - ./seed:/app/seed
 
   frontend:
     build:
