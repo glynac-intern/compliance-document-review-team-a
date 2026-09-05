@@ -1,0 +1,887 @@
+[
+  {
+    "filename": "doc_001.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_002.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_003.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_004.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_005.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_006.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_007.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_008.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_009.txt",
+    "type": "proposal_letter",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_010.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_011.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_012.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_013.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_014.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_015.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_016.txt",
+    "type": "brochure",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_017.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_018.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_019.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_020.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_021.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_022.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_023.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_024.txt",
+    "type": "proposal_letter",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_025.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_026.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_027.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_028.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_029.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_030.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_031.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_032.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_033.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_034.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_035.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_036.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_037.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_038.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_039.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_040.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_041.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_042.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_043.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_044.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_045.txt",
+    "type": "marketing_email",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_046.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_047.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_048.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_049.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_050.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_051.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_052.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_053.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_054.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_055.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_056.txt",
+    "type": "brochure",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_057.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_058.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_059.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_060.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_061.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_062.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_063.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_064.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_065.txt",
+    "type": "marketing_email",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_066.txt",
+    "type": "brochure",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_067.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_068.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_069.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_070.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_071.txt",
+    "type": "brochure",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_072.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_073.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_074.txt",
+    "type": "proposal_letter",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_075.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_076.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_077.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_078.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_079.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_080.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_081.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_082.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_083.txt",
+    "type": "meeting_notes",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_084.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_085.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_086.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_087.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_088.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_089.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_090.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_091.txt",
+    "type": "brochure",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_092.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_093.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_094.txt",
+    "type": "proposal_letter",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": true
+  },
+  {
+    "filename": "doc_095.txt",
+    "type": "marketing_email",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_096.txt",
+    "type": "brochure",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_097.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_098.txt",
+    "type": "meeting_notes",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_099.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "prohibited_claim",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false
+  },
+  {
+    "filename": "doc_100.txt",
+    "type": "marketing_email",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false
+  }
+]
