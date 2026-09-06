@@ -13,7 +13,7 @@ import json
 
 from google.genai import types
 
-GENERATION_MODEL = "gemini-3.6-flash"
+GENERATION_MODEL = "gemini-3.5-flash-lite"
 
 FLAG_PROMPT_TEMPLATE = """You are a compliance assistant reviewing a passage from a financial advisor's client-facing document. You are NOT making a final decision -- a human compliance officer will review your output.
 
@@ -53,14 +53,22 @@ def generate_flags_for_chunk(client, passage: str, candidate_rules) -> list[dict
         rules_block=_format_rules_block(candidate_rules),
     )
 
-    response = client.models.generate_content(
-        model=GENERATION_MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.1,
-        ),
-    )
+    import time
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model=GENERATION_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.1,
+                ),
+            )
+            break
+        except Exception:
+            if attempt == 2:
+                raise
+            time.sleep(2 ** attempt)
 
     try:
         raw_flags = json.loads(response.text)
