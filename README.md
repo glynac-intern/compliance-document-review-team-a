@@ -1,2 +1,109 @@
 # Compliance Document Review App
-Team A — Glynac Capture the Flag intern challenge
+
+Glynac Capture the Flag intern challenge — Team A.
+
+An internal tool for financial advisors to submit client-facing documents
+for compliance review, with an AI assist (summary, flags, PII masking,
+disclosure-by-absence detection) to help officers review faster and more
+consistently.
+
+## Prerequisites
+
+- Docker Desktop (with WSL2 integration if on Windows)
+- A Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+  (free tier is sufficient for development)
+
+## Setup
+
+1. **Clone the repo:**
+   ```bash
+   git clone https://github.com/aufa-glynac/compliance-document-review-team-a.git
+   cd compliance-document-review-team-a
+   ```
+
+2. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` and set:
+   - `POSTGRES_PASSWORD` — any value
+   - `BACKEND_SECRET_KEY` — generate one with `openssl rand -hex 32`
+   - `LLM_API_KEY` — your Gemini API key from Google AI Studio
+
+3. **Start the database and backend:**
+   ```bash
+   docker compose up -d db backend
+   ```
+
+4. **Run database migrations:**
+   ```bash
+   docker compose run --rm backend alembic upgrade head
+   ```
+
+5. **Seed the rules/disclosures corpus** (required for retrieval and
+   disclosure-by-absence detection to work):
+   ```bash
+   docker compose run --rm backend python data_pipeline/embeddings/embed_rules.py
+   ```
+
+6. **Verify the backend is running:**
+   ```bash
+   curl http://localhost:8000/health
+   ```
+   Should return `{"status":"ok"}`.
+
+7. **Start the frontend** (once its own Dockerfile/service is ready):
+   ```bash
+   docker compose up -d frontend
+   ```
+   Visit `http://localhost:3000`.
+
+## Running tests
+
+```bash
+docker compose run --rm backend pytest tests/ -v
+```
+
+Covers the role boundary (advisor/officer access enforcement, tested in
+both directions) and the PII masker (entity detection, documented
+limitations, round-trip unmasking). Tests run against a dedicated test
+database (`compliance_test_db`), created automatically on first run —
+separate from your dev data.
+
+## API documentation
+
+With the backend running, interactive API docs (Swagger UI) are available
+at `http://localhost:8000/docs`.
+
+## Project structure
+
+```
+backend/            FastAPI app: auth, documents, reviews, audit, notifications
+ai/                 PII masking, LLM-based flag generation, summarization
+data_pipeline/       Text extraction, chunking, embeddings, retrieval
+seed/               Rules/disclosures corpus, generated sample documents
+frontend/           Next.js frontend
+```
+
+## Current status
+
+- **Backend**: auth (JWT, role-based), document submission/revision/audit
+  trail, officer review queue and decisions — built and tested.
+- **AI pipeline**: PII masking, rule retrieval, disclosure-by-absence
+  detection (paragraph-chunked, threshold=0.20, validated at 100% accuracy
+  on the seed corpus), flag generation, and summarization — built, wired
+  into the API with caching and graceful degradation, and tested.
+- **Frontend**: Next.js app scaffolded and containerized.
+- **Tests**: role boundary and PII masker covered (18 tests). Broader
+  coverage (documents CRUD, revisions, disclosure-by-absence integration)
+  not yet automated.
+
+## Notes on the AI setup
+
+- LLM calls use `gemini-3.5-flash-lite` (chosen for its higher free-tier
+  rate limit — 15 RPM vs. 5 RPM on some other models — since this project
+  makes several calls per document during development/testing).
+- The Gemini free tier requires no billing account; exceeding quota
+  returns a `429` error rather than incurring any charge.
+- PII is masked server-side before any text reaches the LLM vendor. The
+  mapping between placeholders and real values never leaves the server.

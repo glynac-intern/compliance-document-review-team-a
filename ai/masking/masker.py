@@ -57,8 +57,16 @@ def mask_pii(text: str) -> tuple[str, dict[str, str]]:
     def _replace(pattern: re.Pattern, label: str, text_in: str, group: int = 0) -> str:
         def _sub(match: re.Match) -> str:
             counters[label] += 1
+            value = match.group(group) if group else match.group(0)
             placeholder = f"[{label}_{counters[label]}]"
-            mapping[placeholder] = match.group(group) if group else match.group(0)
+            mapping[placeholder] = value
+            if group:
+                # Only swap the captured value within the full match --
+                # preserves surrounding literal text (e.g. "Dear Mr. ",
+                # "account #") so unmask_for_display can restore the
+                # ORIGINAL text exactly, not just the extracted value.
+                full_match = match.group(0)
+                return full_match.replace(value, placeholder, 1)
             return placeholder
         return pattern.sub(_sub, text_in)
 

@@ -1,3 +1,4 @@
+import sys
 import uuid
 from pathlib import Path
 
@@ -5,9 +6,15 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User
+from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, AIAnalysis, Flag
 from auth.dependencies import get_current_user, require_role
 from documents.schemas import DocumentResponse
+from documents.analysis_schemas import AnalysisResponse
+
+sys.path.insert(0, "/app/data_pipeline/extraction")
+sys.path.insert(0, "/app/ai/compliance")
+from extract import extract_text
+from analyze_document import analyze_text
 
 router = APIRouter()
 
@@ -37,6 +44,50 @@ def _save_upload(file: UploadFile, document_id: uuid.UUID) -> tuple[str, Documen
     with open(file_path, "wb") as f:
         f.write(contents)
     return str(file_path), ALLOWED_CONTENT_TYPES[file.content_type]
+
+
+def _check_document_access(document: Document, current_user: User):
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if current_user.role.value == "advisor" and document.advisor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to view this document")
+
+
+def _run_analysis(db: Session, document: Document) -> tuple[str, list[dict]]:
+    """
+    Runs the pipeline only -- makes NO database writes. Raises
+    HTTPException(503) on any failure. Separated from persistence so that
+    a failed retry can never delete existing good data: callers must get a
+    successful result here BEFORE touching any existing cached analysis.
+    """
+    try:
+        raw_text = extract_text(document.file_reference, document.type.value)
+        summary, flags_data, _mapping = analyze_text(db, raw_text)
+        return summary, flags_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Analysis service is currently unavailable. Please retry. ({type(e).__name__})",
+        )
+
+
+def _persist_analysis(db: Session, document_id: uuid.UUID, summary: str, flags_data: list[dict]) -> AIAnalysis:
+    analysis = AIAnalysis(document_id=document_id, summary=summary)
+    db.add(analysis)
+    db.flush()  # get analysis.id before creating flags
+
+    for f in flags_data:
+        db.add(Flag(
+            analysis_id=analysis.id,
+            passage_excerpt=f["passage"],
+            matched_rule_id=f["rule_id"],
+            explanation=f["explanation"],
+            severity=f["severity"],
+        ))
+
+    db.commit()
+    db.refresh(analysis)
+    return analysis
 
 
 @router.post("", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
@@ -79,10 +130,7 @@ def get_document(
     db: Session = Depends(get_db),
 ):
     document = db.query(Document).filter(Document.id == document_id).first()
-    if document is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if current_user.role.value == "advisor" and document.advisor_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to view this document")
+    _check_document_access(document, current_user)
     return document
 
 
@@ -128,14 +176,43 @@ def submit_revision(
     return revision
 
 
-@router.get("/{document_id}/analysis")
-def get_analysis(document_id: uuid.UUID):
-    raise HTTPException(status_code=501, detail="Not implemented yet")
+@router.get("/{document_id}/analysis", response_model=AnalysisResponse)
+def get_analysis(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    existing = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
+    if existing is not None:
+        return existing  # cached -- do not re-call the LLM
+
+    summary, flags_data = _run_analysis(db, document)
+    return _persist_analysis(db, document.id, summary, flags_data)
 
 
-@router.post("/{document_id}/analysis/retry")
-def retry_analysis(document_id: uuid.UUID):
-    raise HTTPException(status_code=501, detail="Not implemented yet")
+@router.post("/{document_id}/analysis/retry", response_model=AnalysisResponse)
+def retry_analysis(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    # Run the new analysis FIRST -- if this raises 503, we return early and
+    # the existing cached analysis (if any) is left completely untouched.
+    summary, flags_data = _run_analysis(db, document)
+
+    existing = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
+    if existing is not None:
+        db.query(Flag).filter(Flag.analysis_id == existing.id).delete()
+        db.delete(existing)
+        db.flush()
+
+    return _persist_analysis(db, document.id, summary, flags_data)
 
 
 @router.get("/{document_id}/audit")
@@ -145,10 +222,7 @@ def get_document_audit(
     db: Session = Depends(get_db),
 ):
     document = db.query(Document).filter(Document.id == document_id).first()
-    if document is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if current_user.role.value == "advisor" and document.advisor_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to view this document")
+    _check_document_access(document, current_user)
 
     thread_document_ids = [
         d.id for d in db.query(Document.id).filter(Document.thread_id == document.thread_id).all()
