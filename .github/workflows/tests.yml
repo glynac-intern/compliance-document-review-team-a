@@ -67,6 +67,7 @@ jobs:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script_stop: true
           script: |
             cd ~/compliance-document-review-team-a
             git pull origin main
