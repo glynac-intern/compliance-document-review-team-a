@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, AIAnalysis, Flag
+from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, AIAnalysis, Flag, Review
+from reviews.schemas import ReviewResponse
 from auth.dependencies import get_current_user, require_role
 from documents.schemas import DocumentResponse
 from documents.analysis_schemas import AnalysisResponse
@@ -244,3 +245,25 @@ def get_document_audit(
         }
         for e in events
     ]
+
+
+@router.get("/{document_id}/reviews", response_model=list[ReviewResponse])
+def get_document_reviews(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    thread_document_ids = [
+        d.id for d in db.query(Document.id).filter(Document.thread_id == document.thread_id).all()
+    ]
+
+    reviews = (
+        db.query(Review)
+        .filter(Review.document_id.in_(thread_document_ids))
+        .order_by(Review.decided_at)
+        .all()
+    )
+    return reviews
