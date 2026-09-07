@@ -1,4 +1,4 @@
-name: Tests
+name: Tests and Deploy
 
 on:
   push:
@@ -54,3 +54,22 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose down -v
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            cd ~/compliance-document-review-team-a
+            git pull origin main
+            docker compose up -d db backend
+            docker compose run --rm backend alembic upgrade head
+            echo "Deploy complete"
