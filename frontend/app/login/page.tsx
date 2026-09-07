@@ -220,18 +220,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Footer Controls — Minimal Floating Carousel Bar Matching Image */}
+          {/* Footer Controls — Pill indicators on the left, paired arrows on the right */}
           <div className="relative z-20 flex items-center justify-between pt-2">
-            {/* Previous Arrow */}
-            <button
-              type="button"
-              onClick={prevSlide}
-              aria-label="Previous card"
-              className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-
             {/* Pill Indicators */}
             <div className="flex items-center gap-1.5">
               {PROJECT_CARDS.map((_, idx) => (
@@ -249,15 +239,25 @@ export default function LoginPage() {
               ))}
             </div>
 
-            {/* Next Arrow */}
-            <button
-              type="button"
-              onClick={nextSlide}
-              aria-label="Next card"
-              className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            {/* Navigation Arrows Grouped on Right with Space Between Them */}
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={prevSlide}
+                aria-label="Previous card"
+                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={nextSlide}
+                aria-label="Next card"
+                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
