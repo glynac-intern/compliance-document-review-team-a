@@ -34,6 +34,30 @@ def _cosine_distance(a: list[float], b: list[float]) -> float:
     return 1 - (dot / (norm_a * norm_b))
 
 
+def detect_missing_disclosures(chunk_embeddings: list, disclosure_rules: list) -> list[dict]:
+    """
+    Evaluates EACH disclosure rule independently against every chunk.
+    Returns one flag dict per rule whose best (closest) match across all
+    chunks still exceeds the threshold -- i.e. genuinely missing.
+
+    Pure function of embeddings + rules, no DB/API calls -- deterministic
+    and unit-testable without a live embedding call.
+    """
+    missing_flags = []
+    for rule in disclosure_rules:
+        best_distance_for_rule = min(
+            _cosine_distance(chunk_emb, rule.embedding) for chunk_emb in chunk_embeddings
+        )
+        if best_distance_for_rule > DISCLOSURE_ABSENCE_THRESHOLD:
+            missing_flags.append({
+                "passage": "(No matching disclosure language found anywhere in this document.)",
+                "rule_id": str(rule.id),
+                "explanation": f"Required disclosure not found: \"{rule.text}\"",
+                "severity": "high",
+            })
+    return missing_flags
+
+
 def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict]:
     """
     Returns (summary, flags, mapping).
@@ -65,25 +89,13 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict]:
                 "severity": cf["severity"],
             })
 
-    # Disclosure-by-absence: check the closest match across ALL chunks
-    # against ALL disclosure rules; flag if nothing is close enough.
+    # Disclosure-by-absence: each required disclosure is evaluated
+    # INDEPENDENTLY (see detect_missing_disclosures) -- a document with one
+    # boilerplate disclosure present must still be flagged for every OTHER
+    # required disclosure it's missing, not pass clean because of the one
+    # close match.
     if disclosure_rules and chunk_embeddings:
-        best_distance = None
-        best_rule = None
-        for chunk_emb in chunk_embeddings:
-            for rule in disclosure_rules:
-                d = _cosine_distance(chunk_emb, rule.embedding)
-                if best_distance is None or d < best_distance:
-                    best_distance = d
-                    best_rule = rule
-
-        if best_distance > DISCLOSURE_ABSENCE_THRESHOLD:
-            all_flags.append({
-                "passage": "(No matching disclosure language found anywhere in this document.)",
-                "rule_id": str(best_rule.id),
-                "explanation": f"Required disclosure not found: \"{best_rule.text}\"",
-                "severity": "high",
-            })
+        all_flags.extend(detect_missing_disclosures(chunk_embeddings, disclosure_rules))
 
     summary = generate_summary(client, masked_text)
 
