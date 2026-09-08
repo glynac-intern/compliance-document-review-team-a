@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, AIAnalysis, Flag, Review
+from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, AIAnalysis, Flag, Review, PIIMapping
 from reviews.schemas import ReviewResponse
 from auth.dependencies import get_current_user, require_role
 from documents.schemas import DocumentResponse
@@ -64,7 +64,7 @@ def _check_document_access(document: Document, current_user: User):
         raise HTTPException(status_code=403, detail="Not authorized to view this document")
 
 
-def _run_analysis(db: Session, document: Document) -> tuple[str, list[dict]]:
+def _run_analysis(db: Session, document: Document) -> tuple[str, list[dict], dict]:
     """
     Runs the pipeline only -- makes NO database writes. Raises
     HTTPException(503) on any failure. Separated from persistence so that
@@ -73,8 +73,8 @@ def _run_analysis(db: Session, document: Document) -> tuple[str, list[dict]]:
     """
     try:
         raw_text = extract_text(document.file_reference, document.type.value)
-        summary, flags_data, _mapping = analyze_text(db, raw_text)
-        return summary, flags_data
+        summary, flags_data, mapping = analyze_text(db, raw_text)
+        return summary, flags_data, mapping
     except Exception as e:
         raise HTTPException(
             status_code=503,
@@ -82,7 +82,13 @@ def _run_analysis(db: Session, document: Document) -> tuple[str, list[dict]]:
         )
 
 
-def _persist_analysis(db: Session, document_id: uuid.UUID, summary: str, flags_data: list[dict]) -> AIAnalysis:
+def _persist_analysis(
+    db: Session,
+    document_id: uuid.UUID,
+    summary: str,
+    flags_data: list[dict],
+    mapping: dict,
+) -> AIAnalysis:
     analysis = AIAnalysis(document_id=document_id, summary=summary)
     db.add(analysis)
     db.flush()  # get analysis.id before creating flags
@@ -94,6 +100,15 @@ def _persist_analysis(db: Session, document_id: uuid.UUID, summary: str, flags_d
             matched_rule_id=f["rule_id"],
             explanation=f["explanation"],
             severity=f["severity"],
+        ))
+
+    # Persist the PII mapping server-side, for the life of the document.
+    # NEVER exposed via any API response -- only ever read back internally.
+    for placeholder, original_value in mapping.items():
+        db.add(PIIMapping(
+            document_id=document_id,
+            placeholder=placeholder,
+            original_value=original_value,
         ))
 
     db.commit()
@@ -230,8 +245,8 @@ def get_analysis(
     if existing is not None:
         return existing  # cached -- do not re-call the LLM
 
-    summary, flags_data = _run_analysis(db, document)
-    return _persist_analysis(db, document.id, summary, flags_data)
+    summary, flags_data, mapping = _run_analysis(db, document)
+    return _persist_analysis(db, document.id, summary, flags_data, mapping)
 
 
 @router.post("/{document_id}/analysis/retry", response_model=AnalysisResponse)
@@ -245,7 +260,7 @@ def retry_analysis(
 
     # Run the new analysis FIRST -- if this raises 503, we return early and
     # the existing cached analysis (if any) is left completely untouched.
-    summary, flags_data = _run_analysis(db, document)
+    summary, flags_data, mapping = _run_analysis(db, document)
 
     existing = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
     if existing is not None:
@@ -253,7 +268,10 @@ def retry_analysis(
         db.delete(existing)
         db.flush()
 
-    return _persist_analysis(db, document.id, summary, flags_data)
+    # Replace the old mapping rather than duplicating them.
+    db.query(PIIMapping).filter(PIIMapping.document_id == document_id).delete()
+
+    return _persist_analysis(db, document.id, summary, flags_data, mapping)
 
 
 @router.get("/{document_id}/audit")
