@@ -1,4 +1,5 @@
 import sys
+import os
 import uuid
 from pathlib import Path
 
@@ -20,7 +21,7 @@ from analyze_document import analyze_text
 
 router = APIRouter()
 
-UPLOAD_DIR = Path("/app/uploads")
+UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "/app/uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
