@@ -5,10 +5,19 @@ from typing import Optional
 from pydantic import BaseModel
 
 
+class MatchedRuleResponse(BaseModel):
+    id: uuid.UUID
+    text: str
+    type: str
+
+    class Config:
+        from_attributes = True
+
+
 class FlagResponse(BaseModel):
     id: uuid.UUID
     passage_excerpt: str
-    matched_rule_id: Optional[uuid.UUID]
+    matched_rule: Optional[MatchedRuleResponse]
     explanation: str
     severity: str
 
