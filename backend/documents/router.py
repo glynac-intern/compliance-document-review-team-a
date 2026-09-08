@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -27,6 +28,14 @@ ALLOWED_CONTENT_TYPES = {
     "application/pdf": DocumentType.pdf,
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": DocumentType.docx,
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": DocumentType.xlsx,
+}
+
+# Reverse lookup: DocumentType -> content-type, for serving files back out
+DOCUMENT_TYPE_MEDIA_TYPES = {v: k for k, v in ALLOWED_CONTENT_TYPES.items()}
+DOCUMENT_TYPE_EXTENSIONS = {
+    DocumentType.pdf: "pdf",
+    DocumentType.docx: "docx",
+    DocumentType.xlsx: "xlsx",
 }
 
 
@@ -133,6 +142,36 @@ def get_document(
     document = db.query(Document).filter(Document.id == document_id).first()
     _check_document_access(document, current_user)
     return document
+
+
+@router.get("/{document_id}/file")
+def download_document_file(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Streams the original uploaded file. The path served is ALWAYS
+    document.file_reference from the database -- never anything derived
+    from the request -- so a client cannot influence which file on disk
+    gets read.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    file_path = Path(document.file_reference)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on server")
+
+    ext = DOCUMENT_TYPE_EXTENSIONS.get(document.type, "bin")
+    filename = f"document-{document.id}.{ext}"
+    media_type = DOCUMENT_TYPE_MEDIA_TYPES.get(document.type, "application/octet-stream")
+
+    return FileResponse(
+        path=file_path,
+        media_type=media_type,
+        filename=filename,
+    )
 
 
 @router.post("/{document_id}/revisions", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
