@@ -4,8 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import {
   Layers2,
-  Files,
-  History,
+  File,
   BarChart2,
   Settings,
   PanelLeft,
@@ -13,6 +12,32 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VerityLogo, VerityMark } from "@/components/ui/verity-logo";
+
+// Bespoke minimal and elegant history icon with clean counter-clockwise arc and delicate time hands
+function HistoryIcon({
+  className,
+  strokeWidth = 1.8,
+}: {
+  className?: string;
+  strokeWidth?: number;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("h-5 w-5 shrink-0 transition-transform duration-150 group-hover:scale-105", className)}
+      aria-hidden="true"
+    >
+      <path d="M12 3.5a8.5 8.5 0 1 1-6.5 3.2" />
+      <polyline points="2.5 6.2 5.5 6.7 6 3.5" />
+      <polyline points="12 7.5 12 12 15 13.5" />
+    </svg>
+  );
+}
 
 // Standard document upload icon matching hand-drawn sketch:
 // - Filled document body in primary theme color (#1e4c77)
@@ -64,10 +89,11 @@ interface SidebarProps {
   mobileOpen: boolean;
   onCloseMobile: () => void;
   onNewSubmissionClick?: () => void;
+  onHistoryClick?: () => void;
   onActivityHistoryClick?: () => void;
   onMetricsClick?: () => void;
-  activeView?: "overview" | "my_submissions" | "new_submission" | "activity_history" | "metrics";
-  onSelectView?: (view: "overview" | "my_submissions" | "new_submission" | "activity_history" | "metrics") => void;
+  activeView?: "overview" | "my_submissions" | "new_submission" | "history" | "metrics";
+  onSelectView?: (view: "overview" | "my_submissions" | "new_submission" | "history" | "metrics") => void;
 }
 
 export function Sidebar({
@@ -76,28 +102,27 @@ export function Sidebar({
   mobileOpen,
   onCloseMobile,
   onNewSubmissionClick,
+  onHistoryClick,
   onActivityHistoryClick,
   onMetricsClick,
   activeView = "overview",
   onSelectView,
 }: SidebarProps) {
-  // Sleek, minimal navigation items with adequate line structures and inviting action
-  const workspaceItems = [
+  const handleHistory = onHistoryClick || onActivityHistoryClick;
+
+  // Single unified navigation list with exact requested order:
+  // 1. Overview
+  // 2. New submission
+  // 3. My submission
+  // 4. Metrics
+  // 5. History
+  const navItems = [
     {
       id: "overview" as const,
       label: "Overview",
       icon: Layers2,
       onClick: () => {
         onSelectView?.("overview");
-        onCloseMobile();
-      },
-    },
-    {
-      id: "my_submissions" as const,
-      label: "My submission",
-      icon: Files,
-      onClick: () => {
-        onSelectView?.("my_submissions");
         onCloseMobile();
       },
     },
@@ -111,16 +136,12 @@ export function Sidebar({
         onCloseMobile();
       },
     },
-  ];
-
-  const analysisItems = [
     {
-      id: "activity_history" as const,
-      label: "Activity history",
-      icon: History,
+      id: "my_submissions" as const,
+      label: "My submission",
+      icon: File,
       onClick: () => {
-        onSelectView?.("activity_history");
-        onActivityHistoryClick?.();
+        onSelectView?.("my_submissions");
         onCloseMobile();
       },
     },
@@ -131,6 +152,16 @@ export function Sidebar({
       onClick: () => {
         onSelectView?.("metrics");
         onMetricsClick?.();
+        onCloseMobile();
+      },
+    },
+    {
+      id: "history" as const,
+      label: "History",
+      icon: HistoryIcon,
+      onClick: () => {
+        onSelectView?.("history");
+        handleHistory?.();
         onCloseMobile();
       },
     },
@@ -166,7 +197,7 @@ export function Sidebar({
               aria-label="Collapse sidebar"
               className="h-9 w-9 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5"
             >
-              <PanelLeft className="h-5 w-5 stroke-[2]" />
+              <PanelLeft className="h-5 w-5 stroke-[1.8]" />
             </button>
           ) : null}
 
@@ -190,12 +221,12 @@ export function Sidebar({
               aria-label="Expand sidebar"
               className="h-9 w-9 rounded-xl text-slate-500 hover:text-[#1e4c77] hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center transition-all cursor-pointer"
             >
-              <PanelLeft className="h-5 w-5 stroke-[2]" />
+              <PanelLeft className="h-5 w-5 stroke-[1.8]" />
             </button>
           </div>
         )}
 
-        {/* SECTION 1: Workspace (CamelCase, non-bold, elegant Inter) */}
+        {/* Workspace Navigation Group (Consolidated single list with exact order) */}
         <div className="mt-5">
           {!isCollapsed && (
             <p className="px-2.5 text-xs text-slate-400 font-normal font-inter mb-1.5 tracking-normal">
@@ -204,7 +235,7 @@ export function Sidebar({
           )}
 
           <nav className="space-y-1">
-            {workspaceItems.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeView === item.id;
 
@@ -236,47 +267,6 @@ export function Sidebar({
             })}
           </nav>
         </div>
-
-        {/* SECTION 2: Analysis (CamelCase, non-bold, elegant Inter) */}
-        <div className="mt-6">
-          {!isCollapsed && (
-            <p className="px-2.5 text-xs text-slate-400 font-normal font-inter mb-1.5 tracking-normal">
-              Analysis
-            </p>
-          )}
-
-          <nav className="space-y-1">
-            {analysisItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeView === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={item.onClick}
-                  title={isCollapsed ? item.label : undefined}
-                  className={cn(
-                    "group w-full flex items-center gap-3 rounded-xl px-2.5 py-2 text-[13.5px] transition-all duration-150 cursor-pointer text-left font-inter",
-                    isActive
-                      ? "bg-[#1e4c77] text-white shadow-xs font-medium"
-                      : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-900 font-normal",
-                    isCollapsed && "justify-center px-0 py-2.5"
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "h-5 w-5 shrink-0 transition-transform duration-150 group-hover:scale-105",
-                      isActive ? "text-white" : "text-[#1e4c77]"
-                    )}
-                    strokeWidth={1.8}
-                  />
-                  {!isCollapsed && <span className="truncate tracking-normal font-inter">{item.label}</span>}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
       </div>
 
       {/* BOTTOM FOOTER */}
@@ -289,11 +279,11 @@ export function Sidebar({
         >
           {/* Avatar and Name */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-7 w-7 rounded-full bg-[#1e4c77] text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-xs font-inter">
+            <div className="h-7 w-7 rounded-full bg-[#1e4c77] text-white font-medium text-[11px] flex items-center justify-center shrink-0 shadow-xs font-inter">
               JA
             </div>
             {!isCollapsed && (
-              <span className="text-[13px] font-semibold text-slate-900 truncate font-inter">
+              <span className="text-[13px] font-normal text-slate-800 truncate font-inter">
                 James A
               </span>
             )}
@@ -310,7 +300,7 @@ export function Sidebar({
               isCollapsed && "mt-1"
             )}
           >
-            <Settings className="h-4 w-4 stroke-[2]" />
+            <Settings className="h-4 w-4 stroke-[1.8]" />
           </button>
         </div>
       </div>

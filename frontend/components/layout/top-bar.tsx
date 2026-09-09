@@ -147,8 +147,8 @@ export function TopBar({
         </nav>
       </div>
 
-      {/* Right: Reusable Utility Action Cluster — Bigger buttons with more space between them */}
-      <div className="flex items-center gap-3 sm:gap-3.5">
+      {/* Right: Reusable Utility Action Cluster — Elegant rounded-2xl buttons matching Screenshot 1 */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {/* Refresh Icon Button (Sleek reload transition and theme active state) */}
         <button
           type="button"
@@ -156,15 +156,15 @@ export function TopBar({
           disabled={isRefreshing}
           title="Refresh compliance queue"
           className={cn(
-            "h-9.5 w-9.5 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer disabled:opacity-50 border",
+            "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer disabled:opacity-50 border shadow-2xs",
             isRefreshing
               ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs scale-[0.98]"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-[#1e4c77] active:text-white active:scale-95 border-transparent hover:border-slate-200"
+              : "bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:bg-[#1e4c77] active:text-white active:scale-95"
           )}
         >
           <RotateCw
             className={cn(
-              "h-4 w-4 stroke-[2.2] transition-transform",
+              "h-[18px] w-[18px] stroke-[1.8] transition-transform",
               isRefreshing && "animate-sleek-spin"
             )}
           />
@@ -177,45 +177,45 @@ export function TopBar({
             onClick={() => setShowCalendar(!showCalendar)}
             title="Regulatory Calendar & Deadlines"
             className={cn(
-              "h-9.5 w-9.5 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer border",
+              "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer border shadow-2xs",
               showCalendar
                 ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-[#1e4c77] active:text-white active:scale-95 border-transparent hover:border-slate-200"
+                : "bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:bg-[#1e4c77] active:text-white active:scale-95"
             )}
           >
-            <CalendarIcon className="h-4 w-4 stroke-[2]" />
+            <CalendarIcon className="h-[18px] w-[18px] stroke-[1.8]" />
           </button>
 
           {/* Calendar Popover */}
           {showCalendar && (
-            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 text-[#2575bc]" />
-                  <h3 className="text-[13px] font-bold text-slate-900">
+                  <CalendarIcon className="h-4 w-4 text-[#1e4c77] stroke-[1.8]" />
+                  <h3 className="text-[13px] font-normal text-slate-800 font-inter">
                     Regulatory Deadlines
                   </h3>
                 </div>
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[11px] font-normal text-slate-400 font-inter">
                   Q1 2026
                 </span>
               </div>
 
-              <div className="space-y-2.5 pt-2.5">
+              <div className="space-y-2 pt-2.5">
                 {calendarEvents.map((evt, idx) => (
                   <div
                     key={idx}
                     className="p-2.5 rounded-xl border border-slate-100 bg-[#f8fafc] hover:border-slate-200 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold tracking-wider text-[#1e4c77] uppercase font-roboto">
+                      <span className="text-[11px] font-normal text-[#1e4c77] font-inter">
                         {evt.type}
                       </span>
-                      <span className="text-[11px] font-semibold text-slate-700 font-sans tabular-nums">
+                      <span className="text-[11px] font-normal text-slate-500 font-numbers tabular-nums">
                         {evt.date}
                       </span>
                     </div>
-                    <p className="text-[12px] font-medium text-slate-900 leading-snug">
+                    <p className="text-[12px] font-normal text-slate-700 leading-snug font-inter">
                       {evt.title}
                     </p>
                   </div>
@@ -232,17 +232,17 @@ export function TopBar({
             onClick={() => setShowNotifications(!showNotifications)}
             title="Notifications"
             className={cn(
-              "relative h-9.5 w-9.5 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer border",
+              "relative h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer border shadow-2xs",
               showNotifications
                 ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-[#1e4c77] active:text-white active:scale-95 border-transparent hover:border-slate-200"
+                : "bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:bg-[#1e4c77] active:text-white active:scale-95"
             )}
           >
-            <Bell className="h-4 w-4 stroke-[2]" />
+            <Bell className="h-[18px] w-[18px] stroke-[1.8]" />
             {unreadCount > 0 && (
               <span
                 className={cn(
-                  "absolute top-2 right-2 h-2 w-2 rounded-full transition-colors",
+                  "absolute top-2 right-2 h-2.5 w-2.5 rounded-full transition-colors",
                   showNotifications
                     ? "bg-white ring-2 ring-[#1e4c77]"
                     : "bg-[#1e4c77] ring-2 ring-white"
@@ -253,12 +253,12 @@ export function TopBar({
 
           {/* Notifications Popover */}
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[13px] font-bold text-slate-900">Notifications</h3>
+                  <h3 className="text-[13px] font-normal text-slate-800 font-inter">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="rounded-full bg-[#2575bc]/10 px-2 py-0.5 text-[10px] font-bold text-[#2575bc]">
+                    <span className="rounded-full bg-[#ebf4fb] px-2 py-0.5 text-[10px] font-normal text-[#1e4c77] font-inter">
                       {unreadCount} new
                     </span>
                   )}
@@ -267,45 +267,45 @@ export function TopBar({
                   <button
                     type="button"
                     onClick={() => setUnreadCount(0)}
-                    className="text-[11px] font-medium text-[#2575bc] hover:underline"
+                    className="text-[11px] font-normal text-[#1e4c77] hover:underline font-inter cursor-pointer"
                   >
                     Mark all read
                   </button>
                 )}
               </div>
 
-              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto pt-1">
+              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto pt-1 font-inter">
                 {notifications.map((item) => (
                   <div
                     key={item.id}
-                    className="py-2.5 px-1 hover:bg-slate-50/80 rounded-lg transition-colors"
+                    className="py-2.5 px-1 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer"
                   >
                     <div className="flex items-start gap-2.5">
                       <div
                         className={cn(
                           "mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px]",
-                          item.type === "warning" && "bg-amber-100 text-amber-800",
-                          item.type === "success" && "bg-emerald-100 text-emerald-800",
-                          item.type === "info" && "bg-blue-100 text-[#1e4c77]"
+                          item.type === "warning" && "bg-amber-50 text-amber-800 border border-amber-200",
+                          item.type === "success" && "bg-emerald-50 text-emerald-800 border border-emerald-200",
+                          item.type === "info" && "bg-blue-50 text-[#1e4c77] border border-blue-200"
                         )}
                       >
-                        {item.type === "warning" && <AlertCircle className="h-3 w-3" />}
-                        {item.type === "success" && <Check className="h-3 w-3" />}
-                        {item.type === "info" && <Clock className="h-3 w-3" />}
+                        {item.type === "warning" && <AlertCircle className="h-3 w-3 stroke-[1.8]" />}
+                        {item.type === "success" && <Check className="h-3 w-3 stroke-[2]" />}
+                        {item.type === "info" && <Clock className="h-3 w-3 stroke-[1.8]" />}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 font-inter">
                         <div className="flex items-center justify-between">
-                          <p className="text-[12px] font-semibold text-slate-900 truncate">
+                          <p className="text-[12px] font-normal text-slate-800 truncate font-inter">
                             {item.title}
                           </p>
-                          <span className="text-[10px] text-slate-400 shrink-0 font-roboto">
+                          <span className="text-[10px] text-slate-400 shrink-0 font-inter font-normal">
                             {item.time}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-600 truncate mt-0.5">
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5 font-inter font-normal">
                           {item.document}
                         </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-inter font-normal">
                           Officer: {item.officer}
                         </p>
                       </div>
