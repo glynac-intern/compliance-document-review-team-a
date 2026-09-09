@@ -1,6 +1,7 @@
-import sys
 import os
+import sys
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
@@ -8,11 +9,14 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, AIAnalysis, Flag, Review, PIIMapping
-from reviews.schemas import ReviewResponse
+from models import (
+    Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User,
+    AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus,
+)
 from auth.dependencies import get_current_user, require_role
 from documents.schemas import DocumentResponse
 from documents.analysis_schemas import AnalysisResponse
+from reviews.schemas import ReviewResponse
 
 sys.path.insert(0, "/app/data_pipeline/extraction")
 sys.path.insert(0, "/app/ai/compliance")
@@ -31,7 +35,6 @@ ALLOWED_CONTENT_TYPES = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": DocumentType.xlsx,
 }
 
-# Reverse lookup: DocumentType -> content-type, for serving files back out
 DOCUMENT_TYPE_MEDIA_TYPES = {v: k for k, v in ALLOWED_CONTENT_TYPES.items()}
 DOCUMENT_TYPE_EXTENSIONS = {
     DocumentType.pdf: "pdf",
@@ -64,34 +67,41 @@ def _check_document_access(document: Document, current_user: User):
         raise HTTPException(status_code=403, detail="Not authorized to view this document")
 
 
-def _run_analysis(db: Session, document: Document) -> tuple[str, list[dict], dict]:
+def _execute_pipeline(db: Session, document: Document) -> tuple[str, list[dict], dict]:
+    """Runs extraction + the full analysis pipeline. Raises the RAW
+    exception on failure -- no HTTPException conversion here, so the
+    caller can capture real error detail to persist."""
+    raw_text = extract_text(document.file_reference, document.type.value)
+    summary, flags_data, mapping = analyze_text(db, raw_text)
+    return summary, flags_data, mapping
+
+
+def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> AIAnalysis:
     """
-    Runs the pipeline only -- makes NO database writes. Raises
-    HTTPException(503) on any failure. Separated from persistence so that
-    a failed retry can never delete existing good data: callers must get a
-    successful result here BEFORE touching any existing cached analysis.
+    Moves an AIAnalysis row through not_started/failed -> in_progress ->
+    succeeded/failed, persisting the result onto the SAME row (never
+    creates a second row per document -- uq_ai_analysis_document enforces
+    this at the DB level too).
     """
+    analysis.status = AnalysisStatus.in_progress
+    db.commit()
+
     try:
-        raw_text = extract_text(document.file_reference, document.type.value)
-        summary, flags_data, mapping = analyze_text(db, raw_text)
-        return summary, flags_data, mapping
+        summary, flags_data, mapping = _execute_pipeline(db, document)
     except Exception as e:
+        analysis.status = AnalysisStatus.failed
+        analysis.error_message = f"{type(e).__name__}: {e}"
+        db.commit()
         raise HTTPException(
             status_code=503,
-            detail=f"Analysis service is currently unavailable. Please retry. ({type(e).__name__})",
+            detail=f"Analysis failed: {analysis.error_message}. Retry to try again.",
         )
 
-
-def _persist_analysis(
-    db: Session,
-    document_id: uuid.UUID,
-    summary: str,
-    flags_data: list[dict],
-    mapping: dict,
-) -> AIAnalysis:
-    analysis = AIAnalysis(document_id=document_id, summary=summary)
-    db.add(analysis)
-    db.flush()  # get analysis.id before creating flags
+    analysis.status = AnalysisStatus.succeeded
+    analysis.summary = summary
+    analysis.generated_at = datetime.utcnow()
+    analysis.error_message = None
+    db.flush()
 
     for f in flags_data:
         db.add(Flag(
@@ -102,11 +112,9 @@ def _persist_analysis(
             severity=f["severity"],
         ))
 
-    # Persist the PII mapping server-side, for the life of the document.
-    # NEVER exposed via any API response -- only ever read back internally.
     for placeholder, original_value in mapping.items():
         db.add(PIIMapping(
-            document_id=document_id,
+            document_id=document.id,
             placeholder=placeholder,
             original_value=original_value,
         ))
@@ -136,6 +144,9 @@ def submit_document(
     )
     db.add(document)
     db.add(AuditEvent(actor_id=current_user.id, document_id=document_id, action=AuditAction.submitted))
+    # Eagerly create the analysis row so a client can immediately see
+    # "not_started" rather than there being no record at all.
+    db.add(AIAnalysis(document_id=document_id, status=AnalysisStatus.not_started))
     db.commit()
     db.refresh(document)
     return document
@@ -227,6 +238,7 @@ def submit_revision(
     )
     db.add(revision)
     db.add(AuditEvent(actor_id=current_user.id, document_id=new_id, action=AuditAction.resubmitted))
+    db.add(AIAnalysis(document_id=new_id, status=AnalysisStatus.not_started))
     db.commit()
     db.refresh(revision)
     return revision
@@ -241,12 +253,22 @@ def get_analysis(
     document = db.query(Document).filter(Document.id == document_id).first()
     _check_document_access(document, current_user)
 
-    existing = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
-    if existing is not None:
-        return existing  # cached -- do not re-call the LLM
+    analysis = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
+    if analysis is None:
+        # Legacy fallback: a document submitted before this row was made
+        # eager at submission time. Create it now, still not_started.
+        analysis = AIAnalysis(document_id=document.id, status=AnalysisStatus.not_started)
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
 
-    summary, flags_data, mapping = _run_analysis(db, document)
-    return _persist_analysis(db, document.id, summary, flags_data, mapping)
+    if analysis.status == AnalysisStatus.not_started:
+        return _execute_analysis(db, document, analysis)
+
+    # in_progress, succeeded, or failed -- report the persisted state
+    # as-is. No silent re-running; a failure stays visible until the
+    # caller explicitly retries.
+    return analysis
 
 
 @router.post("/{document_id}/analysis/retry", response_model=AnalysisResponse)
@@ -258,20 +280,20 @@ def retry_analysis(
     document = db.query(Document).filter(Document.id == document_id).first()
     _check_document_access(document, current_user)
 
-    # Run the new analysis FIRST -- if this raises 503, we return early and
-    # the existing cached analysis (if any) is left completely untouched.
-    summary, flags_data, mapping = _run_analysis(db, document)
-
-    existing = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
-    if existing is not None:
-        db.query(Flag).filter(Flag.analysis_id == existing.id).delete()
-        db.delete(existing)
+    analysis = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
+    if analysis is None:
+        analysis = AIAnalysis(document_id=document.id, status=AnalysisStatus.not_started)
+        db.add(analysis)
         db.flush()
 
-    # Replace the old mapping rather than duplicating them.
+    # Clear previous results -- retry moves the state forward, it never
+    # leaves stale flags/mapping from a prior attempt lying around.
+    db.query(Flag).filter(Flag.analysis_id == analysis.id).delete()
     db.query(PIIMapping).filter(PIIMapping.document_id == document_id).delete()
+    analysis.error_message = None
+    db.commit()
 
-    return _persist_analysis(db, document.id, summary, flags_data, mapping)
+    return _execute_analysis(db, document, analysis)
 
 
 @router.get("/{document_id}/audit")

@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, "/app")
 
-from models import AIAnalysis, PIIMapping
+from models import AIAnalysis, PIIMapping, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
@@ -24,8 +24,12 @@ def test_mapping_persisted_and_never_in_response(client, db_session, advisor_tok
     )
     doc_id = submit.json()["id"]
 
-    analysis = AIAnalysis(document_id=doc_id, summary="Test summary.")
-    db_session.add(analysis)
+    # submit_document already created a not_started AIAnalysis row --
+    # reuse it rather than inserting a second one (uq_ai_analysis_document
+    # would reject a duplicate).
+    analysis = db_session.query(AIAnalysis).filter(AIAnalysis.document_id == doc_id).first()
+    analysis.status = AnalysisStatus.succeeded
+    analysis.summary = "Test summary."
     db_session.flush()
 
     db_session.add(PIIMapping(

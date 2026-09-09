@@ -12,7 +12,7 @@ import sys
 
 sys.path.insert(0, "/app")
 
-from models import Rule, AIAnalysis, Flag
+from models import Rule, AIAnalysis, Flag, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
@@ -32,8 +32,12 @@ def test_flag_includes_matched_rule_text_and_type(client, db_session, advisor_to
     db_session.add(rule)
     db_session.flush()
 
-    analysis = AIAnalysis(document_id=doc_id, summary="Test summary.")
-    db_session.add(analysis)
+    # submit_document already created a not_started AIAnalysis row --
+    # reuse it rather than inserting a second one (uq_ai_analysis_document
+    # would reject a duplicate).
+    analysis = db_session.query(AIAnalysis).filter(AIAnalysis.document_id == doc_id).first()
+    analysis.status = AnalysisStatus.succeeded
+    analysis.summary = "Test summary."
     db_session.flush()
 
     flag = Flag(
