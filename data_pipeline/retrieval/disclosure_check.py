@@ -28,8 +28,9 @@ from google.genai import types
 from database import SessionLocal
 from models import Rule
 
-EMBEDDING_MODEL = "gemini-embedding-001"
-EMBEDDING_DIM = 768
+sys.path.insert(0, "/app/data_pipeline/embeddings")
+from model_config import EMBEDDING_MODEL, EMBEDDING_DIM
+
 DOCUMENTS_DIR = Path("/app/seed/documents")
 
 client = genai.Client(api_key=os.environ["LLM_API_KEY"])
