@@ -25,9 +25,8 @@ from google.genai import types
 
 from database import SessionLocal
 from models import Rule
+from model_config import EMBEDDING_MODEL, EMBEDDING_DIM
 
-EMBEDDING_MODEL = "gemini-embedding-001"
-EMBEDDING_DIM = 768
 RULES_JSON_PATH = Path("/app/seed/rules/rules.json")
 
 client = genai.Client(api_key=os.environ["LLM_API_KEY"])

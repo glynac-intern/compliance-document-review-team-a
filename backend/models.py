@@ -1,3 +1,4 @@
+import os
 import enum
 import uuid
 from datetime import datetime
@@ -11,9 +12,11 @@ from pgvector.sqlalchemy import Vector
 
 from database import Base
 
-# Embedding dimension — 768 matches common models (e.g. Gemini text-embedding-004).
-# Adjust if the AI track picks a different embedding model.
-EMBEDDING_DIM = 768
+# Embedding dimension for the pgvector columns below. Sourced from the
+# SAME env var as ai/data_pipeline's model_config.py (TA-42) -- so the
+# DB column definition and the actual embedding calls can never silently
+# disagree on dimension.
+EMBEDDING_DIM = int(os.environ.get("EMBEDDING_DIM", "768"))
 
 
 class UserRole(str, enum.Enum):
@@ -126,7 +129,7 @@ class Flag(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     analysis_id = Column(UUID(as_uuid=True), ForeignKey("ai_analysis.id"), nullable=False)
     passage_excerpt = Column(Text, nullable=False)
-    matched_rule_id = Column(UUID(as_uuid=True), ForeignKey("rules.id"), nullable=True)
+    matched_rule_id = Column(UUID(as_uuid=True), ForeignKey("rules.id", ondelete="SET NULL"), nullable=True)
     explanation = Column(Text, nullable=False)
     severity = Column(String, nullable=False)
 

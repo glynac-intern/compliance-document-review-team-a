@@ -1,6 +1,9 @@
+import sys
+
 from google.genai import types
 
-GENERATION_MODEL = "gemini-3.5-flash-lite"
+sys.path.insert(0, "/app/data_pipeline/embeddings")
+from model_config import GENERATION_MODEL, SUMMARY_GENERATION_TEMPERATURE
 
 SUMMARY_PROMPT_TEMPLATE = """Summarize the following client-facing financial document for a compliance officer, in 2-3 sentences. Focus on: what type of document it is, its main purpose, and any notable performance figures or claims mentioned. Do not invent details not present in the text.
 
@@ -18,7 +21,7 @@ def generate_summary(client, masked_text: str) -> str:
             response = client.models.generate_content(
                 model=GENERATION_MODEL,
                 contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.2),
+                config=types.GenerateContentConfig(temperature=SUMMARY_GENERATION_TEMPERATURE),
             )
             return response.text.strip()
         except Exception:
