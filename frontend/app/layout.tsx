@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Roboto } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Roboto } from "next/font/google";
 import "./globals.css";
+
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${roboto.variable} font-sans h-full antialiased`}
+      className={`${plusJakarta.variable} ${inter.variable} ${roboto.variable} font-sans h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
