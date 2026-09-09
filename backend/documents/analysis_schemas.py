@@ -4,6 +4,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from models import AnalysisStatus
+
 
 class MatchedRuleResponse(BaseModel):
     id: uuid.UUID
@@ -28,8 +30,10 @@ class FlagResponse(BaseModel):
 class AnalysisResponse(BaseModel):
     id: uuid.UUID
     document_id: uuid.UUID
-    summary: str
-    generated_at: datetime
+    status: AnalysisStatus
+    error_message: Optional[str]
+    summary: Optional[str]
+    generated_at: Optional[datetime]
     flags: list[FlagResponse]
 
     class Config:

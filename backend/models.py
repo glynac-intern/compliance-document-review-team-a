@@ -47,6 +47,13 @@ class AuditAction(str, enum.Enum):
     resubmitted = "resubmitted"
 
 
+class AnalysisStatus(str, enum.Enum):
+    not_started = "not_started"
+    in_progress = "in_progress"
+    succeeded = "succeeded"
+    failed = "failed"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -104,8 +111,10 @@ class AIAnalysis(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    status = Column(Enum(AnalysisStatus), nullable=False, default=AnalysisStatus.not_started)
+    error_message = Column(Text, nullable=True)
     summary = Column(Text, nullable=True)
-    generated_at = Column(DateTime, default=datetime.utcnow)
+    generated_at = Column(DateTime, nullable=True)
 
     document = relationship("Document", back_populates="analysis")
     flags = relationship("Flag", back_populates="analysis")
