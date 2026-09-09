@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User
+from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
 from auth.dependencies import require_role
 from documents.schemas import DocumentResponse
 from reviews.schemas import DecisionRequest, ReviewResponse
@@ -67,6 +67,22 @@ def submit_decision(
     document.status = DocumentStatus(payload.status.value)
 
     db.add(AuditEvent(actor_id=current_user.id, document_id=document_id, action=AuditAction.decided))
+
+    status_messages = {
+        "approved": "Your document was approved.",
+        "rejected": "Your document was rejected.",
+        "needs_revision": "Your document needs revision.",
+    }
+    message = status_messages.get(payload.status.value, f"Your document status changed to {payload.status.value}.")
+    if payload.comment:
+        message += f" Comment: {payload.comment}"
+
+    db.add(Notification(
+        user_id=document.advisor_id,
+        document_id=document_id,
+        message=message,
+    ))
+
     db.commit()
     db.refresh(review)
     return review
