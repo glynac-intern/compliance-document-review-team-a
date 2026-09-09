@@ -51,7 +51,7 @@ export function VerityLogo({
       {showWordmark && (
         <span
           className={cn(
-            "font-extrabold tracking-[0.2em] uppercase text-[15px] leading-none font-sans",
+            "font-extrabold tracking-[0.2em] uppercase text-[15px] leading-none font-inter",
             wordmarkClassName
           )}
         >

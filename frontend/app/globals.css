@@ -109,7 +109,7 @@
 }
 
 body {
-  font-family: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -121,12 +121,23 @@ body {
   font-family: var(--font-roboto), "Roboto", sans-serif;
 }
 
+.font-inter {
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 .font-elegant {
   font-family: 'Plus Jakarta Sans', var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
   letter-spacing: -0.01em;
 }
 
+.font-numbers,
+.font-geometric {
+  font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
 .tabular-nums {
+  font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
@@ -144,4 +155,18 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.6);
+}
+
+/* Sleek, elegant reload transition */
+@keyframes sleek-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-sleek-spin {
+  animation: sleek-spin 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
