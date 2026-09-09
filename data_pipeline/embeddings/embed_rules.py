@@ -14,40 +14,19 @@ duplicating rows, so it's safe to run again after editing rules.json.
 import json
 import os
 import sys
-import time
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, "/app")  # backend/ root, for database.py and models.py imports
 
-from google import genai
-from google.genai import types
-
 from database import SessionLocal
 from models import Rule
-from model_config import EMBEDDING_MODEL, EMBEDDING_DIM
+# Reuse the SAME embed_text as everywhere else -- not a separate copy.
+# This is what makes the PII guard (TA-34) apply to the rules corpus
+# path too, not just the document analysis path.
+from embed_client import embed_text
 
 RULES_JSON_PATH = Path("/app/seed/rules/rules.json")
-
-client = genai.Client(api_key=os.environ["LLM_API_KEY"])
-
-
-def embed_text(text: str, retries: int = 3) -> list[float]:
-    """Embeds a single string, with basic retry on transient API errors."""
-    for attempt in range(retries):
-        try:
-            result = client.models.embed_content(
-                model=EMBEDDING_MODEL,
-                contents=text,
-                config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIM),
-            )
-            return result.embeddings[0].values
-        except Exception as e:
-            if attempt == retries - 1:
-                raise
-            wait = 2 ** attempt
-            print(f"  Embedding call failed ({e}), retrying in {wait}s...")
-            time.sleep(wait)
 
 
 def main():

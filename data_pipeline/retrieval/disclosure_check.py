@@ -17,40 +17,19 @@ import json
 import os
 import re
 import sys
-import time
 from pathlib import Path
 
 sys.path.insert(0, "/app")
-
-from google import genai
-from google.genai import types
 
 from database import SessionLocal
 from models import Rule
 
 sys.path.insert(0, "/app/data_pipeline/embeddings")
-from model_config import EMBEDDING_MODEL, EMBEDDING_DIM
+# Reuse the SAME embed_text as everywhere else -- not a separate copy.
+# This is what makes the PII guard (TA-34) apply here too.
+from embed_client import embed_text
 
 DOCUMENTS_DIR = Path("/app/seed/documents")
-
-client = genai.Client(api_key=os.environ["LLM_API_KEY"])
-
-
-def embed_text(text: str, retries: int = 3) -> list[float]:
-    for attempt in range(retries):
-        try:
-            result = client.models.embed_content(
-                model=EMBEDDING_MODEL,
-                contents=text,
-                config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIM),
-            )
-            return result.embeddings[0].values
-        except Exception as e:
-            if attempt == retries - 1:
-                raise
-            wait = 2 ** attempt
-            print(f"  Embedding call failed ({e}), retrying in {wait}s...")
-            time.sleep(wait)
 
 
 def cosine_distance(a: list[float], b: list[float]) -> float:
