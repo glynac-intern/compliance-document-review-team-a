@@ -20,7 +20,7 @@ export default function AdvisorDashboardPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
   const [activeView, setActiveView] = React.useState<
-    "overview" | "my_submissions" | "new_submission" | "activity_history" | "metrics"
+    "overview" | "my_submissions" | "new_submission" | "history" | "metrics"
   >("overview");
 
   // Document state initialized with mock data
@@ -161,7 +161,7 @@ export default function AdvisorDashboardPage() {
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
         onNewSubmissionClick={() => setIsNewSubmissionOpen(true)}
-        onActivityHistoryClick={() => {
+        onHistoryClick={() => {
           const el = document.getElementById("recent-activity-section");
           el?.scrollIntoView({ behavior: "smooth" });
         }}
@@ -175,7 +175,7 @@ export default function AdvisorDashboardPage() {
           if (v === "my_submissions" || v === "overview") {
             const el = document.getElementById("submissions-table-section");
             el?.scrollIntoView({ behavior: "smooth" });
-          } else if (v === "activity_history") {
+          } else if (v === "history") {
             const el = document.getElementById("recent-activity-section");
             el?.scrollIntoView({ behavior: "smooth" });
           } else if (v === "metrics") {
@@ -187,11 +187,22 @@ export default function AdvisorDashboardPage() {
 
       {/* Main Workspace Column */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Fixed Reusable Top Bar — Taller vertically, larger buttons, Workspace > My submissions */}
+        {/* Fixed Reusable Top Bar — Taller vertically, larger buttons */}
         <TopBar
           breadcrumbs={[
             { label: "Workspace", href: "/advisor" },
-            { label: activeView === "my_submissions" ? "My submissions" : activeView === "activity_history" ? "Activity history" : "My submissions" },
+            {
+              label:
+                activeView === "overview"
+                  ? "Overview"
+                  : activeView === "my_submissions"
+                  ? "My submissions"
+                  : activeView === "history"
+                  ? "History"
+                  : activeView === "metrics"
+                  ? "Metrics"
+                  : "Overview",
+            },
           ]}
           onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onToggleMobileSidebar={() => setMobileSidebarOpen(true)}
@@ -200,73 +211,199 @@ export default function AdvisorDashboardPage() {
         />
 
         {/* Scrollable Page Body */}
-        <main className="flex-1 p-5 sm:p-7 lg:p-8 max-w-[1400px] w-full mx-auto space-y-6">
-          
-          {/* Top Salutation — Big elegant non-bold Inter font with Advisor name */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-normal text-slate-900 tracking-tight font-inter leading-tight">
-              Good morning, James.
-            </h1>
+        <main className="flex-1 p-5 sm:p-7 lg:p-8 max-w-[1400px] w-full mx-auto space-y-6 font-inter">
+          {/* VIEW 1: GENERAL OVERVIEW DASHBOARD */}
+          {activeView === "overview" && (
+            <>
+              {/* Top Salutation — Big elegant non-bold Inter font with Advisor name */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                    Good morning, James.
+                  </h1>
+                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
+                    Here is your compliance intake summary and latest document activity.
+                  </p>
+                </div>
 
-            {/* Quick Submit Action Button */}
-            <button
-              type="button"
-              onClick={() => setIsNewSubmissionOpen(true)}
-              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-bold transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
-            >
-              <Plus className="h-4 w-4 stroke-[2.2]" />
-              <span>New Submission</span>
-            </button>
-          </div>
+                {/* Quick Submit Action Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsNewSubmissionOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-normal font-inter transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                >
+                  <Plus className="h-4 w-4 stroke-[1.8]" />
+                  <span>New Submission</span>
+                </button>
+              </div>
 
-          {/* 4 Summary Metric Cards matching sketch */}
-          <div id="metric-cards-section">
-            <MetricCards
-              total={metricCounts.total}
-              pending={metricCounts.pending}
-              approved={metricCounts.approved}
-              needsRevision={metricCounts.needsRevision}
-              activeFilter={statusFilter}
-              onSelectFilter={(filterKey) => {
-                setStatusFilter(filterKey);
-                const el = document.getElementById("submissions-table-section");
-                el?.scrollIntoView({ behavior: "smooth" });
-              }}
-            />
-          </div>
+              {/* 4 Summary Metric Cards (Clicking one opens My Submissions with that filter) */}
+              <div id="metric-cards-section">
+                <MetricCards
+                  total={metricCounts.total}
+                  pending={metricCounts.pending}
+                  approved={metricCounts.approved}
+                  needsRevision={metricCounts.needsRevision}
+                  activeFilter={statusFilter}
+                  onSelectFilter={(filterKey) => {
+                    setStatusFilter(filterKey);
+                    setActiveView("my_submissions");
+                  }}
+                />
+              </div>
 
-          {/* Recent Submissions Table Section directly matching the user's sketch */}
-          <div id="submissions-table-section">
-            <SubmissionsTable
-              documents={documents}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
-              sortBy={sortBy}
-              onSortByChange={setSortBy}
-              onSelectDocument={(doc) => setSelectedDocument(doc)}
-              onReviseClick={(doc) => setRevisionDoc(doc)}
-              onCertificateClick={(doc) => setCertificateDoc(doc)}
-              onResetFilters={() => {
-                setSearchQuery("");
-                setStatusFilter("all");
-              }}
-            />
-          </div>
+              {/* General Overview Recent Submissions: exactly 5 items, no search/filter clutter, with "More" link */}
+              <div id="submissions-table-section">
+                <SubmissionsTable
+                  variant="overview"
+                  onViewMore={() => setActiveView("my_submissions")}
+                  documents={documents}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter}
+                  sortBy={sortBy}
+                  onSortByChange={setSortBy}
+                  onSelectDocument={(doc) => setSelectedDocument(doc)}
+                  onReviseClick={(doc) => setRevisionDoc(doc)}
+                  onCertificateClick={(doc) => setCertificateDoc(doc)}
+                  onResetFilters={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                  }}
+                />
+              </div>
 
-          {/* Recent Activity Feed Section matching sketch */}
-          <div id="recent-activity-section">
-            <RecentActivity
-              onViewAllClick={() => {
-                showToast("Audit log view loaded.");
-              }}
-              onItemClick={(docId) => {
-                const target = documents.find((d) => d.id === docId);
-                if (target) setSelectedDocument(target);
-              }}
-            />
-          </div>
+              {/* Recent Activity Feed Section */}
+              <div id="recent-activity-section">
+                <RecentActivity
+                  onViewAllClick={() => {
+                    setActiveView("history");
+                  }}
+                  onItemClick={(docId) => {
+                    const target = documents.find((d) => d.id === docId);
+                    if (target) setSelectedDocument(target);
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {/* VIEW 2: DEDICATED MY SUBMISSIONS DASHBOARD */}
+          {activeView === "my_submissions" && (
+            <>
+              {/* Dedicated Submissions Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                    My Submissions
+                  </h1>
+                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
+                    Manage, search, and track all your compliance marketing filings and pre-screening requests.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsNewSubmissionOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-normal font-inter transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                >
+                  <Plus className="h-4 w-4 stroke-[1.8]" />
+                  <span>New Submission</span>
+                </button>
+              </div>
+
+              {/* Dedicated Submissions Table with all filters, search with theme gradient border, sort, status */}
+              <div id="submissions-table-section">
+                <SubmissionsTable
+                  variant="full"
+                  documents={documents}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter}
+                  sortBy={sortBy}
+                  onSortByChange={setSortBy}
+                  onSelectDocument={(doc) => setSelectedDocument(doc)}
+                  onReviseClick={(doc) => setRevisionDoc(doc)}
+                  onCertificateClick={(doc) => setCertificateDoc(doc)}
+                  onResetFilters={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {/* VIEW 3: HISTORY VIEW */}
+          {activeView === "history" && (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                    History
+                  </h1>
+                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
+                    Full audit trail of compliance reviews, revisions, and approval decisions.
+                  </p>
+                </div>
+              </div>
+
+              <RecentActivity
+                onItemClick={(docId) => {
+                  const target = documents.find((d) => d.id === docId);
+                  if (target) setSelectedDocument(target);
+                }}
+              />
+            </>
+          )}
+
+          {/* VIEW 4: METRICS VIEW */}
+          {activeView === "metrics" && (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                    Compliance Metrics
+                  </h1>
+                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
+                    Overview of submission volumes, review status distribution, and turnaround metrics.
+                  </p>
+                </div>
+              </div>
+
+              <MetricCards
+                total={metricCounts.total}
+                pending={metricCounts.pending}
+                approved={metricCounts.approved}
+                needsRevision={metricCounts.needsRevision}
+                activeFilter={statusFilter}
+                onSelectFilter={(filterKey) => {
+                  setStatusFilter(filterKey);
+                  setActiveView("my_submissions");
+                }}
+              />
+
+              <SubmissionsTable
+                variant="full"
+                documents={documents}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                sortBy={sortBy}
+                onSortByChange={setSortBy}
+                onSelectDocument={(doc) => setSelectedDocument(doc)}
+                onReviseClick={(doc) => setRevisionDoc(doc)}
+                onCertificateClick={(doc) => setCertificateDoc(doc)}
+                onResetFilters={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                }}
+              />
+            </>
+          )}
         </main>
       </div>
 

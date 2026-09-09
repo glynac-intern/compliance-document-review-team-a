@@ -8,8 +8,7 @@ import {
   CheckCircle2,
   FileUp,
   Clock,
-  Sparkles,
-  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -86,24 +85,26 @@ export function RecentActivity({
   ];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs font-sans">
-      {/* Header matching sketch: 'Recent activity' and '-> view all' */}
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs font-inter">
+      {/* Header: Non-bold CamelCase Inter font */}
       <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <History className="h-4 w-4 text-[#1e4c77]" />
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+          <History className="h-4 w-4 text-[#1e4c77]" strokeWidth={1.8} />
+          <h3 className="text-sm sm:text-base font-normal text-slate-800 tracking-tight font-inter">
             Recent Activity
           </h3>
         </div>
 
-        <button
-          type="button"
-          onClick={onViewAllClick}
-          className="group inline-flex items-center gap-1 text-xs font-semibold text-[#1e4c77] hover:text-[#2575bc] transition-colors cursor-pointer"
-        >
-          <span>View all</span>
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </button>
+        {onViewAllClick && (
+          <button
+            type="button"
+            onClick={onViewAllClick}
+            className="group inline-flex items-center gap-1 text-xs font-normal text-[#1e4c77] hover:text-[#2575bc] transition-colors cursor-pointer font-inter"
+          >
+            <span>View all</span>
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
+          </button>
+        )}
       </div>
 
       {/* Activity Timeline List */}
@@ -118,35 +119,35 @@ export function RecentActivity({
             <div
               className={cn(
                 "h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-2xs",
-                act.type === "warning" && "bg-amber-100 text-amber-800",
-                act.type === "success" && "bg-emerald-100 text-emerald-800",
-                act.type === "info" && "bg-blue-100 text-[#1e4c77]",
-                act.type === "upload" && "bg-slate-100 text-slate-700"
+                act.type === "warning" && "bg-amber-50 text-amber-800 border border-amber-200",
+                act.type === "success" && "bg-emerald-50 text-emerald-800 border border-emerald-200",
+                act.type === "info" && "bg-blue-50 text-[#1e4c77] border border-blue-200",
+                act.type === "upload" && "bg-slate-50 text-slate-700 border border-slate-200"
               )}
             >
-              {act.type === "warning" && <AlertTriangle className="h-4 w-4 stroke-[2.2]" />}
-              {act.type === "success" && <CheckCircle2 className="h-4 w-4 stroke-[2.2]" />}
-              {act.type === "info" && <Sparkles className="h-4 w-4 stroke-[2.2]" />}
-              {act.type === "upload" && <FileUp className="h-4 w-4 stroke-[2.2]" />}
+              {act.type === "warning" && <AlertTriangle className="h-4 w-4 stroke-[1.8]" />}
+              {act.type === "success" && <CheckCircle2 className="h-4 w-4 stroke-[1.8]" />}
+              {act.type === "info" && <ShieldCheck className="h-4 w-4 stroke-[1.8]" />}
+              {act.type === "upload" && <FileUp className="h-4 w-4 stroke-[1.8]" />}
             </div>
 
             {/* Content Body */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 font-inter">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
-                <p className="text-[13px] font-semibold text-slate-900 group-hover:text-[#1e4c77] transition-colors">
+                <p className="text-[13px] font-normal text-slate-800 group-hover:text-[#1e4c77] transition-colors font-inter">
                   {act.action}
                 </p>
-                <span className="text-[11px] text-slate-400 font-roboto tabular-nums">
+                <span className="text-[11px] text-slate-400 font-inter font-normal">
                   {act.time}
                 </span>
               </div>
 
-              <p className="text-[12px] font-medium text-slate-700 truncate mt-0.5">
+              <p className="text-[12px] font-normal text-slate-600 truncate mt-0.5 font-inter">
                 {act.documentTitle}
               </p>
 
-              <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100/80 font-roboto">
-                <span className="font-semibold text-slate-600">{act.actor}:</span>{" "}
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100/80 font-inter font-normal">
+                <span className="font-normal text-slate-700">{act.actor}:</span>{" "}
                 {act.detail}
               </p>
             </div>
