@@ -73,15 +73,15 @@ def test_clean_text_with_no_pii_is_allowed():
 
 def test_rules_corpus_script_uses_the_same_guarded_embed_text():
     """Structural check: embed_rules.py must import the shared, guarded
-    function -- not maintain its own separate copy that could bypass
-    the guard. This is what makes the rules-corpus path covered as well
-    as the document path, per the acceptance criteria."""
+    function (now the batch version, TA-52) -- not maintain its own
+    separate copy that could bypass the guard. This is what makes the
+    rules-corpus path covered as well as the document path."""
     sys.path.insert(0, "/app/data_pipeline/embeddings")
     import embed_rules
-    assert embed_rules.embed_text is embed_client.embed_text
+    assert embed_rules.embed_texts_batch is embed_client.embed_texts_batch
 
 
 def test_disclosure_check_script_uses_the_same_guarded_embed_text():
     sys.path.insert(0, "/app/data_pipeline/retrieval")
     import disclosure_check
-    assert disclosure_check.embed_text is embed_client.embed_text
+    assert disclosure_check.embed_texts_batch is embed_client.embed_texts_batch

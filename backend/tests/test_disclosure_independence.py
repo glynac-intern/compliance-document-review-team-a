@@ -1,74 +1,75 @@
 """
 Regression test for TA-48: disclosure-by-absence must evaluate each
-required disclosure INDEPENDENTLY. The bug: a single global minimum
-distance across all (chunk, rule) pairs meant one present disclosure
-could mask every other missing one.
+required disclosure INDEPENDENTLY.
 
-Uses small synthetic vectors, not real embeddings -- detect_missing_disclosures
-is a pure function of (chunk_embeddings, disclosure_rules), so this is fast,
-deterministic, and needs no live API call. Cosine distance is 0 for identical
-vectors and 1 for orthogonal vectors, which is all we need to construct a
-controlled present/absent scenario.
+Updated for TA-52: distance is now computed in pgvector (not pure
+Python), so these tests use REAL Rule rows in the test database rather
+than synthetic FakeRule objects -- a real pgvector column requires
+genuine 768-dimension vectors, and the query itself needs real rows to
+run against.
 """
 import sys
-from dataclasses import dataclass
 
 sys.path.insert(0, "/app/ai/compliance")
 
 from analyze_document import detect_missing_disclosures
+from models import Rule
 
 
-@dataclass
-class FakeRule:
-    id: str
-    text: str
-    embedding: list
+def _vector_at(hot_index: int, dim: int = 768) -> list[float]:
+    """A unit vector with a single 1.0 at hot_index, zeros elsewhere --
+    identical vectors have cosine distance 0, orthogonal ones have
+    distance 1. Gives us a controlled present/absent scenario."""
+    v = [0.0] * dim
+    v[hot_index] = 1.0
+    return v
 
 
-def test_mixed_case_one_present_others_absent():
+def test_mixed_case_one_present_others_absent(db_session):
     """
     The exact scenario TA-48 describes: one disclosure present, others
-    missing. Before the fix, the one close match (rule_present) would
-    have driven the GLOBAL minimum down, suppressing flags for the
-    other two. After the fix, each rule is checked on its own.
+    missing. Before the original fix, the one close match would have
+    driven a GLOBAL minimum down, suppressing flags for the others.
     """
-    rule_present = FakeRule(id="r1", text="Disclosure A (present)", embedding=[1.0, 0.0, 0.0])
-    rule_missing_1 = FakeRule(id="r2", text="Disclosure B (missing)", embedding=[0.0, 1.0, 0.0])
-    rule_missing_2 = FakeRule(id="r3", text="Disclosure C (missing)", embedding=[0.0, 0.0, 1.0])
+    rule_present = Rule(text="Disclosure A (present)", type="disclosure", embedding=_vector_at(0))
+    rule_missing_1 = Rule(text="Disclosure B (missing)", type="disclosure", embedding=_vector_at(1))
+    rule_missing_2 = Rule(text="Disclosure C (missing)", type="disclosure", embedding=_vector_at(2))
+    db_session.add_all([rule_present, rule_missing_1, rule_missing_2])
+    db_session.flush()
 
     # Simulates a document paragraph that matches rule_present exactly.
-    chunk_embeddings = [[1.0, 0.0, 0.0]]
+    chunk_embeddings = [_vector_at(0)]
 
-    missing = detect_missing_disclosures(
-        chunk_embeddings,
-        [rule_present, rule_missing_1, rule_missing_2],
-    )
+    missing = detect_missing_disclosures(db_session, chunk_embeddings, [rule_present, rule_missing_1, rule_missing_2])
 
     missing_ids = {f["rule_id"] for f in missing}
-    assert "r1" not in missing_ids, "the present disclosure must NOT be flagged"
-    assert "r2" in missing_ids, "missing disclosure B must be flagged independently"
-    assert "r3" in missing_ids, "missing disclosure C must be flagged independently"
-    assert len(missing) == 2, "exactly the two genuinely-missing disclosures, no more, no less"
+    assert str(rule_present.id) not in missing_ids, "the present disclosure must NOT be flagged"
+    assert str(rule_missing_1.id) in missing_ids, "missing disclosure B must be flagged independently"
+    assert str(rule_missing_2.id) in missing_ids, "missing disclosure C must be flagged independently"
+    assert len(missing) == 2
 
 
-def test_all_disclosures_present_produces_no_flags():
-    rule_a = FakeRule(id="r1", text="Disclosure A", embedding=[1.0, 0.0, 0.0])
-    rule_b = FakeRule(id="r2", text="Disclosure B", embedding=[0.0, 1.0, 0.0])
+def test_all_disclosures_present_produces_no_flags(db_session):
+    rule_a = Rule(text="Disclosure A", type="disclosure", embedding=_vector_at(0))
+    rule_b = Rule(text="Disclosure B", type="disclosure", embedding=_vector_at(1))
+    db_session.add_all([rule_a, rule_b])
+    db_session.flush()
 
-    # Two chunks, one matching each disclosure.
-    chunk_embeddings = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    chunk_embeddings = [_vector_at(0), _vector_at(1)]
 
-    missing = detect_missing_disclosures(chunk_embeddings, [rule_a, rule_b])
+    missing = detect_missing_disclosures(db_session, chunk_embeddings, [rule_a, rule_b])
     assert missing == []
 
 
-def test_all_disclosures_missing_flags_every_one():
-    rule_a = FakeRule(id="r1", text="Disclosure A", embedding=[1.0, 0.0, 0.0])
-    rule_b = FakeRule(id="r2", text="Disclosure B", embedding=[0.0, 1.0, 0.0])
+def test_all_disclosures_missing_flags_every_one(db_session):
+    rule_a = Rule(text="Disclosure A", type="disclosure", embedding=_vector_at(0))
+    rule_b = Rule(text="Disclosure B", type="disclosure", embedding=_vector_at(1))
+    db_session.add_all([rule_a, rule_b])
+    db_session.flush()
 
-    # Chunk embedding orthogonal to both -- matches neither.
-    chunk_embeddings = [[0.0, 0.0, 1.0]]
+    # Orthogonal to both -- matches neither.
+    chunk_embeddings = [_vector_at(2)]
 
-    missing = detect_missing_disclosures(chunk_embeddings, [rule_a, rule_b])
+    missing = detect_missing_disclosures(db_session, chunk_embeddings, [rule_a, rule_b])
     missing_ids = {f["rule_id"] for f in missing}
-    assert missing_ids == {"r1", "r2"}
+    assert missing_ids == {str(rule_a.id), str(rule_b.id)}

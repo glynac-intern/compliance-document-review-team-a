@@ -21,10 +21,10 @@ sys.path.insert(0, "/app")  # backend/ root, for database.py and models.py impor
 
 from database import SessionLocal
 from models import Rule
-# Reuse the SAME embed_text as everywhere else -- not a separate copy.
-# This is what makes the PII guard (TA-34) apply to the rules corpus
-# path too, not just the document analysis path.
-from embed_client import embed_text
+# Reuse the SAME embedding functions as everywhere else -- not separate
+# copies. This is what makes the PII guard (TA-34) apply to the rules
+# corpus path too, and lets batching (TA-52) apply here as well.
+from embed_client import embed_texts_batch
 
 RULES_JSON_PATH = Path("/app/seed/rules/rules.json")
 
@@ -45,10 +45,11 @@ def main():
             db.query(Rule).delete()
             db.commit()
 
-        for i, rule_data in enumerate(rules_data, start=1):
-            print(f"Embedding {i}/{len(rules_data)}: {rule_data['id']} ({rule_data['type']})")
-            embedding = embed_text(rule_data["text"])
+        print(f"Embedding all {len(rules_data)} rules in one batch call...")
+        texts = [r["text"] for r in rules_data]
+        embeddings = embed_texts_batch(texts)
 
+        for rule_data, embedding in zip(rules_data, embeddings):
             rule = Rule(
                 text=rule_data["text"],
                 type=rule_data["type"],

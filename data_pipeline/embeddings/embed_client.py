@@ -6,8 +6,12 @@ Model name and dimension come from model_config.py (single source of
 truth, TA-42) -- not hardcoded here.
 
 Enforces (TA-34): text is NEVER sent to the embedding API while it still
-contains raw PII. This is checked in code, not assumed by convention --
-see _guard_no_raw_pii below."""
+contains raw PII.
+
+Batches (TA-52): embed_texts_batch() sends multiple strings in ONE API
+call instead of one round trip per string -- embed_text() is a thin
+single-item wrapper around it, so there is exactly one real
+implementation, not two to keep in sync."""
 
 import os
 import sys
@@ -36,9 +40,7 @@ def _guard_no_raw_pii(text: str) -> None:
     Refuses text that still contains anything the masker would catch.
     Properly-masked text (placeholders like [EMAIL_1], [CLIENT_1]) never
     matches the masker's own patterns again, so if THIS check finds
-    something to mask, it proves raw PII reached this call in error --
-    embeddings are an API call too, and must never leak what masking was
-    there to prevent.
+    something to mask, it proves raw PII reached this call in error.
     """
     _, mapping = mask_pii(text)
     if mapping:
@@ -49,29 +51,43 @@ def _guard_no_raw_pii(text: str) -> None:
         )
 
 
-def embed_text(text: str, retries: int = 3) -> list[float]:
-    _guard_no_raw_pii(text)
+def embed_texts_batch(texts: list[str], retries: int = 3) -> list[list[float]]:
+    """
+    Embeds MULTIPLE strings in a single API call. Returns one vector per
+    input string, in the same order. Every string is guarded against raw
+    PII before the batch is sent -- one bad string blocks the whole
+    batch rather than silently skipping it.
+    """
+    if not texts:
+        return []
+
+    for text in texts:
+        _guard_no_raw_pii(text)
 
     client = get_client()
     for attempt in range(retries):
         try:
             result = client.models.embed_content(
                 model=EMBEDDING_MODEL,
-                contents=text,
+                contents=texts,
                 config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIM),
             )
-            vector = result.embeddings[0].values
-            if len(vector) != EMBEDDING_DIM:
-                raise ValueError(
-                    f"Embedding dimension mismatch: API returned {len(vector)} "
-                    f"dimensions, but EMBEDDING_DIM is configured as {EMBEDDING_DIM}. "
-                    f"Check model_config.py / EMBEDDING_DIM env var against the "
-                    f"actual model's output."
-                )
-            return vector
+            vectors = [e.values for e in result.embeddings]
+            for v in vectors:
+                if len(v) != EMBEDDING_DIM:
+                    raise ValueError(
+                        f"Embedding dimension mismatch: API returned {len(v)} "
+                        f"dimensions, but EMBEDDING_DIM is configured as {EMBEDDING_DIM}."
+                    )
+            return vectors
         except ValueError:
             raise  # dimension mismatch / PII guard -- not transient, don't retry
         except Exception as e:
             if attempt == retries - 1:
                 raise
             time.sleep(2 ** attempt)
+
+
+def embed_text(text: str, retries: int = 3) -> list[float]:
+    """Single-item convenience wrapper around embed_texts_batch."""
+    return embed_texts_batch([text], retries=retries)[0]

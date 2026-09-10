@@ -25,9 +25,10 @@ from database import SessionLocal
 from models import Rule
 
 sys.path.insert(0, "/app/data_pipeline/embeddings")
-# Reuse the SAME embed_text as everywhere else -- not a separate copy.
-# This is what makes the PII guard (TA-34) apply here too.
-from embed_client import embed_text
+# Reuse the SAME embedding functions as everywhere else -- not separate
+# copies. This is what makes the PII guard (TA-34) apply here too, and
+# lets batching (TA-52) apply here as well.
+from embed_client import embed_texts_batch
 
 DOCUMENTS_DIR = Path("/app/seed/documents")
 
@@ -63,7 +64,7 @@ def main():
         text = (DOCUMENTS_DIR / filename).read_text(encoding="utf-8")
         chunks = chunk_paragraphs(text)
 
-        chunk_embeddings = [embed_text(chunk) for chunk in chunks]
+        chunk_embeddings = embed_texts_batch(chunks)
         total_chunks_embedded += len(chunks)
         print(f"Embedded {i}/{len(metadata)}: {filename} ({len(chunks)} chunks)")
 
