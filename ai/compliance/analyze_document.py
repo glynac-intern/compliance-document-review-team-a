@@ -18,7 +18,7 @@ sys.path.insert(0, "/app/ai/summarisation")
 from masker import mask_pii, unmask_for_display
 from chunker import chunk_paragraphs
 from rule_retrieval import retrieve_candidate_rules
-from embed_client import embed_text, get_client
+from embed_client import embed_texts_batch, get_client
 
 from models import Rule
 from flagging import generate_flags_for_chunk
@@ -27,28 +27,39 @@ from summarizer import generate_summary
 DISCLOSURE_ABSENCE_THRESHOLD = 0.20  # validated at 100% accuracy on the seed corpus
 
 
-def _cosine_distance(a: list[float], b: list[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
-    norm_a = sum(x * x for x in a) ** 0.5
-    norm_b = sum(y * y for y in b) ** 0.5
-    return 1 - (dot / (norm_a * norm_b))
-
-
-def detect_missing_disclosures(chunk_embeddings: list, disclosure_rules: list) -> list[dict]:
+def detect_missing_disclosures(db, chunk_embeddings: list, disclosure_rules: list) -> list[dict]:
     """
     Evaluates EACH disclosure rule independently against every chunk.
     Returns one flag dict per rule whose best (closest) match across all
     chunks still exceeds the threshold -- i.e. genuinely missing.
 
-    Pure function of embeddings + rules, no DB/API calls -- deterministic
-    and unit-testable without a live embedding call.
+    Distance is computed IN PGVECTOR (TA-52), matching the same approach
+    rule_retrieval.py already uses for rule retrieval -- not a manual
+    Python float loop. For each chunk, one query asks pgvector for the
+    distance to every disclosure rule at once; Python only tracks the
+    running minimum per rule across the (small number of) chunks.
     """
-    missing_flags = []
-    for rule in disclosure_rules:
-        best_distance_for_rule = min(
-            _cosine_distance(chunk_emb, rule.embedding) for chunk_emb in chunk_embeddings
+    if not disclosure_rules or not chunk_embeddings:
+        return []
+
+    rule_ids = [r.id for r in disclosure_rules]
+    rules_by_id = {r.id: r for r in disclosure_rules}
+    min_distance_per_rule = {}
+
+    for chunk_emb in chunk_embeddings:
+        results = (
+            db.query(Rule.id, Rule.embedding.cosine_distance(chunk_emb).label("distance"))
+            .filter(Rule.id.in_(rule_ids))
+            .all()
         )
-        if best_distance_for_rule > DISCLOSURE_ABSENCE_THRESHOLD:
+        for rule_id, distance in results:
+            if rule_id not in min_distance_per_rule or distance < min_distance_per_rule[rule_id]:
+                min_distance_per_rule[rule_id] = distance
+
+    missing_flags = []
+    for rule_id, distance in min_distance_per_rule.items():
+        if distance > DISCLOSURE_ABSENCE_THRESHOLD:
+            rule = rules_by_id[rule_id]
             missing_flags.append({
                 "passage": "(No matching disclosure language found anywhere in this document.)",
                 "rule_id": str(rule.id),
@@ -75,19 +86,16 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict, list[dict]]:
 
     disclosure_rules = db.query(Rule).filter(Rule.type == "disclosure").all()
 
+    # Batch ALL chunk embeddings in ONE API call (TA-52), instead of one
+    # network round trip per chunk.
+    chunk_embeddings = embed_texts_batch(chunks) if chunks else []
+    chunks_data = [
+        {"chunk_index": i, "masked_text": chunk, "embedding": emb}
+        for i, (chunk, emb) in enumerate(zip(chunks, chunk_embeddings))
+    ]
+
     all_flags = []
-    chunk_embeddings = []
-    chunks_data = []
-
-    for i, chunk in enumerate(chunks):
-        chunk_emb = embed_text(chunk)
-        chunk_embeddings.append(chunk_emb)
-        chunks_data.append({
-            "chunk_index": i,
-            "masked_text": chunk,
-            "embedding": chunk_emb,
-        })
-
+    for chunk, chunk_emb in zip(chunks, chunk_embeddings):
         candidates = retrieve_candidate_rules(db, chunk_emb)
         chunk_flags = generate_flags_for_chunk(client, chunk, candidates)
         for cf in chunk_flags:
@@ -104,7 +112,7 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict, list[dict]]:
     # required disclosure it's missing, not pass clean because of the one
     # close match.
     if disclosure_rules and chunk_embeddings:
-        all_flags.extend(detect_missing_disclosures(chunk_embeddings, disclosure_rules))
+        all_flags.extend(detect_missing_disclosures(db, chunk_embeddings, disclosure_rules))
 
     summary = generate_summary(client, masked_text)
 
