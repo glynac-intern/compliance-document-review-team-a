@@ -205,12 +205,15 @@ def submit_document(
 ):
     document_id = uuid.uuid4()
     file_path, doc_type = _save_upload(file, document_id)
+    # Display-only metadata (TA-25) -- NEVER used for any filesystem path.
+    original_filename = (file.filename or "unnamed")[:255]
 
     document = Document(
         id=document_id,
         advisor_id=current_user.id,
         status=DocumentStatus.pending_review,
         file_reference=file_path,
+        original_filename=original_filename,
         type=doc_type,
         thread_id=document_id,
         replaces_document_id=None,
@@ -299,12 +302,14 @@ def submit_revision(
 
     new_id = uuid.uuid4()
     file_path, doc_type = _save_upload(file, new_id)
+    original_filename = (file.filename or "unnamed")[:255]
 
     revision = Document(
         id=new_id,
         advisor_id=current_user.id,
         status=DocumentStatus.pending_review,
         file_reference=file_path,
+        original_filename=original_filename,
         type=doc_type,
         thread_id=original.thread_id,
         replaces_document_id=original.id,

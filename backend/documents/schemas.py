@@ -11,7 +11,7 @@ class DocumentResponse(BaseModel):
     id: uuid.UUID
     advisor_id: uuid.UUID
     status: DocumentStatus
-    file_reference: str
+    original_filename: Optional[str]
     type: DocumentType
     uploaded_at: datetime
     thread_id: uuid.UUID
