@@ -1,6 +1,8 @@
+import io
 import os
 import sys
 import uuid
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -43,21 +45,60 @@ DOCUMENT_TYPE_EXTENSIONS = {
 }
 
 
+def _detect_file_type(contents: bytes) -> DocumentType | None:
+    """
+    Determines file type from the file's own signature, not any
+    client-supplied header (TA-23). PDFs have a simple magic-byte
+    prefix; DOCX/XLSX are both ZIP containers, distinguished by which
+    Office-specific internal file each one actually contains.
+    """
+    if contents.startswith(b"%PDF-"):
+        return DocumentType.pdf
+
+    if contents.startswith(b"PK\x03\x04") or contents.startswith(b"PK\x05\x06"):
+        try:
+            with zipfile.ZipFile(io.BytesIO(contents)) as zf:
+                names = zf.namelist()
+                if "word/document.xml" in names:
+                    return DocumentType.docx
+                if "xl/workbook.xml" in names:
+                    return DocumentType.xlsx
+        except zipfile.BadZipFile:
+            return None
+
+    return None
+
+
 def _save_upload(file: UploadFile, document_id: uuid.UUID) -> tuple[str, DocumentType]:
-    if file.content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail="Unsupported file type. Only PDF, DOCX, and XLSX are accepted.",
-        )
     contents = file.file.read()
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File exceeds 10MB limit.")
 
-    ext = Path(file.filename).suffix
-    file_path = UPLOAD_DIR / f"{document_id}{ext}"
+    detected_type = _detect_file_type(contents)
+    if detected_type is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported or unrecognized file type. The file's signature "
+                   "does not match PDF, DOCX, or XLSX.",
+        )
+
+    declared_type = ALLOWED_CONTENT_TYPES.get(file.content_type)
+    if declared_type != detected_type:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Declared content type ({file.content_type}) does not match "
+                   f"the file's actual signature (detected: {detected_type.value}). "
+                   f"Refusing to store a mislabelled file.",
+        )
+
+    # Filename is ALWAYS server-derived: document_id (a UUID we generated)
+    # plus an extension looked up from the DETECTED type -- never from
+    # anything the client sent (TA-23).
+    ext = DOCUMENT_TYPE_EXTENSIONS[detected_type]
+    file_path = UPLOAD_DIR / f"{document_id}.{ext}"
     with open(file_path, "wb") as f:
         f.write(contents)
-    return str(file_path), ALLOWED_CONTENT_TYPES[file.content_type]
+    return str(file_path), detected_type
 
 
 def _check_document_access(document: Document, current_user: User):
