@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
+from audit_utils import record_view_if_new
 from auth.dependencies import require_role
 from documents.schemas import DocumentResponse
 from reviews.schemas import DecisionRequest, ReviewResponse
@@ -35,8 +36,7 @@ def get_review_document(
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    db.add(AuditEvent(actor_id=current_user.id, document_id=document_id, action=AuditAction.viewed))
-    db.commit()
+    record_view_if_new(db, current_user.id, document_id)
     return document
 
 

@@ -15,6 +15,7 @@ from models import (
     Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User,
     AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
 )
+from audit_utils import record_view_if_new
 from auth.dependencies import get_current_user, require_role
 from documents.schemas import DocumentResponse, ThreadEntryResponse
 from documents.analysis_schemas import AnalysisResponse
@@ -241,6 +242,8 @@ def get_document(
 ):
     document = db.query(Document).filter(Document.id == document_id).first()
     _check_document_access(document, current_user)
+
+    record_view_if_new(db, current_user.id, document_id)
     return document
 
 
