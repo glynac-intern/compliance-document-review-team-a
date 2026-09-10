@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import (
     Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User,
-    AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus,
+    AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
 )
 from auth.dependencies import get_current_user, require_role
 from documents.schemas import DocumentResponse
@@ -67,13 +67,13 @@ def _check_document_access(document: Document, current_user: User):
         raise HTTPException(status_code=403, detail="Not authorized to view this document")
 
 
-def _execute_pipeline(db: Session, document: Document) -> tuple[str, list[dict], dict]:
+def _execute_pipeline(db: Session, document: Document) -> tuple[str, list[dict], dict, list[dict]]:
     """Runs extraction + the full analysis pipeline. Raises the RAW
     exception on failure -- no HTTPException conversion here, so the
     caller can capture real error detail to persist."""
     raw_text = extract_text(document.file_reference, document.type.value)
-    summary, flags_data, mapping = analyze_text(db, raw_text)
-    return summary, flags_data, mapping
+    summary, flags_data, mapping, chunks_data = analyze_text(db, raw_text)
+    return summary, flags_data, mapping, chunks_data
 
 
 def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> AIAnalysis:
@@ -87,7 +87,7 @@ def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> 
     db.commit()
 
     try:
-        summary, flags_data, mapping = _execute_pipeline(db, document)
+        summary, flags_data, mapping, chunks_data = _execute_pipeline(db, document)
     except Exception as e:
         analysis.status = AnalysisStatus.failed
         analysis.error_message = f"{type(e).__name__}: {e}"
@@ -110,6 +110,17 @@ def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> 
             matched_rule_id=f["rule_id"],
             explanation=f["explanation"],
             severity=f["severity"],
+        ))
+
+    # Replace any prior chunks for this document -- re-analysing must
+    # never accumulate stale rows alongside fresh ones (TA-51).
+    db.query(DocumentChunk).filter(DocumentChunk.document_id == document.id).delete()
+    for chunk_data in chunks_data:
+        db.add(DocumentChunk(
+            document_id=document.id,
+            chunk_index=chunk_data["chunk_index"],
+            masked_text=chunk_data["masked_text"],
+            embedding=chunk_data["embedding"],
         ))
 
     for placeholder, original_value in mapping.items():

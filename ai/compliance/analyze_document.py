@@ -58,10 +58,13 @@ def detect_missing_disclosures(chunk_embeddings: list, disclosure_rules: list) -
     return missing_flags
 
 
-def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict]:
+def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict, list[dict]]:
     """
-    Returns (summary, flags, mapping).
+    Returns (summary, flags, mapping, chunks_data).
     flags: list of {"passage": str, "rule_id": str|None, "explanation": str, "severity": str}
+    chunks_data: list of {"chunk_index": int, "masked_text": str, "embedding": list[float]}
+                 -- persisted by the caller (TA-51) so retrieval jobs can
+                 reuse these vectors instead of re-embedding.
     All passage/explanation/summary text is unmasked -- safe to display to
     an officer, but the mapping itself must never leave the server.
     """
@@ -74,10 +77,16 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict]:
 
     all_flags = []
     chunk_embeddings = []
+    chunks_data = []
 
-    for chunk in chunks:
+    for i, chunk in enumerate(chunks):
         chunk_emb = embed_text(chunk)
         chunk_embeddings.append(chunk_emb)
+        chunks_data.append({
+            "chunk_index": i,
+            "masked_text": chunk,
+            "embedding": chunk_emb,
+        })
 
         candidates = retrieve_candidate_rules(db, chunk_emb)
         chunk_flags = generate_flags_for_chunk(client, chunk, candidates)
@@ -105,4 +114,4 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict]:
         flag["explanation"] = unmask_for_display(flag["explanation"], mapping)
     summary = unmask_for_display(summary, mapping)
 
-    return summary, all_flags, mapping
+    return summary, all_flags, mapping, chunks_data

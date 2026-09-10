@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Column, String, Text, DateTime, ForeignKey, Enum, UniqueConstraint, Boolean
+    Column, String, Text, DateTime, ForeignKey, Enum, UniqueConstraint, Boolean, Integer
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -178,6 +178,25 @@ class PrecedentIndex(Base):
     decision = Column(Enum(ReviewStatus), nullable=False)
     comment = Column(Text, nullable=True)
     embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
+
+
+class DocumentChunk(Base):
+    """
+    Persists chunk embeddings so retrieval jobs can reuse them instead of
+    re-embedding against a rate-limited free tier every time (TA-51).
+    Also the prerequisite for the semantic-diff stretch goal.
+    """
+    __tablename__ = "document_chunks"
+    __table_args__ = (
+        UniqueConstraint("document_id", "chunk_index", name="uq_chunk_document_index"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    chunk_index = Column(Integer, nullable=False)
+    masked_text = Column(Text, nullable=False)
+    embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Notification(Base):

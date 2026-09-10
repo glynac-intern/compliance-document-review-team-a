@@ -46,7 +46,7 @@ def main():
     print()
 
     db = SessionLocal()
-    summary, flags, mapping = analyze_text(db, raw_text)
+    summary, flags, mapping, chunks_data = analyze_text(db, raw_text)
 
     print("--- SUMMARY ---")
     print(summary)
