@@ -16,7 +16,7 @@ from models import (
     AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
 )
 from auth.dependencies import get_current_user, require_role
-from documents.schemas import DocumentResponse
+from documents.schemas import DocumentResponse, ThreadEntryResponse
 from documents.analysis_schemas import AnalysisResponse
 from reviews.schemas import ReviewResponse
 
@@ -399,3 +399,44 @@ def get_document_reviews(
         .all()
     )
     return reviews
+
+
+@router.get("/{document_id}/thread", response_model=list[ThreadEntryResponse])
+def get_document_thread(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Returns every revision in the thread, in submission order, each with
+    its own status and decision (if any). Requesting ANY document in a
+    thread returns the same thread, since all documents share one
+    thread_id. Access is limited to the advisor's own threads via the
+    standard access check on the requested document -- every document in
+    a thread shares the same advisor_id by construction (a revision can
+    only be created by the original submitter), so checking access on
+    the requested document is equivalent to checking access on the
+    whole thread.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    thread_documents = (
+        db.query(Document)
+        .filter(Document.thread_id == document.thread_id)
+        .order_by(Document.uploaded_at)
+        .all()
+    )
+
+    entries = []
+    for doc in thread_documents:
+        review = db.query(Review).filter(Review.document_id == doc.id).first()
+        entries.append({
+            "document_id": doc.id,
+            "status": doc.status,
+            "type": doc.type,
+            "uploaded_at": doc.uploaded_at,
+            "replaces_document_id": doc.replaces_document_id,
+            "review": review,
+        })
+    return entries

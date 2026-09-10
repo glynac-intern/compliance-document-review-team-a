@@ -19,3 +19,24 @@ class DocumentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ThreadReviewResponse(BaseModel):
+    status: str
+    comment: Optional[str]
+    decided_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ThreadEntryResponse(BaseModel):
+    document_id: uuid.UUID
+    status: DocumentStatus
+    type: DocumentType
+    uploaded_at: datetime
+    replaces_document_id: Optional[uuid.UUID]
+    review: Optional[ThreadReviewResponse]
+
+    class Config:
+        from_attributes = True
