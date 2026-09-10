@@ -1,3 +1,7 @@
+import sys
+sys.path.insert(0, '/app')
+from models import Document
+
 """
 Tests for TA-23: upload type must be determined from the file's own
 signature, not the client-supplied Content-Type header. A mislabelled
@@ -32,7 +36,7 @@ def test_file_with_real_pdf_signature_is_accepted(client, advisor_token):
     assert resp.json()["type"] == "pdf"
 
 
-def test_stored_filename_never_uses_client_supplied_filename(client, advisor_token):
+def test_stored_filename_never_uses_client_supplied_filename(client, db_session, advisor_token):
     """The stored filename must be server-derived (document id + detected
     type's extension) -- never anything from the client's filename."""
     malicious_filename_file = (
@@ -46,10 +50,12 @@ def test_stored_filename_never_uses_client_supplied_filename(client, advisor_tok
         files={"file": malicious_filename_file},
     )
     assert resp.status_code == 201
-    file_reference = resp.json()["file_reference"]
-    # The stored path must be built from the document's own id, not
-    # contain any trace of the client's hostile filename.
-    assert resp.json()["id"] in file_reference
+    # file_reference is no longer in the API response (TA-25) -- check
+    # the actual stored path server-side instead, via the DB directly.
+    doc_id = resp.json()["id"]
+    document = db_session.query(Document).filter(Document.id == doc_id).first()
+    file_reference = document.file_reference
+    assert doc_id in file_reference
     assert "passwd" not in file_reference
     assert ".." not in file_reference
     assert file_reference.endswith(".pdf")

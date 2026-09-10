@@ -23,8 +23,10 @@ def test_upload_dir_is_configurable_via_env_var():
     assert os.environ.get("UPLOAD_DIR") or str(router_module.UPLOAD_DIR) == "/app/uploads"
 
 
-def test_uploaded_file_lands_in_configured_upload_dir(client, advisor_token):
+def test_uploaded_file_lands_in_configured_upload_dir(client, db_session, advisor_token):
     import documents.router as router_module
+    from models import Document
+    from pathlib import Path
 
     resp = client.post(
         "/documents",
@@ -33,10 +35,13 @@ def test_uploaded_file_lands_in_configured_upload_dir(client, advisor_token):
     )
     assert resp.status_code == 201
     doc_id = resp.json()["id"]
-    file_reference = resp.json()["file_reference"]
+
+    # file_reference is no longer in the API response (TA-25) -- check
+    # the actual stored path server-side instead, via the DB directly.
+    document = db_session.query(Document).filter(Document.id == doc_id).first()
+    file_reference = document.file_reference
 
     # The file must actually exist at the path the app reports, and that
     # path must be under UPLOAD_DIR -- not somewhere hardcoded elsewhere.
     assert file_reference.startswith(str(router_module.UPLOAD_DIR))
-    from pathlib import Path
     assert Path(file_reference).exists()

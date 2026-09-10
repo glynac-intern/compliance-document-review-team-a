@@ -78,6 +78,9 @@ class Document(Base):
     advisor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(Enum(DocumentStatus), nullable=False, default=DocumentStatus.pending_review)
     file_reference = Column(String, nullable=False)
+    # Pure display metadata (TA-25) -- NEVER used to construct any
+    # filesystem path (that stays fully server-derived, per TA-23).
+    original_filename = Column(String, nullable=True)
     type = Column(Enum(DocumentType), nullable=False)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
 
