@@ -69,10 +69,31 @@ def _detect_file_type(contents: bytes) -> DocumentType | None:
     return None
 
 
+CHUNK_SIZE = 1024 * 1024  # 1MB
+
+
+def _read_upload_with_cap(file: UploadFile) -> bytes:
+    """
+    Reads the upload in chunks, enforcing MAX_FILE_SIZE WHILE STREAMING
+    (TA-24) rather than after the whole file is already buffered. Stops
+    reading as soon as the cap is exceeded -- an oversized upload is
+    never fully resident in memory.
+    """
+    buffer = bytearray()
+    total = 0
+    while True:
+        chunk = file.file.read(CHUNK_SIZE)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="File exceeds 10MB limit.")
+        buffer.extend(chunk)
+    return bytes(buffer)
+
+
 def _save_upload(file: UploadFile, document_id: uuid.UUID) -> tuple[str, DocumentType]:
-    contents = file.file.read()
-    if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="File exceeds 10MB limit.")
+    contents = _read_upload_with_cap(file)
 
     detected_type = _detect_file_type(contents)
     if detected_type is None:
