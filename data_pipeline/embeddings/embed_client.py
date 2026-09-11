@@ -91,3 +91,14 @@ def embed_texts_batch(texts: list[str], retries: int = 3) -> list[list[float]]:
 def embed_text(text: str, retries: int = 3) -> list[float]:
     """Single-item convenience wrapper around embed_texts_batch."""
     return embed_texts_batch([text], retries=retries)[0]
+
+
+def cosine_distance(a: list[float], b: list[float]) -> float:
+    """Pure-Python cosine distance -- used only where a raw distance
+    value is needed for its own sake (e.g. threshold tuning across many
+    candidate values in disclosure_check.py), not for retrieval queries
+    themselves, which use pgvector's native operator instead (TA-52)."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(y * y for y in b) ** 0.5
+    return 1 - (dot / (norm_a * norm_b))
