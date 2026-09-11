@@ -27,6 +27,16 @@ class FlagResponse(BaseModel):
         from_attributes = True
 
 
+class PrecedentResponse(BaseModel):
+    document_id: uuid.UUID
+    masked_text: str
+    decision: str
+    comment: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
 class AnalysisResponse(BaseModel):
     id: uuid.UUID
     document_id: uuid.UUID
@@ -35,6 +45,7 @@ class AnalysisResponse(BaseModel):
     summary: Optional[str]
     generated_at: Optional[datetime]
     flags: list[FlagResponse]
+    precedents: list[PrecedentResponse]
 
     class Config:
         from_attributes = True
