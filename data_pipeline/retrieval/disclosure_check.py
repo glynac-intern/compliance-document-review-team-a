@@ -9,14 +9,24 @@ content (product pitch, client details, etc). Per the brief's own approach
 presence should be checked per-chunk, taking the closest match across all
 chunks, not a single whole-document embedding.
 
+TA-54: chunk_paragraphs and cosine_distance are imported from their real
+shared locations (chunker.py, embed_client.py) rather than redefined here
+-- this script now genuinely shares its chunking and embedding code path
+with production, so its threshold numbers mean something. The distance
+computation itself stays a Python loop (not a pgvector query) since this
+script's whole job is comparing many candidate thresholds against raw
+distance values, which pgvector's ORDER BY/LIMIT pattern isn't built for
+-- that's a deliberate difference in what this script needs to do, not
+leftover duplication.
+
 Run inside the backend container:
     docker compose run --rm backend python data_pipeline/retrieval/disclosure_check.py
 """
 
 import json
 import os
-import re
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, "/app")
@@ -25,26 +35,17 @@ from database import SessionLocal
 from models import Rule
 
 sys.path.insert(0, "/app/data_pipeline/embeddings")
-# Reuse the SAME embedding functions as everywhere else -- not separate
-# copies. This is what makes the PII guard (TA-34) apply here too, and
-# lets batching (TA-52) apply here as well.
-from embed_client import embed_texts_batch
+sys.path.insert(0, "/app/data_pipeline/chunking")
+# Reuse the SAME chunking, embedding, and distance code as production --
+# not separate copies (TA-54). This is also what makes the PII guard
+# (TA-34) and batching (TA-52) apply here.
+from embed_client import embed_texts_batch, cosine_distance
+from chunker import chunk_paragraphs
+
+sys.path.insert(0, "/app/ai/masking")
+from masker import mask_pii
 
 DOCUMENTS_DIR = Path("/app/seed/documents")
-
-
-def cosine_distance(a: list[float], b: list[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
-    norm_a = sum(x * x for x in a) ** 0.5
-    norm_b = sum(y * y for y in b) ** 0.5
-    similarity = dot / (norm_a * norm_b)
-    return 1 - similarity
-
-
-def chunk_paragraphs(text: str) -> list[str]:
-    """Splits on blank lines, drops empty/whitespace-only chunks."""
-    chunks = re.split(r"\n\s*\n", text)
-    return [c.strip() for c in chunks if c.strip()]
 
 
 def main():
@@ -61,8 +62,14 @@ def main():
     total_chunks_embedded = 0
     for i, doc_meta in enumerate(metadata, start=1):
         filename = doc_meta["filename"]
-        text = (DOCUMENTS_DIR / filename).read_text(encoding="utf-8")
-        chunks = chunk_paragraphs(text)
+        raw_text = (DOCUMENTS_DIR / filename).read_text(encoding="utf-8")
+        # Mask BEFORE chunking, matching production's exact order
+        # (analyze_text: mask_pii then chunk_paragraphs) -- this also
+        # closes a real gap: this script previously sent RAW, unmasked
+        # text to the embedding API, undetected until TA-34's guard
+        # correctly caught it on this ticket's first genuine full run.
+        masked_text, _mapping = mask_pii(raw_text)
+        chunks = chunk_paragraphs(masked_text)
 
         chunk_embeddings = embed_texts_batch(chunks)
         total_chunks_embedded += len(chunks)
@@ -82,6 +89,11 @@ def main():
             "min_distance": min_distance,
             "ground_truth_missing": ground_truth_missing,
         })
+
+        # Pace requests to stay comfortably under the free tier's
+        # 100 embed-requests-per-minute ceiling -- 100 documents means
+        # 100 calls, right at that limit if run back to back.
+        time.sleep(0.7)
 
     print(f"\nTotal chunks embedded: {total_chunks_embedded}")
 
