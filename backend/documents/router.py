@@ -14,6 +14,7 @@ from database import get_db
 from models import (
     Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User,
     AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
+    PrecedentIndex,
 )
 from audit_utils import record_view_if_new
 from auth.dependencies import get_current_user, require_role
@@ -22,9 +23,11 @@ from documents.analysis_schemas import AnalysisResponse
 from reviews.schemas import ReviewResponse
 
 sys.path.insert(0, "/app/data_pipeline/extraction")
+sys.path.insert(0, "/app/data_pipeline/retrieval")
 sys.path.insert(0, "/app/ai/compliance")
 from extract import extract_text
 from analyze_document import analyze_text
+from precedent_retrieval import retrieve_similar_precedents
 
 router = APIRouter()
 
@@ -325,6 +328,48 @@ def submit_revision(
     return revision
 
 
+def _average_embedding(embeddings: list[list[float]]) -> list[float]:
+    """Mean-pools chunk embeddings into one representative document-level
+    vector -- zero new API calls, reuses what's already stored (TA-51)."""
+    n = len(embeddings)
+    dim = len(embeddings[0])
+    return [sum(e[i] for e in embeddings) / n for i in range(dim)]
+
+
+def _compute_precedents_for_document(db: Session, document: Document) -> list[PrecedentIndex]:
+    """
+    Computed FRESH on every call, not cached -- the precedent index
+    keeps growing as other documents get decided, so a cached snapshot
+    from whenever this document was first analyzed would go stale.
+    Uses stored DocumentChunk embeddings (TA-51), so this costs zero
+    embedding API calls, only a pgvector query.
+    """
+    chunks = db.query(DocumentChunk).filter(DocumentChunk.document_id == document.id).all()
+    if not chunks:
+        return []  # empty state, not an error -- e.g. analysis hasn't run yet
+
+    doc_embedding = _average_embedding([c.embedding for c in chunks])
+
+    thread_document_ids = [
+        d.id for d in db.query(Document.id).filter(Document.thread_id == document.thread_id).all()
+    ]
+    return retrieve_similar_precedents(db, doc_embedding, exclude_document_ids=thread_document_ids, top_k=3)
+
+
+def _build_analysis_response(db: Session, document: Document, analysis: AIAnalysis) -> dict:
+    precedents = _compute_precedents_for_document(db, document)
+    return {
+        "id": analysis.id,
+        "document_id": analysis.document_id,
+        "status": analysis.status,
+        "error_message": analysis.error_message,
+        "summary": analysis.summary,
+        "generated_at": analysis.generated_at,
+        "flags": analysis.flags,
+        "precedents": precedents,
+    }
+
+
 @router.get("/{document_id}/analysis", response_model=AnalysisResponse)
 def get_analysis(
     document_id: uuid.UUID,
@@ -344,12 +389,13 @@ def get_analysis(
         db.refresh(analysis)
 
     if analysis.status == AnalysisStatus.not_started:
-        return _execute_analysis(db, document, analysis)
+        analysis = _execute_analysis(db, document, analysis)
 
     # in_progress, succeeded, or failed -- report the persisted state
     # as-is. No silent re-running; a failure stays visible until the
-    # caller explicitly retries.
-    return analysis
+    # caller explicitly retries. Precedents are always computed fresh
+    # regardless of analysis cache state.
+    return _build_analysis_response(db, document, analysis)
 
 
 @router.post("/{document_id}/analysis/retry", response_model=AnalysisResponse)
@@ -374,7 +420,8 @@ def retry_analysis(
     analysis.error_message = None
     db.commit()
 
-    return _execute_analysis(db, document, analysis)
+    analysis = _execute_analysis(db, document, analysis)
+    return _build_analysis_response(db, document, analysis)
 
 
 @router.get("/{document_id}/audit")
