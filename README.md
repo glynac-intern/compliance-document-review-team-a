@@ -107,3 +107,36 @@ frontend/           Next.js frontend
   returns a `429` error rather than incurring any charge.
 - PII is masked server-side before any text reaches the LLM vendor. The
   mapping between placeholders and real values never leaves the server.
+
+## Security (TA-14 — pre-freeze hardening pass)
+
+**Password policy.** Sign-up requires at least 8 characters, at least
+one letter, and at least one digit. This is a minimum bar appropriate
+for a project at this stage — not enterprise-grade complexity rules
+(no forced special characters, no rotation policy).
+
+**Token lifetime.** JWTs are valid for 8 hours — a deliberate choice,
+not a development-convenience leftover: long enough to cover a full
+workday without forcing re-login mid-session, short enough to bound how
+long a leaked or stolen token stays usable.
+
+**Secret key.** `BACKEND_SECRET_KEY` is validated at application
+startup — the app refuses to start (raises immediately, does not run
+insecurely) if the key is empty, a known placeholder value (e.g. the
+literal text from `.env.example`), or shorter than 32 characters. This
+check caught the project's own local dev `.env` still holding the
+unedited placeholder when it was added.
+
+**Accepted risks, not yet addressed:**
+- No rate limiting or account lockout on login attempts — a determined
+  attacker could brute-force a weak password given enough attempts.
+  Acceptable for this project's scope and timeline; would need
+  addressing before any real production use.
+- No password reset flow — an account with a forgotten password
+  currently has no self-service recovery path.
+- No multi-factor authentication.
+- HTTPS/TLS termination is not enforced at the application level —
+  relies on the deployment environment (e.g. a reverse proxy or load
+  balancer) to provide it. The current Azure VM deployment serves plain
+  HTTP directly.
+
