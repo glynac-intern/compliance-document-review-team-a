@@ -43,6 +43,17 @@ NAME_RE = re.compile(
     r"\b(?:Dear\s+)?(?:Mr|Mrs|Ms|Dr)\.?\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})\b"
 )
 
+# TA-49 addition: names following a contact-verb ("reach", "contact",
+# "call") -- e.g. "You can reach Maria Gonzalez at...". Deliberately
+# narrow: does NOT match generic capitalized two-word phrases, since
+# these documents also contain product names ("Balanced Growth
+# Portfolio", "Legacy Wealth Plan") that must NOT be masked as if they
+# were people. "reach/contact/call" is specific enough that it doesn't
+# collide with product-name mentions in practice.
+CONTACT_VERB_NAME_RE = re.compile(
+    r"\b(?:reach|contact|call)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})\b"
+)
+
 AMOUNT_RE = re.compile(r"\$\s?[\d,]+(?:\.\d{2})?")
 
 
@@ -77,6 +88,7 @@ def mask_pii(text: str) -> tuple[str, dict[str, str]]:
     masked = _replace(ACCOUNT_RE, "ACCOUNT", masked, group=1)
     masked = _replace(ADDRESS_RE, "ADDRESS", masked)
     masked = _replace(NAME_RE, "CLIENT", masked, group=1)
+    masked = _replace(CONTACT_VERB_NAME_RE, "CLIENT", masked, group=1)
 
     # Dollar amounts "tied to a named person": paragraph-based proximity —
     # if a $ amount appears in the same paragraph (blank-line-delimited

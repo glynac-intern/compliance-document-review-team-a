@@ -1,3 +1,4 @@
+import sys
 import uuid
 from typing import Optional
 
@@ -7,6 +8,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
 from audit_utils import record_view_if_new
+
+sys.path.insert(0, "/app/ai/compliance")
+from precedent_indexer import index_document_as_precedent
 from auth.dependencies import require_role
 from documents.schemas import DocumentResponse
 from reviews.schemas import DecisionRequest, ReviewResponse
@@ -85,4 +89,14 @@ def submit_decision(
 
     db.commit()
     db.refresh(review)
+
+    # Precedent indexing is a secondary enhancement, not core to the
+    # decision itself -- a transient embedding-API failure must never
+    # block an officer's decision from being recorded. Fails gracefully.
+    try:
+        index_document_as_precedent(db, document)
+    except Exception as e:
+        db.rollback()
+        print(f"WARNING: precedent indexing failed for document {document_id}: {type(e).__name__}: {e}")
+
     return review
