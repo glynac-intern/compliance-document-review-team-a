@@ -1,0 +1,166 @@
+[
+  {
+    "filename": "doc_001.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_001.pdf",
+    "converted_format": "pdf"
+  },
+  {
+    "filename": "doc_006.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_006.docx",
+    "converted_format": "docx"
+  },
+  {
+    "filename": "doc_011.txt",
+    "type": "brochure",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_011.xlsx",
+    "converted_format": "xlsx"
+  },
+  {
+    "filename": "doc_005.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_005.pdf",
+    "converted_format": "pdf"
+  },
+  {
+    "filename": "doc_010.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_010.docx",
+    "converted_format": "docx"
+  },
+  {
+    "filename": "doc_015.txt",
+    "type": "marketing_email",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_015.xlsx",
+    "converted_format": "xlsx"
+  },
+  {
+    "filename": "doc_003.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true,
+    "converted_filename": "doc_003.pdf",
+    "converted_format": "pdf"
+  },
+  {
+    "filename": "doc_008.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true,
+    "converted_filename": "doc_008.docx",
+    "converted_format": "docx"
+  },
+  {
+    "filename": "doc_013.txt",
+    "type": "meeting_notes",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_013.xlsx",
+    "converted_format": "xlsx"
+  },
+  {
+    "filename": "doc_004.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": true,
+    "converted_filename": "doc_004.pdf",
+    "converted_format": "pdf"
+  },
+  {
+    "filename": "doc_009.txt",
+    "type": "proposal_letter",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false,
+    "converted_filename": "doc_009.docx",
+    "converted_format": "docx"
+  },
+  {
+    "filename": "doc_014.txt",
+    "type": "proposal_letter",
+    "injected_issues": [
+      "missing_required_disclosure"
+    ],
+    "is_clean": false,
+    "contains_pii": true,
+    "converted_filename": "doc_014.xlsx",
+    "converted_format": "xlsx"
+  },
+  {
+    "filename": "doc_002.txt",
+    "type": "social_post",
+    "injected_issues": [],
+    "is_clean": true,
+    "contains_pii": false,
+    "converted_filename": "doc_002.pdf",
+    "converted_format": "pdf"
+  },
+  {
+    "filename": "doc_007.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "missing_required_disclosure",
+      "prohibited_claim"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_007.docx",
+    "converted_format": "docx"
+  },
+  {
+    "filename": "doc_012.txt",
+    "type": "social_post",
+    "injected_issues": [
+      "performance_standard_violation"
+    ],
+    "is_clean": false,
+    "contains_pii": false,
+    "converted_filename": "doc_012.xlsx",
+    "converted_format": "xlsx"
+  }
+]
