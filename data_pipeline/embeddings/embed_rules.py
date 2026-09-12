@@ -1,14 +1,24 @@
 """
-Embeds the rules/disclosures seed corpus (seed/rules/rules.json) and writes
-each rule into the `rules` table with its embedding vector, via pgvector.
+Embeds the rules/disclosures seed corpus (seed/rules/rules.json) and
+UPSERTS each rule into the `rules` table, keyed on rules.json's own
+stable "id" field (e.g. "disc-001") -- NOT a fresh random UUID every
+run (TA-55).
+
+Re-running this script:
+- An existing rule (same seed_id) has its text/type/embedding UPDATED
+  IN PLACE, same primary key -- any Flag already pointing at it via
+  matched_rule_id keeps resolving correctly.
+- A genuinely new rule (new seed_id) gets a new row.
+- A rule REMOVED from rules.json is marked is_active=False, never
+  deleted -- existing flags still resolve to the exact rule text that
+  was in effect when they were generated; retrieval queries simply
+  stop offering it as a candidate for new analyses (see
+  rule_retrieval.py / analyze_document.py's is_active filters).
 
 Run inside the backend container, where database.py/models.py are on the
 path and DATABASE_URL/LLM_API_KEY are set via .env:
 
     docker compose run --rm backend python data_pipeline/embeddings/embed_rules.py
-
-Idempotent: re-running clears and re-embeds all rules, rather than
-duplicating rows, so it's safe to run again after editing rules.json.
 """
 
 import json
@@ -21,9 +31,8 @@ sys.path.insert(0, "/app")  # backend/ root, for database.py and models.py impor
 
 from database import SessionLocal
 from models import Rule
-# Reuse the SAME embedding functions as everywhere else -- not separate
-# copies. This is what makes the PII guard (TA-34) apply to the rules
-# corpus path too, and lets batching (TA-52) apply here as well.
+# Reuse the SAME embedding functions as everywhere else -- not a separate
+# copy (TA-34, TA-52, TA-54).
 from embed_client import embed_texts_batch
 
 RULES_JSON_PATH = Path("/app/seed/rules/rules.json")
@@ -39,27 +48,55 @@ def main():
 
     db = SessionLocal()
     try:
-        existing_count = db.query(Rule).count()
-        if existing_count > 0:
-            print(f"Clearing {existing_count} existing rule(s) before re-embedding...")
-            db.query(Rule).delete()
-            db.commit()
-
         print(f"Embedding all {len(rules_data)} rules in one batch call...")
         texts = [r["text"] for r in rules_data]
         embeddings = embed_texts_batch(texts)
 
+        current_seed_ids = set()
+        updated_count = 0
+        created_count = 0
+
         for rule_data, embedding in zip(rules_data, embeddings):
-            rule = Rule(
-                text=rule_data["text"],
-                type=rule_data["type"],
-                embedding=embedding,
-            )
-            db.add(rule)
+            seed_id = rule_data["id"]
+            current_seed_ids.add(seed_id)
+
+            existing = db.query(Rule).filter(Rule.seed_id == seed_id).first()
+            if existing is not None:
+                existing.text = rule_data["text"]
+                existing.type = rule_data["type"]
+                existing.embedding = embedding
+                existing.is_active = True  # a previously-removed rule can come back
+                updated_count += 1
+            else:
+                db.add(Rule(
+                    seed_id=seed_id,
+                    text=rule_data["text"],
+                    type=rule_data["type"],
+                    embedding=embedding,
+                    is_active=True,
+                ))
+                created_count += 1
+
+        # Deliberately handle rules removed from rules.json: mark
+        # inactive, never delete -- preserves every existing flag's
+        # resolvability.
+        orphaned = (
+            db.query(Rule)
+            .filter(Rule.seed_id.isnot(None))
+            .filter(~Rule.seed_id.in_(current_seed_ids))
+            .filter(Rule.is_active == True)
+            .all()
+        )
+        for rule in orphaned:
+            rule.is_active = False
 
         db.commit()
-        final_count = db.query(Rule).count()
-        print(f"\nDone. {final_count} rules embedded and stored.")
+
+        final_active_count = db.query(Rule).filter(Rule.is_active == True).count()
+        print(f"\nDone. {updated_count} rule(s) updated in place, "
+              f"{created_count} new rule(s) created, "
+              f"{len(orphaned)} rule(s) marked inactive (removed from corpus).")
+        print(f"{final_active_count} active rules total.")
     finally:
         db.close()
 

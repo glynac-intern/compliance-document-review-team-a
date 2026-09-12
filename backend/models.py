@@ -165,8 +165,15 @@ class PIIMapping(Base):
 
 class Rule(Base):
     __tablename__ = "rules"
+    __table_args__ = (UniqueConstraint("seed_id", name="uq_rule_seed_id"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Stable identity from seed/rules/rules.json (e.g. "disc-001") -- lets
+    # re-seeding UPDATE an existing row in place instead of deleting and
+    # re-inserting with a fresh random UUID, which orphaned every flag
+    # that referenced the old id (TA-55).
+    seed_id = Column(String, nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
     text = Column(Text, nullable=False)
     type = Column(String, nullable=False)  # e.g. disclosure | prohibited_claim | performance_standard
     embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
