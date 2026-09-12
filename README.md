@@ -68,6 +68,20 @@ consistently.
    ```
    Visit `http://localhost:3000`.
 
+## Retrieval quality evaluation (TA-60)
+
+Records a baseline measuring whether retrieval finds the right rule,
+across all three retrieval jobs (rule lookup, disclosure absence,
+precedent relevance), with top-k / chunk size / distance metric /
+threshold each varied and compared:
+
+```bash
+docker compose run --rm backend python data_pipeline/evaluation/retrieval_quality_harness.py
+```
+
+Writes data_pipeline/evaluation/baseline_results.json -- compare
+against this after any retrieval tuning to confirm it actually helped.
+
 ## Running tests
 
 ```bash
