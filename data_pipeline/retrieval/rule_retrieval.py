@@ -20,6 +20,7 @@ def retrieve_candidate_rules(
     return (
         db.query(Rule)
         .filter(Rule.type.in_(rule_types))
+        .filter(Rule.is_active == True)
         .order_by(Rule.embedding.cosine_distance(chunk_embedding))
         .limit(top_k)
         .all()
