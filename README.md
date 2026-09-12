@@ -46,13 +46,23 @@ consistently.
    docker compose run --rm backend python data_pipeline/embeddings/embed_rules.py
    ```
 
-6. **Verify the backend is running:**
+6. **Seed the precedent index** (TA-59 -- without this, precedent search
+   demonstrates as an empty state on a fresh checkout, even though the
+   feature works correctly):
+   ```bash
+   docker compose run --rm backend python data_pipeline/embeddings/backfill_precedents.py
+   ```
+   Populates precedent_index with the seed corpus's 100 documents, each
+   carrying a plausible, varied decision and officer comment (no real
+   client data -- these are synthetic seed documents).
+
+7. **Verify the backend is running:**
    ```bash
    curl http://localhost:8000/health
    ```
    Should return `{"status":"ok"}`.
 
-7. **Start the frontend** (once its own Dockerfile/service is ready):
+8. **Start the frontend** (once its own Dockerfile/service is ready):
    ```bash
    docker compose up -d frontend
    ```
