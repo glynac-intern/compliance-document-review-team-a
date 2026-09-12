@@ -1,66 +1,5 @@
 [
   {
-    "id": "disc-001",
-    "type": "disclosure",
-    "text": "Past performance is not indicative of future results. All investments involve risk, including the possible loss of principal."
-  },
-  {
-    "id": "disc-002",
-    "type": "disclosure",
-    "text": "This material is for informational purposes only and does not constitute investment, legal, or tax advice. Please consult your own advisors before making any financial decisions."
-  },
-  {
-    "id": "disc-003",
-    "type": "disclosure",
-    "text": "Advisory services are offered through [Firm Name], a registered investment adviser. Fees and expenses will reduce returns."
-  },
-  {
-    "id": "disc-004",
-    "type": "disclosure",
-    "text": "This communication is intended solely for the individual(s) named above and may contain confidential information. If you received this in error, please notify the sender immediately."
-  },
-  {
-    "id": "disc-005",
-    "type": "disclosure",
-    "text": "Diversification does not guarantee a profit or protect against loss in a declining market."
-  },
-  {
-    "id": "disc-006",
-    "type": "disclosure",
-    "text": "Any tax information contained herein is not intended to be used, and cannot be used, for the purpose of avoiding penalties under applicable tax law. Consult a qualified tax professional."
-  },
-  {
-    "id": "disc-007",
-    "type": "disclosure",
-    "text": "Insurance products are not deposits, are not FDIC insured, are not guaranteed by any bank, and may lose value."
-  },
-  {
-    "id": "disc-008",
-    "type": "disclosure",
-    "text": "This proposal is not a binding offer and is subject to change without notice. Final terms will be set out in the executed agreement."
-  },
-  {
-    "id": "disc-009",
-    "type": "disclosure",
-    "text": "Hypothetical or model performance results have inherent limitations and do not reflect actual trading. Results may not reflect the impact of material economic and market factors."
-  },
-  {
-    "id": "disc-010",
-    "type": "disclosure",
-    "text": "The information provided does not constitute a solicitation to buy or sell any security in any jurisdiction where such solicitation would be unlawful."
-  },
-  {
-    "id": "disc-011",
-    "type": "disclosure",
-    "text": "Social media posts by advisors must include a disclosure that the content is for educational purposes only and is not personalized investment advice."
-  },
-  {
-    "id": "disc-012",
-    "type": "disclosure",
-    "text": "Client meeting notes documenting investment recommendations must reference the client's stated risk tolerance and investment objectives on file."
-  },
-
-  {
     "id": "claim-001",
     "type": "prohibited_claim",
     "text": "Advisors may not state or imply a guaranteed rate of return on any investment product, including phrases such as 'guaranteed returns' or 'risk-free profit'."
@@ -110,7 +49,6 @@
     "type": "prohibited_claim",
     "text": "Projected or target returns presented without a clearly labeled assumption set (e.g., time horizon, market conditions) are prohibited."
   },
-
   {
     "id": "perf-001",
     "type": "performance_standard",
