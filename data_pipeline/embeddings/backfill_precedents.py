@@ -52,10 +52,9 @@ def _get_or_create_seed_advisor(db) -> User:
 
 
 def _derive_decision_and_comment(doc_meta: dict) -> tuple[str, str]:
-    if doc_meta["is_clean"]:
-        return "approved", "Compliant. No issues found."
-    issues = ", ".join(doc_meta["injected_issues"])
-    return "needs_revision", f"Issues found: {issues}."
+    """Reads the real, varied decision/comment authored into metadata.json
+    (TA-59) -- not a single templated string derived on the fly."""
+    return doc_meta["decision"], doc_meta["officer_comment"]
 
 
 def main():
