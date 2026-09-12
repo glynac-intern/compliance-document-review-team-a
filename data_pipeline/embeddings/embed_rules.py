@@ -36,15 +36,26 @@ from models import Rule
 from embed_client import embed_texts_batch
 
 RULES_JSON_PATH = Path("/app/seed/rules/rules.json")
+DISCLOSURES_JSON_PATH = Path("/app/seed/disclosures/disclosures.json")
 
 
 def main():
     if not RULES_JSON_PATH.exists():
         print(f"ERROR: {RULES_JSON_PATH} not found.")
         sys.exit(1)
+    if not DISCLOSURES_JSON_PATH.exists():
+        print(f"ERROR: {DISCLOSURES_JSON_PATH} not found.")
+        sys.exit(1)
 
+    # TA-57: disclosures live in their own dedicated seed file/directory,
+    # separate from prohibited_claim/performance_standard rules -- but
+    # both are seeded through the SAME path, into the SAME rules table,
+    # using the SAME stable-identity upsert logic (TA-55).
     rules_data = json.loads(RULES_JSON_PATH.read_text(encoding="utf-8"))
+    disclosures_data = json.loads(DISCLOSURES_JSON_PATH.read_text(encoding="utf-8"))
     print(f"Loaded {len(rules_data)} rules from {RULES_JSON_PATH}")
+    print(f"Loaded {len(disclosures_data)} disclosures from {DISCLOSURES_JSON_PATH}")
+    rules_data = rules_data + disclosures_data
 
     db = SessionLocal()
     try:
