@@ -15,6 +15,8 @@ sys.path.insert(0, "/app")
 
 import psycopg2
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -47,12 +49,24 @@ def test_db_engine():
     cur.close()
     conn.close()
 
-    engine = create_engine(TEST_DATABASE_URL)
-    with engine.connect() as conn:
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        conn.commit()
+    # TA-75: build the test schema via the REAL Alembic migrations, not
+    # Base.metadata.create_all(). create_all() always reflects whatever
+    # the current model classes say, regardless of migration state --
+    # it can NEVER catch "a model changed but no migration was written
+    # for it". Running the actual migration chain is what makes model
+    # drift genuinely fail tests, and exercises the same path a clean
+    # checkout takes. The extension is created by the first migration
+    # itself, so no separate manual step is needed here anymore.
+    original_db_url = os.environ.get("DATABASE_URL")
+    os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+    try:
+        alembic_cfg = Config("/app/alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+    finally:
+        if original_db_url is not None:
+            os.environ["DATABASE_URL"] = original_db_url
 
-    Base.metadata.create_all(engine)
+    engine = create_engine(TEST_DATABASE_URL)
     yield engine
     engine.dispose()
 

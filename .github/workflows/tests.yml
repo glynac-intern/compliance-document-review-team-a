@@ -48,6 +48,9 @@ jobs:
           echo "Database did not become healthy in time"
           exit 1
 
+      - name: Run Alembic migrations
+        run: docker compose run --rm backend alembic upgrade head
+
       - name: Run test suite (role boundary + masker)
         run: docker compose run --rm backend pytest tests/ -v
 
