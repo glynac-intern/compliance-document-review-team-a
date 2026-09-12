@@ -1,43 +1,17 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import {
   Layers2,
   File,
   BarChart2,
+  History,
   Settings,
   PanelLeft,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VerityLogo, VerityMark } from "@/components/ui/verity-logo";
-
-// Bespoke minimal and elegant history icon with clean counter-clockwise arc and delicate time hands
-function HistoryIcon({
-  className,
-  strokeWidth = 1.8,
-}: {
-  className?: string;
-  strokeWidth?: number;
-}) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn("h-5 w-5 shrink-0 transition-transform duration-150 group-hover:scale-105", className)}
-      aria-hidden="true"
-    >
-      <path d="M12 3.5a8.5 8.5 0 1 1-6.5 3.2" />
-      <polyline points="2.5 6.2 5.5 6.7 6 3.5" />
-      <polyline points="12 7.5 12 12 15 13.5" />
-    </svg>
-  );
-}
 
 // Standard document upload icon matching hand-drawn sketch:
 // - Filled document body in primary theme color (#1e4c77)
@@ -128,17 +102,18 @@ export function Sidebar({
     },
     {
       id: "new_submission" as const,
-      label: "New submission",
+      label: "New Submission",
       icon: NewSubmissionDocIcon,
       isAction: true,
       onClick: () => {
+        onSelectView?.("new_submission");
         onNewSubmissionClick?.();
         onCloseMobile();
       },
     },
     {
       id: "my_submissions" as const,
-      label: "My submission",
+      label: "My Submissions",
       icon: File,
       onClick: () => {
         onSelectView?.("my_submissions");
@@ -158,7 +133,7 @@ export function Sidebar({
     {
       id: "history" as const,
       label: "History",
-      icon: HistoryIcon,
+      icon: History,
       onClick: () => {
         onSelectView?.("history");
         handleHistory?.();

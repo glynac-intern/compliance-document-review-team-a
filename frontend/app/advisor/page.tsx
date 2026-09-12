@@ -7,7 +7,8 @@ import { MetricCards } from "@/components/advisor/metric-cards";
 import { SubmissionsTable } from "@/components/advisor/submissions-table";
 import { RecentActivity } from "@/components/advisor/recent-activity";
 import { DocumentInspectorDrawer } from "@/components/advisor/document-inspector-drawer";
-import { NewSubmissionModal } from "@/components/advisor/new-submission-modal";
+import { NewSubmissionView } from "@/components/advisor/new-submission-view";
+import { MetricsDashboardView } from "@/components/analytics/metrics-dashboard-view";
 import { RevisionUploadModal } from "@/components/advisor/revision-upload-modal";
 import { CertificateModal } from "@/components/advisor/certificate-modal";
 import { MOCK_DOCUMENTS } from "@/lib/mock-data";
@@ -36,7 +37,6 @@ export default function AdvisorDashboardPage() {
 
   // Modal and drawer states
   const [selectedDocument, setSelectedDocument] = React.useState<ComplianceDocument | null>(null);
-  const [isNewSubmissionOpen, setIsNewSubmissionOpen] = React.useState(false);
   const [revisionDoc, setRevisionDoc] = React.useState<ComplianceDocument | null>(null);
   const [certificateDoc, setCertificateDoc] = React.useState<ComplianceDocument | null>(null);
 
@@ -153,14 +153,14 @@ export default function AdvisorDashboardPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-sans">
+    <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-inter">
       {/* Restructured Sidebar matching Image 3 (Handwritten sketch) */}
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
-        onNewSubmissionClick={() => setIsNewSubmissionOpen(true)}
+        onNewSubmissionClick={() => setActiveView("new_submission")}
         onHistoryClick={() => {
           const el = document.getElementById("recent-activity-section");
           el?.scrollIntoView({ behavior: "smooth" });
@@ -190,13 +190,19 @@ export default function AdvisorDashboardPage() {
         {/* Fixed Reusable Top Bar — Taller vertically, larger buttons */}
         <TopBar
           breadcrumbs={[
-            { label: "Workspace", href: "/advisor" },
+            {
+              label: "Workspace",
+              href: "/advisor",
+              onClick: () => setActiveView("overview"),
+            },
             {
               label:
                 activeView === "overview"
                   ? "Overview"
                   : activeView === "my_submissions"
-                  ? "My submissions"
+                  ? "My Submissions"
+                  : activeView === "new_submission"
+                  ? "New Submission"
                   : activeView === "history"
                   ? "History"
                   : activeView === "metrics"
@@ -216,25 +222,10 @@ export default function AdvisorDashboardPage() {
           {activeView === "overview" && (
             <>
               {/* Top Salutation — Big elegant non-bold Inter font with Advisor name */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-normal text-slate-800 tracking-tight font-inter leading-tight">
-                    Good morning, James.
-                  </h1>
-                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
-                    Here is your compliance intake summary and latest document activity.
-                  </p>
-                </div>
-
-                {/* Quick Submit Action Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsNewSubmissionOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-normal font-inter transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
-                >
-                  <Plus className="h-4 w-4 stroke-[1.8]" />
-                  <span>New Submission</span>
-                </button>
+              <div>
+                <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                  Good morning, James.
+                </h1>
               </div>
 
               {/* 4 Summary Metric Cards (Clicking one opens My Submissions with that filter) */}
@@ -305,7 +296,7 @@ export default function AdvisorDashboardPage() {
 
                 <button
                   type="button"
-                  onClick={() => setIsNewSubmissionOpen(true)}
+                  onClick={() => setActiveView("new_submission")}
                   className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-normal font-inter transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
                 >
                   <Plus className="h-4 w-4 stroke-[1.8]" />
@@ -359,50 +350,22 @@ export default function AdvisorDashboardPage() {
             </>
           )}
 
-          {/* VIEW 4: METRICS VIEW */}
+          {/* VIEW 4: METRICS & ANALYTICS DASHBOARD */}
           {activeView === "metrics" && (
-            <>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
-                    Compliance Metrics
-                  </h1>
-                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
-                    Overview of submission volumes, review status distribution, and turnaround metrics.
-                  </p>
-                </div>
-              </div>
+            <MetricsDashboardView
+              onShowToast={showToast}
+            />
+          )}
 
-              <MetricCards
-                total={metricCounts.total}
-                pending={metricCounts.pending}
-                approved={metricCounts.approved}
-                needsRevision={metricCounts.needsRevision}
-                activeFilter={statusFilter}
-                onSelectFilter={(filterKey) => {
-                  setStatusFilter(filterKey);
-                  setActiveView("my_submissions");
-                }}
-              />
-
-              <SubmissionsTable
-                variant="full"
-                documents={documents}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
-                sortBy={sortBy}
-                onSortByChange={setSortBy}
-                onSelectDocument={(doc) => setSelectedDocument(doc)}
-                onReviseClick={(doc) => setRevisionDoc(doc)}
-                onCertificateClick={(doc) => setCertificateDoc(doc)}
-                onResetFilters={() => {
-                  setSearchQuery("");
-                  setStatusFilter("all");
-                }}
-              />
-            </>
+          {/* VIEW 5: DEDICATED NEW SUBMISSION WORKSPACE */}
+          {activeView === "new_submission" && (
+            <NewSubmissionView
+              onSubmit={(newDocData) => {
+                handleNewSubmission(newDocData);
+                setActiveView("my_submissions");
+              }}
+              onCancel={() => setActiveView("overview")}
+            />
           )}
         </main>
       </div>
@@ -415,13 +378,6 @@ export default function AdvisorDashboardPage() {
           setSelectedDocument(null);
           setRevisionDoc(doc);
         }}
-      />
-
-      {/* New Submission Modal */}
-      <NewSubmissionModal
-        isOpen={isNewSubmissionOpen}
-        onClose={() => setIsNewSubmissionOpen(false)}
-        onSubmit={handleNewSubmission}
       />
 
       {/* Revision Resubmission Modal */}
