@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VerityLogo } from "@/components/ui/verity-logo";
+import { useAuth } from "@/lib/auth-context";
+import { ApiError } from "@/lib/api-client";
 
 const PROJECT_CARDS = [
   {
@@ -39,6 +41,7 @@ const PROJECT_CARDS = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
@@ -101,29 +104,24 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 650));
-
-    const lower = email.toLowerCase();
-    if (lower.includes("officer") || lower.includes("compliance") || lower.includes("sarah")) {
+    try {
+      // TA-61: real backend call, real JWT, real role read from the
+      // token -- not a guess based on what the email string contains.
+      const role = await login(email.trim(), password);
+      router.push(role === "officer" ? "/officer" : "/advisor");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Unable to sign in. Please try again.");
+    } finally {
       setIsLoading(false);
-      router.push("/officer");
-    } else {
-      setIsLoading(false);
-      router.push("/advisor");
     }
   };
 
-  const handleQuickLogin = (role: "advisor" | "officer") => {
+  const handleQuickLogin = (_role: "advisor" | "officer") => {
+    // TA-61: this used to bypass real authentication entirely. Now
+    // that login is wired to the real backend, this shortcut can no
+    // longer skip it -- point the user at the real form instead.
     setShowOtherModal(false);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (role === "officer") {
-        router.push("/officer");
-      } else {
-        router.push("/advisor");
-      }
-    }, 450);
+    setError("Please sign in with a real account below.");
   };
 
   return (

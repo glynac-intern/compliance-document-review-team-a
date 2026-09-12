@@ -14,8 +14,14 @@ import { MOCK_DOCUMENTS } from "@/lib/mock-data";
 import { ComplianceDocument } from "@/types/compliance";
 import { Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRequireAuth } from "@/lib/use-require-auth";
 
 export default function AdvisorDashboardPage() {
+  // TA-61: unauthenticated visitors redirected to /login; an
+  // authenticated officer landing here gets sent to their own
+  // dashboard instead.
+  const { isReady } = useRequireAuth("advisor");
+
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
@@ -151,6 +157,11 @@ export default function AdvisorDashboardPage() {
     );
     showToast(`Version ${newVersion} submitted. Status updated to In Review.`);
   };
+
+  if (!isReady) {
+    return null;
+  }
+
 
   return (
     <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-sans">
