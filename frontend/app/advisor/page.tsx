@@ -164,26 +164,15 @@ export default function AdvisorDashboardPage() {
   };
 
   // Handle revision upload
-  const handleRevisionSubmit = (
-    docId: string,
-    revisionNotes: string,
-    newVersion: number
-  ) => {
-    setDocuments((prev) =>
-      prev.map((d) => {
-        if (d.id === docId) {
-          return {
-            ...d,
-            status: "in_review",
-            version: newVersion,
-            officer_feedback: undefined,
-            reviewed_at: undefined,
-          };
-        }
-        return d;
-      })
-    );
-    showToast(`Version ${newVersion} submitted. Status updated to In Review.`);
+  // TA-65: receives the REAL backend response -- a genuinely NEW
+  // document row (its own id, status=pending_review), not a mutation
+  // of the original. The original correctly keeps its own real
+  // historical status (needs_revision) -- that's what
+  // replaces_document_id / thread linkage represents.
+  const handleRevisionSubmit = (uploaded: BackendDocument) => {
+    const newDoc = adaptBackendDocument(uploaded, "You", "");
+    setDocuments((prev) => [newDoc, ...prev]);
+    showToast(`Version submitted -- now pending review.`);
   };
 
   if (!isReady) {
