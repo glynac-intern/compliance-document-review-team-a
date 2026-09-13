@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Mail,
@@ -41,8 +41,10 @@ const PROJECT_CARDS = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
-  const [email, setEmail] = React.useState("");
+  const [email, setEmail] = React.useState(searchParams.get("email") ?? "");
+  const [signupSuccess] = React.useState(searchParams.get("signupSuccess") === "1");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [remember, setRemember] = React.useState(false);
@@ -291,6 +293,13 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Signup success message (TA-62) */}
+            {signupSuccess && !error && (
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700 mb-4 font-sans">
+                <span>Account created. Please sign in.</span>
+              </div>
+            )}
+
             {/* Error Message */}
             {error && (
               <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose-700 mb-4 font-sans">
@@ -413,7 +422,7 @@ export default function LoginPage() {
               Don&apos;t have an account?{" "}
               <button
                 type="button"
-                onClick={() => alert("Enterprise account creation is managed by your organization compliance administrator.")}
+                onClick={() => router.push("/signup")}
                 className="font-semibold text-[#2575bc] hover:text-[#185386] hover:underline"
               >
                 Sign up

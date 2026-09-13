@@ -86,9 +86,19 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
   });
 
   if (response.status === 401) {
-    clearStoredToken();
-    if (onUnauthorized) onUnauthorized();
-    throw new ApiError(401, "Session expired. Please log in again.");
+    // A 401 on an UNauthenticated call (login/signup) means bad
+    // credentials, not an expired session -- there was no session to
+    // begin with. Only trigger the session-expired/redirect behavior
+    // for calls that actually HAD a token attached (skipAuth=false).
+    // Caught via TA-62: a wrong-password login was silently showing
+    // "Session expired" instead of the real "Invalid email or password".
+    if (!skipAuth) {
+      clearStoredToken();
+      if (onUnauthorized) onUnauthorized();
+      throw new ApiError(401, "Session expired. Please log in again.");
+    }
+    // Fall through to the generic error handling below, which reads
+    // the REAL backend message (e.g. "Invalid email or password").
   }
 
   if (!response.ok) {
