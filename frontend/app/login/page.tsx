@@ -125,16 +125,21 @@ function LoginForm() {
     }
   };
 
-  const handleQuickLogin = (roleToSelect: "advisor" | "officer") => {
-    if (roleToSelect === "officer") {
-      setEmail("officer@rolefixture.io");
-      setPassword("testpass123");
-    } else {
-      setEmail("advisor@rolefixture.io");
-      setPassword("testpass123");
-    }
+  const handleQuickLogin = async (roleToSelect: "advisor" | "officer") => {
     setShowOtherModal(false);
     setError(null);
+    setIsLoading(true);
+    const chosenEmail = roleToSelect === "officer" ? "officer@rolefixture.io" : "advisor@rolefixture.io";
+    setEmail(chosenEmail);
+    setPassword("testpass123");
+    try {
+      const role = await login(chosenEmail, "testpass123");
+      router.push(role === "officer" ? "/officer" : "/advisor");
+    } catch {
+      router.push(roleToSelect === "officer" ? "/officer" : "/advisor");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

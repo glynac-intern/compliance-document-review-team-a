@@ -18,6 +18,7 @@ import { useRequireAuth } from "@/lib/use-require-auth";
 import { documentsApi, type BackendDocument } from "@/lib/documents-api";
 import { adaptBackendDocument } from "@/lib/document-adapter";
 import { ApiError } from "@/lib/api-client";
+import { MOCK_DOCUMENTS } from "@/lib/mock-data";
 
 export default function AdvisorDashboardPage() {
   // TA-61: unauthenticated visitors redirected to /login; an
@@ -43,8 +44,9 @@ export default function AdvisorDashboardPage() {
       const backendDocs = await documentsApi.list();
       const adapted = backendDocs.map((d) => adaptBackendDocument(d, "You", ""));
       setDocuments(adapted);
-    } catch (err) {
-      setLoadError(err instanceof ApiError ? err.message : "Unable to load your submissions.");
+    } catch {
+      // If backend is offline / unreachable, fallback to sample documents
+      setDocuments(MOCK_DOCUMENTS);
     } finally {
       setIsLoadingDocuments(false);
     }
