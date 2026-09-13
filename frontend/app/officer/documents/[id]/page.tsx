@@ -49,7 +49,8 @@ interface Precedent {
 }
 
 interface AnalysisResponse {
-  status: string;
+  status: "not_started" | "in_progress" | "succeeded" | "failed";
+  error_message: string | null;
   summary: string | null;
   flags: AnalysisFlag[];
   precedents: Precedent[];
@@ -75,6 +76,45 @@ export default function OfficerDocumentViewerPage() {
   const [isSubmittingDecision, setIsSubmittingDecision] = React.useState(false);
   const [decisionError, setDecisionError] = React.useState<string | null>(null);
   const [justDecided, setJustDecided] = React.useState(false);
+  const [isRetrying, setIsRetrying] = React.useState(false);
+
+  // TA-70: a first-time analysis failure comes back as a 503 (a raised
+  // HTTPException, not a normal 200 with status="failed") -- this is
+  // caught here and turned into a genuine, distinct failed state,
+  // rather than silently leaving the panel stuck on "loading" forever.
+  const loadAnalysis = React.useCallback(() => {
+    apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis`)
+      .then(setAnalysis)
+      .catch((err) => {
+        setAnalysis({
+          status: "failed",
+          error_message: err instanceof ApiError ? err.message : "Analysis failed unexpectedly.",
+          summary: null,
+          flags: [],
+          precedents: [],
+        });
+      });
+  }, [documentId]);
+
+  const handleRetryAnalysis = async () => {
+    setIsRetrying(true);
+    try {
+      const result = await apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis/retry`, {
+        method: "POST",
+      });
+      setAnalysis(result);
+    } catch (err) {
+      setAnalysis({
+        status: "failed",
+        error_message: err instanceof ApiError ? err.message : "Retry failed unexpectedly.",
+        summary: null,
+        flags: [],
+        precedents: [],
+      });
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   React.useEffect(() => {
     if (!isReady) return;
@@ -95,9 +135,7 @@ export default function OfficerDocumentViewerPage() {
         setFileError(err instanceof ApiError ? err.message : "Unable to load the file preview.");
       });
 
-    apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis`)
-      .then(setAnalysis)
-      .catch(() => setAnalysis(null));
+    loadAnalysis();
 
     documentsApi
       .getThread(documentId)
@@ -228,9 +266,42 @@ export default function OfficerDocumentViewerPage() {
         <div className="w-full lg:w-96 shrink-0 rounded-xl border border-slate-200 bg-white p-4 overflow-y-auto">
           <h2 className="text-xs font-bold text-slate-900 mb-3">AI Assist</h2>
           {!analysis ? (
-            <p className="text-xs text-slate-400">Loading assist panel...</p>
-          ) : analysis.status !== "succeeded" ? (
-            <p className="text-xs text-slate-400">Analysis not yet available.</p>
+            // TA-70: "not yet loaded" -- our own client fetch is still
+            // in flight. The backend runs not_started -> in_progress
+            // synchronously within one request, so this single loading
+            // state visually covers that whole period from the
+            // reviewer's perspective; succeeded and failed are the two
+            // genuinely distinct end states the client can observe.
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span className="h-3 w-3 rounded-full border-2 border-slate-300 border-t-[#2575bc] animate-spin" />
+              Analyzing document...
+            </div>
+          ) : analysis.status === "failed" ? (
+            // TA-70: a genuine, distinct failed state -- not a blank
+            // panel, with a real retry control. The document, queue,
+            // and decision form are all unaffected by this (they don't
+            // depend on analysis at all), verified by removing the
+            // LLM API key and walking the full flow.
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center">
+              <FileWarning className="h-6 w-6 text-rose-400 mx-auto mb-2" />
+              <p className="text-xs font-semibold text-rose-800 mb-1">
+                AI assist is currently unavailable
+              </p>
+              <p className="text-[11px] text-rose-600 mb-3">
+                {analysis.error_message ?? "The analysis could not be completed."}
+              </p>
+              <p className="text-[11px] text-slate-500 mb-3">
+                You can still review and decide on this document normally --
+                the assist panel is supplementary, not required.
+              </p>
+              <button
+                onClick={handleRetryAnalysis}
+                disabled={isRetrying}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold disabled:opacity-50"
+              >
+                {isRetrying ? "Retrying..." : "Retry Analysis"}
+              </button>
+            </div>
           ) : (
             // TA-68: summary at top, flags always carry passage + matched
             // rule + reason + severity together (never severity alone),
