@@ -13,7 +13,9 @@ export type DocumentType =
   | "Client Letter"
   | "Promotional Brochure"
   | "Social Media Post"
-  | "Performance Factsheet";
+  | "Performance Factsheet"
+  | "Other"
+  | (string & {});
 
 export interface AIFlag {
   passage: string;

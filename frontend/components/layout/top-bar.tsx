@@ -1,25 +1,23 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   RotateCw,
   Bell,
   Calendar as CalendarIcon,
   ChevronRight,
-  ChevronDown,
   Menu,
   Check,
   Clock,
   AlertCircle,
-  PanelLeft,
-  X,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
 interface TopBarProps {
-  breadcrumbs?: { label: string; href?: string }[];
+  breadcrumbs?: { label: string; href?: string; onClick?: () => void }[];
   onToggleSidebar?: () => void;
   onToggleMobileSidebar?: () => void;
   onRefresh?: () => void;
@@ -28,10 +26,9 @@ interface TopBarProps {
 
 export function TopBar({
   breadcrumbs = [
-    { label: "workspace", href: "/advisor" },
-    { label: "overview" },
+    { label: "Workspace", href: "/advisor" },
+    { label: "Overview" },
   ],
-  onToggleSidebar,
   onToggleMobileSidebar,
   onRefresh,
   isRefreshing = false,
@@ -111,7 +108,7 @@ export function TopBar({
 
   return (
     // Taller vertically (h-16 = 64px, +8px from previous h-14), providing airy, elevated feel
-    <header className="sticky top-0 z-30 h-16 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between px-5 sm:px-8 transition-all font-sans">
+    <header className="sticky top-0 z-30 h-16 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between px-5 sm:px-8 transition-all font-inter">
       {/* Left: Sidebar Toggle Button + Breadcrumbs */}
       <div className="flex items-center gap-3.5">
         {/* Mobile menu trigger */}
@@ -127,7 +124,7 @@ export function TopBar({
         )}
 
         {/* Breadcrumb Trail matching Image 1: 'Workspace  >  My submissions' */}
-        <nav aria-label="Breadcrumbs" className="flex items-center gap-2.5 text-[15px] font-elegant select-none">
+        <nav aria-label="Breadcrumbs" className="flex items-center gap-2.5 text-[15px] font-inter select-none">
           {breadcrumbs.map((crumb, idx) => {
             const isLast = idx === breadcrumbs.length - 1;
             return (
@@ -139,6 +136,21 @@ export function TopBar({
                   <span className="font-medium text-slate-800 tracking-tight">
                     {crumb.label}
                   </span>
+                ) : crumb.onClick ? (
+                  <button
+                    type="button"
+                    onClick={crumb.onClick}
+                    className="text-slate-400 font-normal hover:text-slate-600 transition-colors cursor-pointer"
+                  >
+                    {crumb.label}
+                  </button>
+                ) : crumb.href ? (
+                  <Link
+                    href={crumb.href}
+                    className="text-slate-400 font-normal hover:text-slate-600 transition-colors"
+                  >
+                    {crumb.label}
+                  </Link>
                 ) : (
                   <span className="text-slate-400 font-normal hover:text-slate-600 transition-colors">
                     {crumb.label}
@@ -150,122 +162,115 @@ export function TopBar({
         </nav>
       </div>
 
-      {/* Right: Reusable Utility Action Cluster — Elegant rounded-2xl buttons matching Screenshot 1 */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
-        {/* Refresh Icon Button (Sleek reload transition and theme active state) */}
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          title="Refresh compliance queue"
-          className={cn(
-            "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer disabled:opacity-50 border shadow-2xs",
-            isRefreshing
-              ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs scale-[0.98]"
-              : "bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:bg-[#1e4c77] active:text-white active:scale-95"
-          )}
-        >
-          <RotateCw
-            className={cn(
-              "h-[18px] w-[18px] stroke-[1.8] transition-transform",
-              isRefreshing && "animate-sleek-spin"
-            )}
-          />
-        </button>
-
-        {/* Regulatory Calendar Button */}
-        <div className="relative" ref={calendarRef}>
+      {/* Right: Refined Institutional Utility Toolbar — Sleek segmented control dock */}
+      <div className="flex items-center gap-2">
+        <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+          {/* Refresh Icon Button */}
           <button
             type="button"
-            onClick={() => setShowCalendar(!showCalendar)}
-            title="Regulatory Calendar & Deadlines"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            title="Refresh compliance queue"
             className={cn(
-              "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer border shadow-2xs",
-              showCalendar
-                ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs"
-                : "bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:bg-[#1e4c77] active:text-white active:scale-95"
+              "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
+              isRefreshing && "bg-white text-[#1e4c77] shadow-2xs"
             )}
           >
-            <CalendarIcon className="h-[18px] w-[18px] stroke-[1.8]" />
+            <RotateCw
+              className={cn(
+                "h-4 w-4 stroke-[1.8] transition-transform",
+                isRefreshing && "animate-sleek-spin"
+              )}
+            />
           </button>
 
-          {/* Calendar Popover */}
-          {showCalendar && (
-            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 text-[#1e4c77] stroke-[1.8]" />
-                  <h3 className="text-[13px] font-normal text-slate-800 font-inter">
-                    Regulatory Deadlines
-                  </h3>
-                </div>
-                <span className="text-[11px] font-normal text-slate-400 font-inter">
-                  Q1 2026
-                </span>
-              </div>
+          {/* Regulatory Calendar Button */}
+          <div className="relative" ref={calendarRef}>
+            <button
+              type="button"
+              onClick={() => setShowCalendar(!showCalendar)}
+              title="Regulatory Calendar & Deadlines"
+              className={cn(
+                "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
+                showCalendar && "bg-white text-[#1e4c77] shadow-2xs"
+              )}
+            >
+              <CalendarIcon className="h-4 w-4 stroke-[1.8]" />
+            </button>
 
-              <div className="space-y-2 pt-2.5">
-                {calendarEvents.map((evt, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-xl border border-slate-100 bg-[#f8fafc] hover:border-slate-200 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-normal text-[#1e4c77] font-inter">
-                        {evt.type}
-                      </span>
-                      <span className="text-[11px] font-normal text-slate-500 font-numbers tabular-nums">
-                        {evt.date}
-                      </span>
-                    </div>
-                    <p className="text-[12px] font-normal text-slate-700 leading-snug font-inter">
-                      {evt.title}
-                    </p>
+            {/* Calendar Popover */}
+            {showCalendar && (
+              <div className="absolute right-0 mt-2 w-80 rounded-xl bg-white border border-slate-200/90 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-[#1e4c77] stroke-[1.8]" />
+                    <h3 className="text-[13px] font-normal text-slate-800 font-inter">
+                      Regulatory Deadlines
+                    </h3>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Notification Bell with Dropdown */}
-        <div className="relative" ref={notificationsRef}>
-          <button
-            type="button"
-            onClick={() => setShowNotifications(!showNotifications)}
-            title="Notifications"
-            className={cn(
-              "relative h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer border shadow-2xs",
-              showNotifications
-                ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs"
-                : "bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 active:bg-[#1e4c77] active:text-white active:scale-95"
-            )}
-          >
-            <Bell className="h-[18px] w-[18px] stroke-[1.8]" />
-            {unreadCount > 0 && (
-              <span
-                className={cn(
-                  "absolute top-2 right-2 h-2.5 w-2.5 rounded-full transition-colors",
-                  showNotifications
-                    ? "bg-white ring-2 ring-[#1e4c77]"
-                    : "bg-[#1e4c77] ring-2 ring-white"
-                )}
-              />
-            )}
-          </button>
-
-          {/* Notifications Popover */}
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-[13px] font-normal text-slate-800 font-inter">Notifications</h3>
-                  {unreadCount > 0 && (
-                    <span className="rounded-full bg-[#ebf4fb] px-2 py-0.5 text-[10px] font-normal text-[#1e4c77] font-inter">
-                      {unreadCount} new
-                    </span>
-                  )}
+                  <span className="text-[11px] font-normal text-slate-400 font-inter">
+                    Q1 2026
+                  </span>
                 </div>
+
+                <div className="space-y-2 pt-2.5">
+                  {calendarEvents.map((evt, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-lg border border-slate-100 bg-[#f8fafc] hover:border-slate-200 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-normal text-[#1e4c77] font-inter">
+                          {evt.type}
+                        </span>
+                        <span className="text-[11px] font-normal text-slate-500 font-numbers tabular-nums">
+                          {evt.date}
+                        </span>
+                      </div>
+                      <p className="text-[12px] font-normal text-slate-700 leading-snug font-inter">
+                        {evt.title}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Hairline Divider */}
+          <div className="h-3.5 w-px bg-slate-200/90 mx-0.5" />
+
+          {/* Notification Bell with Dropdown */}
+          <div className="relative" ref={notificationsRef}>
+            <button
+              type="button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              title="Notifications"
+              className={cn(
+                "relative h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
+                showNotifications && "bg-white text-[#1e4c77] shadow-2xs"
+              )}
+            >
+              <Bell className="h-4 w-4 stroke-[1.8]" />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#1e4c77] ring-2 ring-white"
+                />
+              )}
+            </button>
+
+            {/* Notifications Popover */}
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl bg-white border border-slate-200/90 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[13px] font-normal text-slate-800 font-inter">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <span className="rounded-full bg-[#ebf4fb] px-2 py-0.5 text-[10px] font-normal text-[#1e4c77] font-inter">
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </div>
                 {unreadCount > 0 && (
                   <button
                     type="button"
@@ -330,6 +335,7 @@ export function TopBar({
           <LogOut className="h-[18px] w-[18px] stroke-[1.8]" />
         </button>
       </div>
-    </header>
+    </div>
+  </header>
   );
 }

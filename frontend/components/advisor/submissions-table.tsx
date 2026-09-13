@@ -123,9 +123,6 @@ export function SubmissionsTable({
             <h2 className="text-base sm:text-lg font-normal text-slate-800 tracking-tight font-inter">
               Recent Submissions
             </h2>
-            <p className="text-xs font-normal text-slate-400 mt-0.5 font-inter">
-              Showing <span className="font-numbers text-slate-600">5</span> recent submissions
-            </p>
           </div>
 
           {onViewMore && (
@@ -216,7 +213,7 @@ export function SubmissionsTable({
             <div className="relative">
               <select
                 value={sortBy}
-                onChange={(e) => onSortByChange(e.target.value as any)}
+                onChange={(e) => onSortByChange(e.target.value as "newest" | "oldest" | "title")}
                 className="h-9 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-normal font-inter text-slate-700 pl-3 pr-8 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all cursor-pointer appearance-none"
               >
                 <option value="newest">Last Updated</option>
@@ -433,16 +430,6 @@ export function SubmissionsTable({
             Showing <span className="font-numbers text-slate-600">5</span> of{" "}
             <span className="font-numbers text-slate-600">{documents.length}</span> submissions
           </span>
-          {onViewMore && (
-            <button
-              type="button"
-              onClick={onViewMore}
-              className="text-xs font-normal font-inter text-[#1e4c77] hover:text-[#2575bc] hover:underline cursor-pointer inline-flex items-center gap-1"
-            >
-              <span>View all submissions in My Submissions</span>
-              <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.8} />
-            </button>
-          )}
         </div>
       ) : (
         <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 bg-[#f8fafc]/80 flex items-center justify-between text-xs font-inter font-normal text-slate-400">

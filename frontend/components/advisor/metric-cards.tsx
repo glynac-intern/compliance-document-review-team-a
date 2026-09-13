@@ -26,7 +26,6 @@ export function MetricCards({
       id: "all",
       label: "Total Submissions",
       value: String(total).padStart(2, "0"),
-      subtext: "all active documents",
       gradient: "from-[#1b4a74] via-[#215e96] to-[#163f64]",
       hoverGradient: "hover:from-[#20588a] hover:via-[#276eaf] hover:to-[#1a4975]",
     },
@@ -34,7 +33,6 @@ export function MetricCards({
       id: "pending",
       label: "Pending Review",
       value: String(pending).padStart(2, "0"),
-      subtext: "in compliance queue",
       gradient: "from-[#1a4872] via-[#205b92] to-[#153e63]",
       hoverGradient: "hover:from-[#1f5688] hover:via-[#256aab] hover:to-[#194772]",
     },
@@ -42,7 +40,6 @@ export function MetricCards({
       id: "approved",
       label: "Approved",
       value: String(approved).padStart(2, "0"),
-      subtext: "cleared for distribution",
       gradient: "from-[#18456e] via-[#1e578c] to-[#143a5d]",
       hoverGradient: "hover:from-[#1d5283] hover:via-[#2365a3] hover:to-[#17436b]",
     },
@@ -50,14 +47,13 @@ export function MetricCards({
       id: "needs_revision",
       label: "Needs Revision",
       value: String(needsRevision).padStart(2, "0"),
-      subtext: "action required",
       gradient: "from-[#1e4c77] via-[#24619a] to-[#18446c]",
       hoverGradient: "hover:from-[#225a8c] hover:via-[#2871b3] hover:to-[#1b4b77]",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 select-none">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 select-none font-inter">
       {cards.map((card) => {
         const isActive = activeFilter === card.id;
 
@@ -82,13 +78,8 @@ export function MetricCards({
             </p>
 
             {/* Number font: Geometric Sans-Serif font (ONLY FOR NUMBERS) */}
-            <p className="font-numbers font-geometric text-3xl sm:text-4xl lg:text-[40px] font-bold sm:font-extrabold text-white tracking-tight tabular-nums my-1.5 leading-none">
+            <p className="font-numbers font-geometric text-3xl sm:text-4xl lg:text-[40px] font-bold sm:font-extrabold text-white tracking-tight tabular-nums mt-1.5 leading-none">
               {card.value}
-            </p>
-
-            {/* Small case Inter font text below numbers, just as they are */}
-            <p className="font-inter text-[11px] sm:text-xs text-blue-200/65 font-normal lowercase tracking-normal">
-              {card.subtext}
             </p>
           </button>
         );
