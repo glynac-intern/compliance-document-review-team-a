@@ -9,12 +9,14 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
-import { ComplianceDocument, DocumentType } from "@/types/compliance";
+import { DocumentType } from "@/types/compliance";
+import { documentsApi, validateFileBeforeUpload, type BackendDocument } from "@/lib/documents-api";
+import { ApiError } from "@/lib/api-client";
 
 interface NewSubmissionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (newDoc: Partial<ComplianceDocument>) => void;
+  onSubmit: (uploaded: BackendDocument) => void;
 }
 
 export function NewSubmissionModal({
@@ -28,67 +30,65 @@ export function NewSubmissionModal({
   const [notes, setNotes] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState(0);
   const [error, setError] = React.useState<string | null>(null);
 
   if (!isOpen) return null;
 
+  const applySelectedFile = (selected: File) => {
+    // TA-63: real client-side validation (file type + 10MB cap) --
+    // fast feedback, but the server still enforces both authoritatively.
+    const validationError = validateFileBeforeUpload(selected);
+    if (validationError) {
+      setError(validationError);
+      setFile(null);
+      return;
+    }
+    setFile(selected);
+    setError(null);
+    if (!title) {
+      setTitle(selected.name);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const selected = e.target.files[0];
-      setFile(selected);
-      if (!title) {
-        setTitle(selected.name);
-      }
-      setError(null);
+      applySelectedFile(e.target.files[0]);
     }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const dropped = e.dataTransfer.files[0];
-      setFile(dropped);
-      if (!title) {
-        setTitle(dropped.name);
-      }
-      setError(null);
+      applySelectedFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError("Please provide a title for this submission.");
-      return;
-    }
-    if (!file && !title.includes(".")) {
-      setError("Please upload a document file (.pdf, .docx, .pptx).");
+    setError(null);
+
+    if (!file) {
+      setError("Please choose a PDF, DOCX, or XLSX file to upload.");
       return;
     }
 
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 600));
-
-    const newDocId = `DOC-2026-0${Math.floor(100 + Math.random() * 900)}`;
-
-    onSubmit({
-      id: newDocId,
-      title: title.endsWith(".pdf") || title.endsWith(".docx") ? title : `${title}.pdf`,
-      advisor_id: "adv-101",
-      advisor_name: "James Adams",
-      advisor_email: "j.adams@apexadvisory.com",
-      status: "pending",
-      file_reference: `s3://compliance-vault/docs/2026/${newDocId}.pdf`,
-      type,
-      uploaded_at: new Date().toISOString(),
-      thread_id: `THR-${Math.floor(1000 + Math.random() * 9000)}`,
-      replaces_document_id: null,
-      version: 1,
-      file_size_mb: file ? Number((file.size / (1024 * 1024)).toFixed(1)) : 2.4,
-    });
-
-    setIsSubmitting(false);
-    onClose();
+    setUploadProgress(0);
+    try {
+      // TA-63: a REAL upload -- multipart POST /documents, with real
+      // progress reported via XHR (fetch has no upload-progress event).
+      const uploaded = await documentsApi.submit(file, setUploadProgress);
+      onSubmit(uploaded);
+      onClose();
+    } catch (err) {
+      // Real server-side errors (bad file signature, oversized file
+      // slipping past the client check, etc.) shown with their actual
+      // message -- the server remains the authority.
+      setError(err instanceof ApiError ? err.message : "Upload failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,7 +132,7 @@ export function NewSubmissionModal({
             <input
               id="file-upload"
               type="file"
-              accept=".pdf,.docx,.pptx"
+              accept=".pdf,.docx,.xlsx"
               className="hidden"
               onChange={handleFileChange}
             />
@@ -152,11 +152,24 @@ export function NewSubmissionModal({
                   Drop presentation, brochure, or client letter here
                 </p>
                 <p className="text-[11px] text-slate-400 font-roboto mt-0.5">
-                  Supports PDF, DOCX, PPTX up to 50 MB
+                  Supports PDF, DOCX, XLSX up to 10 MB
                 </p>
               </div>
             )}
           </div>
+
+          {/* Upload progress -- visible during the real upload */}
+          {isSubmitting && (
+            <div className="space-y-1">
+              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full bg-[#2575bc] transition-all duration-150"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 text-right">{uploadProgress}%</p>
+            </div>
+          )}
 
           {/* Document Title */}
           <div>
@@ -238,7 +251,7 @@ export function NewSubmissionModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Submitting...</span>
+                  <span>Uploading... {uploadProgress}%</span>
                 </>
               ) : (
                 <span>Submit for Review</span>
