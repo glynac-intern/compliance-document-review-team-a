@@ -14,6 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { notificationsApi, type AppNotification } from "@/lib/notifications-api";
 import { useAuth } from "@/lib/auth-context";
 
 interface TopBarProps {
@@ -22,6 +23,8 @@ interface TopBarProps {
   onToggleMobileSidebar?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  // TA-71: opening a notification takes the advisor to the document.
+  onNotificationClick?: (documentId: string) => void;
 }
 
 export function TopBar({
@@ -32,11 +35,41 @@ export function TopBar({
   onToggleMobileSidebar,
   onRefresh,
   isRefreshing = false,
+  onNotificationClick,
 }: TopBarProps) {
   const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showCalendar, setShowCalendar] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(2);
+
+  // TA-71: real notifications and unread count -- fetched fresh each
+  // time the dashboard loads ("next time they open their dashboard",
+  // per this ticket's own framing; in-app only, not real-time push).
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
+  React.useEffect(() => {
+    notificationsApi.list().then(setNotifications).catch(() => setNotifications([]));
+    notificationsApi.getUnreadCount().then((r) => setUnreadCount(r.unread_count)).catch(() => setUnreadCount(0));
+  }, []);
+
+  const handleNotificationItemClick = async (notification: AppNotification) => {
+    if (!notification.is_read) {
+      try {
+        await notificationsApi.markAsRead(notification.id);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      } catch {
+        // Marking as read is best-effort -- navigation should still
+        // proceed even if this particular call fails.
+      }
+    }
+    setShowNotifications(false);
+    if (notification.document_id && onNotificationClick) {
+      onNotificationClick(notification.document_id);
+    }
+  };
 
   const notificationsRef = React.useRef<HTMLDivElement>(null);
   const calendarRef = React.useRef<HTMLDivElement>(null);
@@ -60,36 +93,6 @@ export function TopBar({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const notifications = [
-    {
-      id: "n-1",
-      title: "Revision Requested",
-      document: "Q1 2026 Alpha Growth Fund Presentation",
-      officer: "Sarah Jenkins",
-      time: "25m ago",
-      type: "warning",
-      unread: true,
-    },
-    {
-      id: "n-2",
-      title: "Document Approved",
-      document: "Fixed Income Yield Advantage Flyer",
-      officer: "Sarah Jenkins",
-      time: "2h ago",
-      type: "success",
-      unread: true,
-    },
-    {
-      id: "n-3",
-      title: "Review Started",
-      document: "Retirement Horizons Newsletter (v2)",
-      officer: "Compliance Queue",
-      time: "Yesterday",
-      type: "info",
-      unread: false,
-    },
-  ];
 
   const calendarEvents = [
     {
@@ -274,7 +277,12 @@ export function TopBar({
                 {unreadCount > 0 && (
                   <button
                     type="button"
-                    onClick={() => setUnreadCount(0)}
+                    onClick={async () => {
+                      const unread = notifications.filter((n) => !n.is_read);
+                      await Promise.all(unread.map((n) => notificationsApi.markAsRead(n.id).catch(() => null)));
+                      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+                      setUnreadCount(0);
+                    }}
                     className="text-[11px] font-normal text-[#1e4c77] hover:underline font-inter cursor-pointer"
                   >
                     Mark all read
@@ -283,43 +291,38 @@ export function TopBar({
               </div>
 
               <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto pt-1 font-inter">
-                {notifications.map((item) => (
-                  <div
-                    key={item.id}
-                    className="py-2.5 px-1 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div
-                        className={cn(
-                          "mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px]",
-                          item.type === "warning" && "bg-amber-50 text-amber-800 border border-amber-200",
-                          item.type === "success" && "bg-emerald-50 text-emerald-800 border border-emerald-200",
-                          item.type === "info" && "bg-blue-50 text-[#1e4c77] border border-blue-200"
-                        )}
-                      >
-                        {item.type === "warning" && <AlertCircle className="h-3 w-3 stroke-[1.8]" />}
-                        {item.type === "success" && <Check className="h-3 w-3 stroke-[2]" />}
-                        {item.type === "info" && <Clock className="h-3 w-3 stroke-[1.8]" />}
-                      </div>
-                      <div className="flex-1 min-w-0 font-inter">
-                        <div className="flex items-center justify-between">
-                          <p className="text-[12px] font-normal text-slate-800 truncate font-inter">
-                            {item.title}
+                {notifications.length === 0 ? (
+                  <p className="text-[12px] text-slate-400 text-center py-6">No notifications yet.</p>
+                ) : (
+                  notifications.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleNotificationItemClick(item)}
+                      className={cn(
+                        "py-2.5 px-1 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer",
+                        !item.is_read && "bg-blue-50/40"
+                      )}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div className="mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px] bg-blue-50 text-[#1e4c77] border border-blue-200">
+                          {!item.is_read ? (
+                            <AlertCircle className="h-3 w-3 stroke-[1.8]" />
+                          ) : (
+                            <Check className="h-3 w-3 stroke-[2]" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 font-inter">
+                          <p className="text-[12px] font-normal text-slate-800 font-inter">
+                            {item.message}
                           </p>
-                          <span className="text-[10px] text-slate-400 shrink-0 font-inter font-normal">
-                            {item.time}
+                          <span className="text-[10px] text-slate-400 font-inter font-normal">
+                            {new Date(item.created_at).toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 truncate mt-0.5 font-inter font-normal">
-                          {item.document}
-                        </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 font-inter font-normal">
-                          Officer: {item.officer}
-                        </p>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
