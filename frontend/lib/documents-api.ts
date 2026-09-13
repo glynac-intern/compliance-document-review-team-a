@@ -41,8 +41,37 @@ export function validateFileBeforeUpload(file: File): string | null {
   return null;
 }
 
+export interface ThreadReview {
+  status: BackendDocumentStatus;
+  comment: string | null;
+  decided_at: string;
+}
+
+export interface ThreadEntry {
+  document_id: string;
+  status: BackendDocumentStatus;
+  type: BackendDocumentType;
+  uploaded_at: string;
+  replaces_document_id: string | null;
+  review: ThreadReview | null;
+}
+
+export interface AuditEvent {
+  id: string;
+  actor_id: string;
+  document_id: string;
+  action: string;
+  timestamp: string;
+}
+
 export const documentsApi = {
   list: (): Promise<BackendDocument[]> => apiFetch<BackendDocument[]>("/documents"),
+
+  getThread: (documentId: string): Promise<ThreadEntry[]> =>
+    apiFetch<ThreadEntry[]>(`/documents/${documentId}/thread`),
+
+  getAudit: (documentId: string): Promise<AuditEvent[]> =>
+    apiFetch<AuditEvent[]>(`/documents/${documentId}/audit`),
 
   /**
    * Uses XMLHttpRequest rather than fetch() specifically because fetch
