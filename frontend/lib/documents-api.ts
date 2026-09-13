@@ -118,4 +118,57 @@ export const documentsApi = {
       xhr.send(formData);
     });
   },
+
+  /**
+   * TA-65: submits a revision against a needs_revision document. Same
+   * XHR-for-real-progress pattern as submit() above -- reused rather
+   * than duplicated logic with a different endpoint path.
+   */
+  submitRevision: (
+    originalDocumentId: string,
+    file: File,
+    onProgress: (percent: number) => void
+  ): Promise<BackendDocument> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      xhr.open("POST", `${API_BASE_URL}/documents/${originalDocumentId}/revisions`);
+      const token = getStoredToken();
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      }
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(JSON.parse(xhr.responseText));
+        } else {
+          // TA-65: the server's rejection (e.g. "This document has
+          // already been revised") must be surfaced clearly -- read
+          // the real detail message, same as the main submit() path.
+          let detail = `Revision submission failed (${xhr.status})`;
+          try {
+            const body = JSON.parse(xhr.responseText);
+            if (body?.detail) {
+              detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+            }
+          } catch {
+            // non-JSON error body -- keep the generic message
+          }
+          reject(new ApiError(xhr.status, detail));
+        }
+      };
+
+      xhr.onerror = () => reject(new ApiError(0, "Network error during upload. Please try again."));
+
+      xhr.send(formData);
+    });
+  },
 };
