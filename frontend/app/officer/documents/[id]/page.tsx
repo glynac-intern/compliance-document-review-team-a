@@ -246,7 +246,7 @@ export default function OfficerDocumentViewerPage() {
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
               <FileWarning className="h-8 w-8 text-slate-300" />
               <p className="text-xs text-slate-500">
-                {doc.type.toUpperCase()} files can't be previewed inline. Download to view the original.
+                {doc.type.toUpperCase()} files can&apos;t be previewed inline. Download to view the original.
               </p>
               <button
                 onClick={handleDownload}

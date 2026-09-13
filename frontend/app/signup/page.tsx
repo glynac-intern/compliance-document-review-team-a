@@ -163,7 +163,7 @@ export default function SignupPage() {
               I am a...
             </p>
             <p className="text-[11px] text-slate-400 mb-2.5">
-              This determines what you'll see in Verity. It cannot be changed later --
+              This determines what you&apos;ll see in Verity. It cannot be changed later --
               choose the role that matches your actual job.
             </p>
             <div className="grid grid-cols-2 gap-2.5">
