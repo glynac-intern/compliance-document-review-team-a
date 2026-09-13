@@ -10,6 +10,7 @@ from models import DocumentStatus, DocumentType
 class DocumentResponse(BaseModel):
     id: uuid.UUID
     advisor_id: uuid.UUID
+    advisor_name: str  # TA-66 -- officers need to know who submitted this
     status: DocumentStatus
     original_filename: Optional[str]
     type: DocumentType

@@ -76,7 +76,18 @@ class Document(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     advisor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    # TA-66: officers need to know WHO submitted a document, not just
+    # its raw advisor_id. Read-only relationship, additive -- doesn't
+    # change how Document rows are created or queried elsewhere.
+    advisor = relationship("User", foreign_keys=[advisor_id])
     status = Column(Enum(DocumentStatus), nullable=False, default=DocumentStatus.pending_review)
+
+    @property
+    def advisor_name(self) -> str:
+        """Read by DocumentResponse's from_attributes -- the caller
+        must eager-load the advisor relationship (joinedload) or this
+        triggers a separate query per row."""
+        return self.advisor.name if self.advisor else "Unknown"
     file_reference = Column(String, nullable=False)
     # Pure display metadata (TA-25) -- NEVER used to construct any
     # filesystem path (that stays fully server-derived, per TA-23).
