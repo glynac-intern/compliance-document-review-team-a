@@ -21,10 +21,12 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Download, FileWarning } from "lucide-react";
+import { ArrowLeft, Download, FileWarning, Check, X, RotateCcw } from "lucide-react";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { apiFetch, fetchFileBlob, ApiError } from "@/lib/api-client";
 import type { BackendDocument } from "@/lib/documents-api";
+import { reviewsApi, type DecisionStatus } from "@/lib/reviews-api";
+import { documentsApi, type ThreadEntry } from "@/lib/documents-api";
 
 interface MatchedRule {
   id: string;
@@ -65,6 +67,15 @@ export default function OfficerDocumentViewerPage() {
   const [fileError, setFileError] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
+  // TA-69: the recorded decision, if this document is no longer
+  // pending -- reused via the same thread endpoint TA-64 already
+  // wired in, which carries each entry's own review inline.
+  const [recordedReview, setRecordedReview] = React.useState<ThreadEntry["review"] | null>(null);
+  const [comment, setComment] = React.useState("");
+  const [isSubmittingDecision, setIsSubmittingDecision] = React.useState(false);
+  const [decisionError, setDecisionError] = React.useState<string | null>(null);
+  const [justDecided, setJustDecided] = React.useState(false);
+
   React.useEffect(() => {
     if (!isReady) return;
 
@@ -87,7 +98,40 @@ export default function OfficerDocumentViewerPage() {
     apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis`)
       .then(setAnalysis)
       .catch(() => setAnalysis(null));
+
+    documentsApi
+      .getThread(documentId)
+      .then((thread) => {
+        const entry = thread.find((t) => t.document_id === documentId);
+        setRecordedReview(entry?.review ?? null);
+      })
+      .catch(() => setRecordedReview(null));
   }, [isReady, documentId]);
+
+  const handleDecision = async (status: DecisionStatus) => {
+    setDecisionError(null);
+    setIsSubmittingDecision(true);
+    try {
+      const result = await reviewsApi.submitDecision(documentId, status, comment);
+      setRecordedReview({
+        status: result.status,
+        comment: result.comment,
+        decided_at: result.decided_at,
+      });
+      setJustDecided(true);
+      // TA-69: the queue reflects it -- refetching the document itself
+      // confirms the server's real, persisted status, not an optimistic
+      // local guess.
+      const updated = await apiFetch<BackendDocument>(`/review/documents/${documentId}`);
+      setDoc(updated);
+    } catch (err) {
+      // The server's real rejection (e.g. already decided by someone
+      // else in the meantime) surfaces clearly, not silently.
+      setDecisionError(err instanceof ApiError ? err.message : "Failed to record decision.");
+    } finally {
+      setIsSubmittingDecision(false);
+    }
+  };
 
   React.useEffect(() => {
     return () => {
@@ -272,6 +316,80 @@ export default function OfficerDocumentViewerPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* TA-69: the decision action -- what the whole queue exists
+          for. Shows the recorded decision instead of the form once
+          the document is no longer pending; the comment is what the
+          advisor will actually read, made explicit in the label. */}
+      <div className="border-t border-slate-200 bg-white px-6 py-4 shrink-0">
+        {doc?.status !== "pending_review" || recordedReview ? (
+          <div className="max-w-3xl mx-auto">
+            {justDecided && (
+              <p className="text-xs font-semibold text-emerald-700 mb-2">
+                Decision recorded.
+              </p>
+            )}
+            <p className="text-xs font-semibold text-slate-800">
+              Recorded decision: <span className="uppercase">{recordedReview?.status.replace(/_/g, " ") ?? doc?.status}</span>
+            </p>
+            {recordedReview?.comment && (
+              <p className="text-xs text-slate-600 mt-1">&ldquo;{recordedReview.comment}&rdquo;</p>
+            )}
+            {recordedReview?.decided_at && (
+              <p className="text-[11px] text-slate-400 mt-1">
+                {new Date(recordedReview.decided_at).toLocaleString()}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="max-w-3xl mx-auto space-y-2.5">
+            {decisionError && (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700">
+                {decisionError}
+              </div>
+            )}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Comment -- this is what the advisor will read
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={2}
+                disabled={isSubmittingDecision}
+                placeholder="Explain the decision, or what needs to change..."
+                className="w-full p-2.5 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#2575bc] resize-none disabled:opacity-60"
+              />
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => handleDecision("approved")}
+                disabled={isSubmittingDecision}
+                className="flex items-center gap-1.5 px-4 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50"
+              >
+                <Check className="h-3.5 w-3.5" /> Approve
+              </button>
+              <button
+                onClick={() => handleDecision("needs_revision")}
+                disabled={isSubmittingDecision}
+                className="flex items-center gap-1.5 px-4 h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold disabled:opacity-50"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Request Revision
+              </button>
+              <button
+                onClick={() => handleDecision("rejected")}
+                disabled={isSubmittingDecision}
+                className="flex items-center gap-1.5 px-4 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold disabled:opacity-50"
+              >
+                <X className="h-3.5 w-3.5" /> Reject
+              </button>
+              {isSubmittingDecision && (
+                <span className="text-xs text-slate-400">Recording decision...</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
