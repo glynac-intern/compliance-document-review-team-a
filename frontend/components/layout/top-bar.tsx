@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { notificationsApi, type BackendNotification } from "@/lib/notifications-api";
 
 interface TopBarProps {
   breadcrumbs?: { label: string; href?: string; onClick?: () => void }[];
@@ -22,6 +23,17 @@ interface TopBarProps {
   onToggleMobileSidebar?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+}
+
+function formatNotificationTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export function TopBar({
@@ -36,10 +48,59 @@ export function TopBar({
   const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showCalendar, setShowCalendar] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(2);
+  const [notifications, setNotifications] = React.useState<BackendNotification[]>([]);
+  const [unreadCount, setUnreadCount] = React.useState(0);
 
   const notificationsRef = React.useRef<HTMLDivElement>(null);
   const calendarRef = React.useRef<HTMLDivElement>(null);
+
+  const loadNotifications = React.useCallback(async () => {
+    try {
+      const [list, countRes] = await Promise.all([
+        notificationsApi.list(),
+        notificationsApi.getUnreadCount(),
+      ]);
+      setNotifications(list);
+      setUnreadCount(countRes.unread_count);
+    } catch {
+      // Offline fallback: keep harmless state
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  React.useEffect(() => {
+    if (showNotifications || isRefreshing) {
+      loadNotifications();
+    }
+  }, [showNotifications, isRefreshing, loadNotifications]);
+
+  const handleMarkAllRead = async () => {
+    const unread = notifications.filter((n) => !n.is_read);
+    setUnreadCount(0);
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    try {
+      await Promise.all(unread.map((n) => notificationsApi.markAsRead(n.id)));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleNotificationClick = async (item: BackendNotification) => {
+    if (!item.is_read) {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n))
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
+      try {
+        await notificationsApi.markAsRead(item.id);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Close popovers on click outside
   React.useEffect(() => {
@@ -60,36 +121,6 @@ export function TopBar({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const notifications = [
-    {
-      id: "n-1",
-      title: "Revision Requested",
-      document: "Q1 2026 Alpha Growth Fund Presentation",
-      officer: "Sarah Jenkins",
-      time: "25m ago",
-      type: "warning",
-      unread: true,
-    },
-    {
-      id: "n-2",
-      title: "Document Approved",
-      document: "Fixed Income Yield Advantage Flyer",
-      officer: "Sarah Jenkins",
-      time: "2h ago",
-      type: "success",
-      unread: true,
-    },
-    {
-      id: "n-3",
-      title: "Review Started",
-      document: "Retirement Horizons Newsletter (v2)",
-      officer: "Compliance Queue",
-      time: "Yesterday",
-      type: "info",
-      unread: false,
-    },
-  ];
 
   const calendarEvents = [
     {
@@ -274,7 +305,7 @@ export function TopBar({
                 {unreadCount > 0 && (
                   <button
                     type="button"
-                    onClick={() => setUnreadCount(0)}
+                    onClick={handleMarkAllRead}
                     className="text-[11px] font-normal text-[#1e4c77] hover:underline font-inter cursor-pointer"
                   >
                     Mark all read
@@ -283,43 +314,63 @@ export function TopBar({
               </div>
 
               <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto pt-1 font-inter">
-                {notifications.map((item) => (
-                  <div
-                    key={item.id}
-                    className="py-2.5 px-1 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-start gap-2.5">
+                {notifications.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400 font-inter">
+                    No notifications yet.
+                  </div>
+                ) : (
+                  notifications.map((item) => {
+                    const msg = item.message || "";
+                    const isApproved = msg.toLowerCase().includes("approved");
+                    const isRevision =
+                      msg.toLowerCase().includes("revision") || msg.toLowerCase().includes("rejected");
+                    const iconType = isApproved ? "success" : isRevision ? "warning" : "info";
+                    const title = isApproved
+                      ? "Document Approved"
+                      : isRevision
+                      ? "Needs Revision"
+                      : "Compliance Update";
+
+                    return (
                       <div
+                        key={item.id}
+                        onClick={() => handleNotificationClick(item)}
                         className={cn(
-                          "mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px]",
-                          item.type === "warning" && "bg-amber-50 text-amber-800 border border-amber-200",
-                          item.type === "success" && "bg-emerald-50 text-emerald-800 border border-emerald-200",
-                          item.type === "info" && "bg-blue-50 text-[#1e4c77] border border-blue-200"
+                          "py-2.5 px-2 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer",
+                          !item.is_read && "bg-blue-50/40"
                         )}
                       >
-                        {item.type === "warning" && <AlertCircle className="h-3 w-3 stroke-[1.8]" />}
-                        {item.type === "success" && <Check className="h-3 w-3 stroke-[2]" />}
-                        {item.type === "info" && <Clock className="h-3 w-3 stroke-[1.8]" />}
-                      </div>
-                      <div className="flex-1 min-w-0 font-inter">
-                        <div className="flex items-center justify-between">
-                          <p className="text-[12px] font-normal text-slate-800 truncate font-inter">
-                            {item.title}
-                          </p>
-                          <span className="text-[10px] text-slate-400 shrink-0 font-inter font-normal">
-                            {item.time}
-                          </span>
+                        <div className="flex items-start gap-2.5">
+                          <div
+                            className={cn(
+                              "mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px]",
+                              iconType === "warning" && "bg-amber-50 text-amber-800 border border-amber-200",
+                              iconType === "success" && "bg-emerald-50 text-emerald-800 border border-emerald-200",
+                              iconType === "info" && "bg-blue-50 text-[#1e4c77] border border-blue-200"
+                            )}
+                          >
+                            {iconType === "warning" && <AlertCircle className="h-3 w-3 stroke-[1.8]" />}
+                            {iconType === "success" && <Check className="h-3 w-3 stroke-[2]" />}
+                            {iconType === "info" && <Clock className="h-3 w-3 stroke-[1.8]" />}
+                          </div>
+                          <div className="flex-1 min-w-0 font-inter">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[12px] font-medium text-slate-800 truncate font-inter">
+                                {title}
+                              </p>
+                              <span className="text-[10px] text-slate-400 shrink-0 font-inter font-normal">
+                                {formatNotificationTime(item.created_at)}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 leading-snug mt-0.5 font-inter font-normal">
+                              {msg}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-[11px] text-slate-500 truncate mt-0.5 font-inter font-normal">
-                          {item.document}
-                        </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 font-inter font-normal">
-                          Officer: {item.officer}
-                        </p>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                )}
               </div>
             </div>
           )}

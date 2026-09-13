@@ -64,6 +64,40 @@ export interface AuditEvent {
   timestamp: string;
 }
 
+export type BackendAnalysisStatus = "not_started" | "in_progress" | "succeeded" | "failed";
+
+export interface MatchedRule {
+  id: string;
+  text: string;
+  type: string;
+}
+
+export interface BackendFlag {
+  id: string;
+  passage_excerpt: string;
+  matched_rule: MatchedRule | null;
+  explanation: string;
+  severity: string;
+}
+
+export interface BackendPrecedent {
+  document_id: string;
+  masked_text: string;
+  decision: string;
+  comment: string | null;
+}
+
+export interface BackendAnalysis {
+  id: string;
+  document_id: string;
+  status: BackendAnalysisStatus;
+  error_message: string | null;
+  summary: string | null;
+  generated_at: string | null;
+  flags: BackendFlag[];
+  precedents: BackendPrecedent[];
+}
+
 export const documentsApi = {
   list: (): Promise<BackendDocument[]> => apiFetch<BackendDocument[]>("/documents"),
 
@@ -72,6 +106,56 @@ export const documentsApi = {
 
   getAudit: (documentId: string): Promise<AuditEvent[]> =>
     apiFetch<AuditEvent[]>(`/documents/${documentId}/audit`),
+
+  getAnalysis: (documentId: string): Promise<BackendAnalysis> =>
+    apiFetch<BackendAnalysis>(`/documents/${documentId}/analysis`),
+
+  retryAnalysis: (documentId: string): Promise<BackendAnalysis> =>
+    apiFetch<BackendAnalysis>(`/documents/${documentId}/analysis/retry`, {
+      method: "POST",
+    }),
+
+  downloadFile: async (documentId: string, fallbackFilename?: string): Promise<void> => {
+    const token = getStoredToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_BASE_URL}/documents/${documentId}/file`, {
+      headers,
+    });
+    if (!response.ok) {
+      let detail = `Download failed (${response.status})`;
+      try {
+        const body = await response.json();
+        if (body?.detail) {
+          detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+        }
+      } catch {
+        // non-JSON response body
+      }
+      throw new ApiError(response.status, detail);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const disposition = response.headers.get("content-disposition");
+    let filename = fallbackFilename || "document";
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+    }
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
 
   /**
    * Uses XMLHttpRequest rather than fetch() specifically because fetch

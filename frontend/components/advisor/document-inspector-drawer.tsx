@@ -21,7 +21,8 @@ import { MOCK_AI_ANALYSIS } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
-import { documentsApi, type ThreadEntry, type AuditEvent } from "@/lib/documents-api";
+import { documentsApi, type ThreadEntry, type AuditEvent, type BackendAnalysis } from "@/lib/documents-api";
+import { Loader2 } from "lucide-react";
 import { ApiError } from "@/lib/api-client";
 
 interface DocumentInspectorDrawerProps {
@@ -50,17 +51,26 @@ export function DocumentInspectorDrawer({
 }: DocumentInspectorDrawerProps) {
   const [thread, setThread] = React.useState<ThreadEntry[] | null>(null);
   const [audit, setAudit] = React.useState<AuditEvent[] | null>(null);
+  const [analysis, setAnalysis] = React.useState<BackendAnalysis | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = React.useState(false);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = React.useState(false);
+  const [isRetryingAnalysis, setIsRetryingAnalysis] = React.useState(false);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [downloadError, setDownloadError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!doc) {
       setThread(null);
       setAudit(null);
+      setAnalysis(null);
       return;
     }
     setIsLoadingHistory(true);
+    setIsLoadingAnalysis(true);
     setHistoryError(null);
+    setDownloadError(null);
+
     Promise.all([documentsApi.getThread(doc.id), documentsApi.getAudit(doc.id)])
       .then(([threadData, auditData]) => {
         setThread(threadData);
@@ -70,11 +80,45 @@ export function DocumentInspectorDrawer({
         setHistoryError(err instanceof ApiError ? err.message : "Unable to load history.");
       })
       .finally(() => setIsLoadingHistory(false));
+
+    documentsApi
+      .getAnalysis(doc.id)
+      .then((data) => setAnalysis(data))
+      .catch(() => {
+        // Handled gracefully; fallback to mock data if backend not present
+      })
+      .finally(() => setIsLoadingAnalysis(false));
   }, [doc]);
+
+  const handleRetryAnalysis = async () => {
+    if (!doc) return;
+    setIsRetryingAnalysis(true);
+    try {
+      const fresh = await documentsApi.retryAnalysis(doc.id);
+      setAnalysis(fresh);
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : "Failed to retry analysis.");
+    } finally {
+      setIsRetryingAnalysis(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!doc) return;
+    setIsDownloading(true);
+    setDownloadError(null);
+    try {
+      await documentsApi.downloadFile(doc.id, doc.title);
+    } catch (err) {
+      setDownloadError(err instanceof ApiError ? err.message : "Failed to download file.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (!doc) return null;
 
-  const aiData = MOCK_AI_ANALYSIS[doc.id];
+  const fallbackAiData = MOCK_AI_ANALYSIS[doc.id];
   const currentEntry = thread?.find((t) => t.document_id === doc.id);
 
   return (
@@ -220,8 +264,97 @@ export function DocumentInspectorDrawer({
             </div>
           )}
 
-          {/* AI Pre-Screen Analysis Summary (still mock -- separate ticket) */}
-          {aiData && (
+          {/* AI Pre-Screen Analysis: Connected to GET /documents/{id}/analysis */}
+          {isLoadingAnalysis ? (
+            <div className="rounded-xl border border-slate-200 p-4 bg-white text-xs text-slate-400 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-[#1e4c77]" />
+              <span>Checking AI compliance pre-screening...</span>
+            </div>
+          ) : analysis ? (
+            <div className="rounded-xl border border-slate-200 p-4 bg-white">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-[#2575bc]" />
+                  <h4 className="text-xs font-bold text-slate-900">
+                    AI Pre-Screen Observations
+                  </h4>
+                </div>
+                {analysis.status === "succeeded" && (
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase font-roboto">
+                    {analysis.flags.length} Citation{analysis.flags.length !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {analysis.status === "failed" ? (
+                <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 space-y-2">
+                  <p className="text-xs text-rose-800">
+                    Analysis failed: {analysis.error_message || "An unexpected error occurred."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRetryAnalysis}
+                    disabled={isRetryingAnalysis}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-700 hover:bg-rose-800 text-white text-[11px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isRetryingAnalysis && <Loader2 className="h-3 w-3 animate-spin" />}
+                    <span>Retry Analysis</span>
+                  </button>
+                </div>
+              ) : analysis.status === "in_progress" || analysis.status === "not_started" ? (
+                <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
+                  <Clock className="h-4 w-4 text-[#1e4c77] animate-pulse" />
+                  <span>Pre-screening analysis in progress...</span>
+                </div>
+              ) : (
+                <>
+                  {analysis.summary && (
+                    <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                      {analysis.summary}
+                    </p>
+                  )}
+
+                  {analysis.flags.length === 0 ? (
+                    <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>No compliance violations detected.</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 pt-1 border-t border-slate-100">
+                      {analysis.flags.map((flag) => (
+                        <div
+                          key={flag.id}
+                          className="p-2.5 rounded-lg bg-[#f8fafc] border border-slate-200 text-xs"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-[#1e4c77] text-[11px] font-roboto">
+                              {flag.matched_rule?.text || flag.matched_rule?.type || "Regulatory Standard"}
+                            </span>
+                            <span
+                              className={cn(
+                                "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase",
+                                flag.severity === "high"
+                                  ? "bg-rose-100 text-rose-800"
+                                  : "bg-amber-100 text-amber-800"
+                              )}
+                            >
+                              {flag.severity}
+                            </span>
+                          </div>
+                          <p className="italic text-slate-700 font-serif text-[11px] border-l-2 border-slate-300 pl-2 my-1">
+                            &ldquo;{flag.passage_excerpt}&rdquo;
+                          </p>
+                          <p className="text-slate-500 text-[11px] mt-1 font-sans">
+                            {flag.explanation}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ) : fallbackAiData ? (
             <div className="rounded-xl border border-slate-200 p-4 bg-white">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-1.5">
@@ -236,12 +369,12 @@ export function DocumentInspectorDrawer({
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                {aiData.summary}
+                {fallbackAiData.summary}
               </p>
 
-              {aiData.flags.length > 0 && (
+              {fallbackAiData.flags.length > 0 && (
                 <div className="space-y-2 pt-1 border-t border-slate-100">
-                  {aiData.flags.map((flag, idx) => (
+                  {fallbackAiData.flags.map((flag, idx) => (
                     <div
                       key={idx}
                       className="p-2.5 rounded-lg bg-[#f8fafc] border border-slate-200 text-xs"
@@ -272,7 +405,7 @@ export function DocumentInspectorDrawer({
                 </div>
               )}
             </div>
-          )}
+          ) : null}
 
           {/* Document Properties */}
           <div className="rounded-xl border border-slate-200 p-4 bg-white text-xs">
@@ -295,14 +428,24 @@ export function DocumentInspectorDrawer({
         </div>
 
         {/* Action Footer */}
+        {downloadError && (
+          <div className="px-4 py-2 bg-rose-50 text-rose-700 text-xs border-t border-rose-200">
+            {downloadError}
+          </div>
+        )}
         <div className="p-4 border-t border-slate-200 bg-[#f8fafc] flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={() => alert(`Downloading ${doc.title} from SEC secure vault.`)}
-            className="flex-1 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="flex-1 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
           >
-            <Download className="h-3.5 w-3.5" />
-            <span>Download File</span>
+            {isDownloading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+            ) : (
+              <Download className="h-3.5 w-3.5" />
+            )}
+            <span>{isDownloading ? "Downloading..." : "Download File"}</span>
           </button>
 
           {doc.status === "needs_revision" ? (

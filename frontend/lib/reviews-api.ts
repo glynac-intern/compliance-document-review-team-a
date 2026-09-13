@@ -18,9 +18,34 @@ export interface QueueDocument {
   replaces_document_id: string | null;
 }
 
+export type ReviewDecisionStatus = "approved" | "rejected" | "needs_revision";
+
+export interface DecisionPayload {
+  status: ReviewDecisionStatus;
+  comment?: string | null;
+}
+
+export interface ReviewResponse {
+  id: string;
+  document_id: string;
+  officer_id: string;
+  status: ReviewDecisionStatus;
+  comment: string | null;
+  decided_at: string;
+}
+
 export const reviewsApi = {
   getQueue: (statusFilter?: BackendDocumentStatus): Promise<QueueDocument[]> => {
     const query = statusFilter ? `?status=${statusFilter}` : "";
     return apiFetch<QueueDocument[]>(`/review/queue${query}`);
   },
+
+  getDocument: (documentId: string): Promise<QueueDocument> =>
+    apiFetch<QueueDocument>(`/review/documents/${documentId}`),
+
+  submitDecision: (documentId: string, payload: DecisionPayload): Promise<ReviewResponse> =>
+    apiFetch<ReviewResponse>(`/review/documents/${documentId}/decision`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };
