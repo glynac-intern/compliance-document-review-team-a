@@ -1,0 +1,79 @@
+name: Tests and Deploy
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env for CI
+        run: |
+          cat > .env << 'EOF'
+          POSTGRES_USER=compliance_user
+          POSTGRES_PASSWORD=ci_test_password
+          POSTGRES_DB=compliance_db
+          DATABASE_URL=postgresql://compliance_user:ci_test_password@db:5432/compliance_db
+          LLM_PROVIDER=gemini
+          LLM_API_KEY=ci_dummy_key_not_used_by_tests
+          BACKEND_SECRET_KEY=ci_dummy_secret_for_testing_only
+          BACKEND_PORT=8000
+          VITE_API_BASE_URL=http://localhost:8000
+          EOF
+
+      - name: Build backend image
+        run: docker compose build backend
+
+      - name: Start database
+        run: docker compose up -d db
+
+      - name: Wait for database to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format='{{.State.Health.Status}}' compliance_db || echo "starting")
+            if [ "$status" = "healthy" ]; then
+              echo "Database is healthy"
+              exit 0
+            fi
+            echo "Waiting for database... ($i/30)"
+            sleep 2
+          done
+          echo "Database did not become healthy in time"
+          exit 1
+
+      - name: Run Alembic migrations
+        run: docker compose run --rm backend alembic upgrade head
+
+      - name: Run test suite (role boundary + masker)
+        run: docker compose run --rm backend pytest tests/ -v
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd ~/compliance-document-review-team-a
+            git pull origin main
+            docker compose up -d db backend
+            docker compose run --rm backend alembic upgrade head
+            echo "Deploy complete"

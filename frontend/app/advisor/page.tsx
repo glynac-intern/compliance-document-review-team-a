@@ -11,12 +11,20 @@ import { NewSubmissionView } from "@/components/advisor/new-submission-view";
 import { MetricsDashboardView } from "@/components/analytics/metrics-dashboard-view";
 import { RevisionUploadModal } from "@/components/advisor/revision-upload-modal";
 import { CertificateModal } from "@/components/advisor/certificate-modal";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
 import { ComplianceDocument } from "@/types/compliance";
 import { Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import { documentsApi, type BackendDocument } from "@/lib/documents-api";
+import { adaptBackendDocument } from "@/lib/document-adapter";
+import { ApiError } from "@/lib/api-client";
 
 export default function AdvisorDashboardPage() {
+  // TA-61: unauthenticated visitors redirected to /login; an
+  // authenticated officer landing here gets sent to their own
+  // dashboard instead.
+  const { isReady } = useRequireAuth("advisor");
+
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
@@ -24,8 +32,29 @@ export default function AdvisorDashboardPage() {
     "overview" | "my_submissions" | "new_submission" | "history" | "metrics"
   >("overview");
 
-  // Document state initialized with mock data
-  const [documents, setDocuments] = React.useState<ComplianceDocument[]>(MOCK_DOCUMENTS);
+  // TA-63: real documents, fetched from the backend -- not mock data.
+  const [documents, setDocuments] = React.useState<ComplianceDocument[]>([]);
+  const [isLoadingDocuments, setIsLoadingDocuments] = React.useState(true);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
+
+  const loadDocuments = React.useCallback(async () => {
+    setLoadError(null);
+    try {
+      const backendDocs = await documentsApi.list();
+      const adapted = backendDocs.map((d) => adaptBackendDocument(d, "You", ""));
+      setDocuments(adapted);
+    } catch (err) {
+      setLoadError(err instanceof ApiError ? err.message : "Unable to load your submissions.");
+    } finally {
+      setIsLoadingDocuments(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (isReady) {
+      loadDocuments();
+    }
+  }, [isReady, loadDocuments]);
 
   // Table filtering and search states
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -98,35 +127,40 @@ export default function AdvisorDashboardPage() {
     return { total, pending, approved, needsRevision };
   }, [documents]);
 
-  // Handle refresh action
-  const handleRefresh = () => {
+  // TA-63: real refresh -- re-fetches from the backend, not a fake delay.
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      showToast("Submissions synced with Compliance Repository");
-    }, 650);
+    await loadDocuments();
+    setIsRefreshing(false);
+    showToast("Submissions synced with Compliance Repository");
   };
 
-  // Handle new submission creation
-  const handleNewSubmission = (newDocData: Partial<ComplianceDocument>) => {
-    const newDoc: ComplianceDocument = {
-      id: newDocData.id || `DOC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      title: newDocData.title || "Untitled Marketing Document.pdf",
-      advisor_id: "adv-101",
-      advisor_name: "James A",
-      advisor_email: "j.adams@apexadvisory.com",
-      status: "pending",
-      file_reference: newDocData.file_reference || "s3://compliance-vault/docs/sample.pdf",
-      type: newDocData.type || "Presentation / Deck",
-      uploaded_at: new Date().toISOString(),
-      thread_id: newDocData.thread_id || `THR-${Math.floor(1000 + Math.random() * 9000)}`,
-      replaces_document_id: null,
-      version: 1,
-      file_size_mb: newDocData.file_size_mb || 2.4,
-    };
-
-    setDocuments((prev) => [newDoc, ...prev]);
-    showToast(`"${newDoc.title}" submitted for compliance pre-screening.`);
+  // TA-63: receives the REAL backend response from a real upload
+  // (NewSubmissionModal's onSubmit), or client-side submission data
+  const handleNewSubmission = (uploaded: BackendDocument | Partial<ComplianceDocument>) => {
+    if ("original_filename" in uploaded) {
+      const newDoc = adaptBackendDocument(uploaded, "You", "");
+      setDocuments((prev) => [newDoc, ...prev]);
+      showToast(`"${newDoc.title}" submitted for compliance pre-screening.`);
+    } else {
+      const newDoc: ComplianceDocument = {
+        id: uploaded.id || `DOC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        title: uploaded.title || "Untitled Marketing Document.pdf",
+        advisor_id: "adv-101",
+        advisor_name: "James A",
+        advisor_email: "j.adams@apexadvisory.com",
+        status: "pending",
+        file_reference: uploaded.file_reference || "s3://compliance-vault/docs/sample.pdf",
+        type: uploaded.type || "Presentation / Deck",
+        uploaded_at: new Date().toISOString(),
+        thread_id: uploaded.thread_id || `THR-${Math.floor(1000 + Math.random() * 9000)}`,
+        replaces_document_id: null,
+        version: 1,
+        file_size_mb: uploaded.file_size_mb || 2.4,
+      };
+      setDocuments((prev) => [newDoc, ...prev]);
+      showToast(`"${newDoc.title}" submitted for compliance pre-screening.`);
+    }
   };
 
   // Handle revision upload
@@ -151,6 +185,11 @@ export default function AdvisorDashboardPage() {
     );
     showToast(`Version ${newVersion} submitted. Status updated to In Review.`);
   };
+
+  if (!isReady) {
+    return null;
+  }
+
 
   return (
     <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-inter">

@@ -11,8 +11,10 @@ import {
   Check,
   Clock,
   AlertCircle,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 interface TopBarProps {
   breadcrumbs?: { label: string; href?: string; onClick?: () => void }[];
@@ -31,6 +33,7 @@ export function TopBar({
   onRefresh,
   isRefreshing = false,
 }: TopBarProps) {
+  const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showCalendar, setShowCalendar] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(2);
@@ -321,6 +324,16 @@ export function TopBar({
             </div>
           )}
         </div>
+
+        {/* TA-61: real logout -- clears the session and returns to /login */}
+        <button
+          type="button"
+          onClick={logout}
+          title="Log out"
+          className="h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer border shadow-2xs bg-white border-slate-200/90 text-slate-600 hover:text-red-600 hover:bg-red-50 hover:border-red-200 active:scale-95"
+        >
+          <LogOut className="h-[18px] w-[18px] stroke-[1.8]" />
+        </button>
       </div>
     </div>
   </header>

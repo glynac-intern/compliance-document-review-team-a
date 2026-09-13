@@ -1,0 +1,42 @@
+[
+  {
+    "disclosure_id": "disc-001",
+    "canonical_text": "Past performance is not indicative of future results. All investments involve risk, including the possible loss of principal.",
+    "paraphrased_text": "How this investment has performed historically is not a reliable guide to what may happen in the future, and every investment carries the risk that you could lose money."
+  },
+  {
+    "disclosure_id": "disc-007",
+    "canonical_text": "Insurance products are not deposits, are not FDIC insured, are not guaranteed by any bank, and may lose value.",
+    "paraphrased_text": "These insurance offerings are not bank deposits, carry no FDIC backing or bank guarantee, and their value can go down."
+  },
+  {
+    "disclosure_id": "disc-013",
+    "canonical_text": "We maintain administrative, technical, and physical safeguards designed to protect client information, but we cannot guarantee that our systems will never be compromised by unauthorized access.",
+    "paraphrased_text": "While we take reasonable steps to keep client data secure, we can't promise our systems will never be broken into."
+  },
+  {
+    "disclosure_id": "disc-017",
+    "canonical_text": "Digital assets and cryptocurrencies are highly volatile, are largely unregulated, and an investor could lose the entire amount invested.",
+    "paraphrased_text": "Cryptocurrency prices swing wildly, the market is mostly outside government oversight, and it's entirely possible to lose everything you put in."
+  },
+  {
+    "disclosure_id": "disc-020",
+    "canonical_text": "Investing in foreign securities involves additional risks, including currency fluctuations, political and economic instability, and less regulatory oversight than in domestic markets.",
+    "paraphrased_text": "Putting money into overseas markets exposes you to swings in exchange rates and the possibility of political or economic upheaval abroad, along with weaker regulatory protections than at home."
+  },
+  {
+    "disclosure_id": "disc-024",
+    "canonical_text": "Withdrawing funds from an annuity before the end of the surrender period may result in a surrender charge and the loss of a portion of the amount originally invested.",
+    "paraphrased_text": "Pulling money out of an annuity ahead of schedule can trigger significant penalties, and you may end up getting back less than what you originally put in."
+  },
+  {
+    "disclosure_id": "disc-029",
+    "canonical_text": "When an advisor recommends a proprietary product offered by the firm, the firm may receive additional compensation as a result, which presents a conflict of interest.",
+    "paraphrased_text": "When we suggest one of our own in-house investment products, our firm may earn extra compensation as a result, and that's a conflict worth knowing about."
+  },
+  {
+    "disclosure_id": "disc-034",
+    "canonical_text": "A portfolio's actual allocation may drift from its target weights between scheduled rebalancing dates due to market movement.",
+    "paraphrased_text": "Because the mix of investments isn't adjusted continuously, it can wander away from the intended targets in between scheduled check-ins as the market moves."
+  }
+]

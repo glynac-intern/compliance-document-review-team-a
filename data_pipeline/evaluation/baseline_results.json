@@ -1,0 +1,30 @@
+{
+  "rule_lookup_accuracy_by_top_k": {
+    "1": 0.5333333333333333,
+    "3": 0.5333333333333333,
+    "5": 0.5333333333333333
+  },
+  "chunk_size_comparison_top_k3": {
+    "paragraph_level": 0.5333333333333333,
+    "whole_document": 0.4666666666666667
+  },
+  "distance_metric_comparison_top_k3": {
+    "cosine": 0.5333333333333333,
+    "l2": 0.5333333333333333,
+    "dot_product": 0.5333333333333333
+  },
+  "disclosure_absence_accuracy_by_threshold": {
+    "0.1": 0.6666666666666666,
+    "0.15": 0.7333333333333333,
+    "0.2": 1.0,
+    "0.25": 1.0,
+    "0.3": 1.0
+  },
+  "precedent_majority_agreement_rate": 0.7254901960784313,
+  "notes": {
+    "sample_size": 15,
+    "sample_criterion": "documents with prohibited_claim or performance_standard_violation issues",
+    "ground_truth_granularity": "category-level (prohibited_claim/performance_standard/disclosure), not specific rule id -- corpus was not built to support finer matching",
+    "precedent_evaluation_scale": "full 100-document corpus (zero new API cost, reuses stored embeddings)"
+  }
+}
