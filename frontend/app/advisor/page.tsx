@@ -242,6 +242,10 @@ export default function AdvisorDashboardPage() {
           onToggleMobileSidebar={() => setMobileSidebarOpen(true)}
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing}
+          onNotificationClick={(documentId) => {
+            const target = documents.find((d) => d.id === documentId);
+            if (target) setSelectedDocument(target);
+          }}
         />
 
         {/* Scrollable Page Body */}
