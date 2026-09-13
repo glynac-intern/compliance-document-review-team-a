@@ -13,11 +13,15 @@ import {
   ExternalLink,
   ChevronRight,
   Info,
+  History,
+  ListChecks,
 } from "lucide-react";
 import { ComplianceDocument } from "@/types/compliance";
-import { MOCK_AI_ANALYSIS, MOCK_DOCUMENT_CONTENT } from "@/lib/mock-data";
+import { MOCK_AI_ANALYSIS } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
+import { documentsApi, type ThreadEntry, type AuditEvent } from "@/lib/documents-api";
+import { ApiError } from "@/lib/api-client";
 
 interface DocumentInspectorDrawerProps {
   document: ComplianceDocument | null;
@@ -25,15 +29,52 @@ interface DocumentInspectorDrawerProps {
   onReviseClick: (doc: ComplianceDocument) => void;
 }
 
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending_review: "Pending Review",
+  approved: "Approved",
+  rejected: "Rejected",
+  needs_revision: "Needs Revision",
+};
+
 export function DocumentInspectorDrawer({
   document: doc,
   onClose,
   onReviseClick,
 }: DocumentInspectorDrawerProps) {
+  const [thread, setThread] = React.useState<ThreadEntry[] | null>(null);
+  const [audit, setAudit] = React.useState<AuditEvent[] | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = React.useState(false);
+  const [historyError, setHistoryError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!doc) {
+      setThread(null);
+      setAudit(null);
+      return;
+    }
+    setIsLoadingHistory(true);
+    setHistoryError(null);
+    Promise.all([documentsApi.getThread(doc.id), documentsApi.getAudit(doc.id)])
+      .then(([threadData, auditData]) => {
+        setThread(threadData);
+        setAudit(auditData);
+      })
+      .catch((err) => {
+        setHistoryError(err instanceof ApiError ? err.message : "Unable to load history.");
+      })
+      .finally(() => setIsLoadingHistory(false));
+  }, [doc]);
+
   if (!doc) return null;
 
   const aiData = MOCK_AI_ANALYSIS[doc.id];
-  const docSnippets = MOCK_DOCUMENT_CONTENT[doc.id];
+  const currentEntry = thread?.find((t) => t.document_id === doc.id);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs font-sans select-none animate-in fade-in duration-200">
@@ -48,7 +89,7 @@ export function DocumentInspectorDrawer({
             <div className="flex items-center gap-2 mb-1.5">
               <StatusBadge status={doc.status} />
               <span className="text-xs font-semibold text-slate-500 font-roboto">
-                {doc.id} · v{doc.version}
+                {doc.id.slice(0, 8)} · v{doc.version}
               </span>
             </div>
             <h2 className="text-base font-bold text-slate-900 leading-snug break-words">
@@ -68,124 +109,114 @@ export function DocumentInspectorDrawer({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Status Pipeline Stepper */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-roboto mb-3">
-              Review Pipeline Progress
-            </p>
-            <div className="flex items-center justify-between text-xs font-medium text-slate-600">
-              <div className="flex flex-col items-center gap-1">
-                <div className="h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </div>
-                <span className="text-[10px] text-slate-500">Submitted</span>
-              </div>
-              <div className="h-0.5 flex-1 bg-emerald-200 mx-1" />
-
-              <div className="flex flex-col items-center gap-1">
-                <div className="h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </div>
-                <span className="text-[10px] text-slate-500">AI Screen</span>
-              </div>
-              <div
-                className={cn(
-                  "h-0.5 flex-1 mx-1",
-                  doc.status === "pending" ? "bg-slate-200" : "bg-emerald-200"
-                )}
-              />
-
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className={cn(
-                    "h-6 w-6 rounded-full flex items-center justify-center font-bold text-[10px]",
-                    doc.status === "in_review"
-                      ? "bg-blue-100 text-[#1e4c77] ring-2 ring-blue-400"
-                      : doc.status === "approved" || doc.status === "needs_revision"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-100 text-slate-400"
-                  )}
-                >
-                  {doc.status === "approved" || doc.status === "needs_revision"
-                    ? "✓"
-                    : "3"}
-                </div>
-                <span className="text-[10px] text-slate-500">Officer Review</span>
-              </div>
-              <div
-                className={cn(
-                  "h-0.5 flex-1 mx-1",
-                  doc.status === "approved"
-                    ? "bg-emerald-200"
-                    : doc.status === "needs_revision"
-                    ? "bg-amber-200"
-                    : "bg-slate-200"
-                )}
-              />
-
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className={cn(
-                    "h-6 w-6 rounded-full flex items-center justify-center font-bold text-[10px]",
-                    doc.status === "approved"
-                      ? "bg-emerald-600 text-white"
-                      : doc.status === "needs_revision"
-                      ? "bg-amber-500 text-white"
-                      : "bg-slate-100 text-slate-400"
-                  )}
-                >
-                  {doc.status === "approved"
-                    ? "✓"
-                    : doc.status === "needs_revision"
-                    ? "!"
-                    : "4"}
-                </div>
-                <span className="text-[10px] font-semibold text-slate-900">
-                  {doc.status === "approved"
-                    ? "Approved"
-                    : doc.status === "needs_revision"
-                    ? "Revision"
-                    : "Decision"}
-                </span>
-              </div>
+          {historyError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              {historyError}
             </div>
-          </div>
+          )}
 
-          {/* Compliance Officer Feedback (If Needs Revision or has feedback) */}
-          {doc.officer_feedback && (
+          {/* TA-64: Decision, officer comment, and decision time -- OR
+              a clear "still pending" state, never nothing. */}
+          {isLoadingHistory ? (
+            <div className="rounded-xl border border-slate-200 p-4 bg-white text-xs text-slate-400">
+              Loading decision history...
+            </div>
+          ) : currentEntry?.review ? (
             <div
               className={cn(
                 "rounded-xl p-4 border",
-                doc.status === "needs_revision"
+                currentEntry.review.status === "needs_revision" || currentEntry.review.status === "rejected"
                   ? "bg-amber-50/70 border-amber-200"
-                  : "bg-blue-50/60 border-blue-200"
+                  : "bg-emerald-50/60 border-emerald-200"
               )}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className={cn(
                     "h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white",
-                    doc.status === "needs_revision" ? "bg-amber-600" : "bg-[#1e4c77]"
+                    currentEntry.review.status === "needs_revision" || currentEntry.review.status === "rejected"
+                      ? "bg-amber-600" : "bg-emerald-600"
                   )}
                 >
-                  SJ
+                  {currentEntry.review.status === "approved" ? "✓" : "!"}
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-900">
-                    {doc.officer_name || "Compliance Officer"}
+                    {STATUS_LABELS[currentEntry.review.status] ?? currentEntry.review.status}
                   </p>
                   <p className="text-[10px] text-slate-500 font-roboto">
-                    Officer Review Feedback · {doc.reviewed_at ? "Mar 04, 2026" : "Recent"}
+                    Decided {formatDate(currentEntry.review.decided_at)}
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-slate-800 leading-relaxed font-sans bg-white/80 p-3 rounded-lg border border-amber-200/60">
-                &ldquo;{doc.officer_feedback}&rdquo;
+              {currentEntry.review.comment && (
+                <p className="text-xs text-slate-800 leading-relaxed font-sans bg-white/80 p-3 rounded-lg border border-slate-200">
+                  &ldquo;{currentEntry.review.comment}&rdquo;
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 flex items-center gap-2.5">
+              <Clock className="h-4 w-4 text-[#1e4c77] shrink-0" />
+              <p className="text-xs text-[#1e4c77] font-medium">
+                Still pending review -- no decision has been made yet.
               </p>
             </div>
           )}
 
-          {/* AI Pre-Screen Analysis Summary */}
+          {/* TA-64: Every revision in the thread, in order, with its own outcome */}
+          {thread && thread.length > 0 && (
+            <div className="rounded-xl border border-slate-200 p-4 bg-white">
+              <div className="flex items-center gap-1.5 mb-3">
+                <History className="h-4 w-4 text-[#2575bc]" />
+                <h4 className="text-xs font-bold text-slate-900">Revision History</h4>
+                <span className="text-[10px] text-slate-400 font-roboto">
+                  ({thread.length} version{thread.length !== 1 ? "s" : ""})
+                </span>
+              </div>
+              <div className="space-y-2">
+                {thread.map((entry, idx) => (
+                  <div
+                    key={entry.document_id}
+                    className={cn(
+                      "flex items-center justify-between rounded-lg p-2.5 border text-xs",
+                      entry.document_id === doc.id
+                        ? "border-[#2575bc] bg-blue-50/40"
+                        : "border-slate-100 bg-[#f8fafc]"
+                    )}
+                  >
+                    <div>
+                      <span className="font-semibold text-slate-800">v{idx + 1}</span>
+                      <span className="text-slate-400 ml-2 font-roboto">
+                        {formatDate(entry.uploaded_at)}
+                      </span>
+                    </div>
+                    <StatusBadge status={entry.review?.status ?? "pending_review"} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TA-64: Readable audit trail for the whole thread */}
+          {audit && audit.length > 0 && (
+            <div className="rounded-xl border border-slate-200 p-4 bg-white">
+              <div className="flex items-center gap-1.5 mb-3">
+                <ListChecks className="h-4 w-4 text-[#2575bc]" />
+                <h4 className="text-xs font-bold text-slate-900">Audit Trail</h4>
+              </div>
+              <div className="space-y-1.5">
+                {audit.map((event) => (
+                  <div key={event.id} className="flex items-center justify-between text-[11px] py-1 border-b border-slate-50 last:border-0">
+                    <span className="text-slate-700 capitalize">{event.action.replace(/_/g, " ")}</span>
+                    <span className="text-slate-400 font-roboto">{formatDate(event.timestamp)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Pre-Screen Analysis Summary (still mock -- separate ticket) */}
           {aiData && (
             <div className="rounded-xl border border-slate-200 p-4 bg-white">
               <div className="flex items-center justify-between mb-2.5">
@@ -248,16 +279,12 @@ export function DocumentInspectorDrawer({
                 <span className="font-medium text-slate-800">{doc.type}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">File Size</span>
-                <span className="font-medium text-slate-800">{doc.file_size_mb} MB</span>
-              </div>
-              <div>
                 <span className="text-slate-400 block text-[10px]">Submitted By</span>
                 <span className="font-medium text-slate-800">{doc.advisor_name}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">Audit Vault ID</span>
-                <span className="font-medium text-slate-800">{doc.thread_id}</span>
+                <span className="text-slate-400 block text-[10px]">Thread ID</span>
+                <span className="font-medium text-slate-800">{doc.thread_id.slice(0, 8)}</span>
               </div>
             </div>
           </div>
