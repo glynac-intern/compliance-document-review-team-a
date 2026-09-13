@@ -3,7 +3,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
 from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
@@ -24,7 +24,9 @@ def get_queue(
     current_user: User = Depends(require_role("officer")),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Document)
+    # TA-66: eager-load advisor to avoid an N+1 query -- one query
+    # for the whole queue, regardless of how many rows it returns.
+    query = db.query(Document).options(joinedload(Document.advisor))
     if status_filter is not None:
         query = query.filter(Document.status == status_filter)
     return query.order_by(Document.uploaded_at).all()
