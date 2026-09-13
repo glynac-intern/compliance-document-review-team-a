@@ -17,8 +17,14 @@
  * up front.
  */
 
+// A missing env var falls back to localhost ONLY in development --
+// convenient for a teammate who hasn't set up .env.local yet. In
+// production, a misconfigured deployment must still fail loudly
+// (TA-61's original intent) rather than silently point at the wrong
+// backend with no warning.
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  (process.env.NODE_ENV === "development" ? "http://localhost:8000" : undefined);
 
 if (!API_BASE_URL) {
   throw new Error(
