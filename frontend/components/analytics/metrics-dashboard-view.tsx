@@ -206,11 +206,10 @@ export function MetricsDashboardView({
           {/* Skeleton Hero Chart */}
           <div className="h-72 rounded-xl border border-slate-200 bg-white p-5 shadow-2xs" />
 
-          {/* Skeleton 3 Columns Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="h-80 rounded-xl border border-slate-200 bg-white p-5 shadow-2xs" />
-            <div className="h-80 rounded-xl border border-slate-200 bg-white p-5 shadow-2xs" />
-            <div className="h-80 rounded-xl border border-slate-200 bg-white p-5 shadow-2xs" />
+          {/* Skeleton 2 Columns Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-80 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs" />
+            <div className="h-80 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs" />
           </div>
         </div>
       ) : (
@@ -241,8 +240,8 @@ export function MetricsDashboardView({
             />
           </div>
 
-          {/* 3. Balanced, Minimalist 3-Column Grid (Eliminates awkward gaps) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* 3. Balanced, Minimalist 2-Column Grid (Regulatory Outcomes & Throughput by Category) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <OutcomeDistributionChart
               data={data.outcomeDistribution}
               title="Regulatory Outcomes"
@@ -251,13 +250,6 @@ export function MetricsDashboardView({
             <CategoryBreakdownCard
               categories={data.categoryBreakdown}
               title="Throughput by Category"
-            />
-
-            <TurnaroundVelocityCard
-              tiers={data.turnaroundTiers}
-              slaCompliancePct={data.kpis.slaCompliancePct}
-              medianHours={data.kpis.medianTurnaroundHours}
-              title="Review Velocity & SLA"
             />
           </div>
         </div>
