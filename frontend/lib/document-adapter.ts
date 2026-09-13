@@ -19,7 +19,7 @@
 import type { BackendDocument, BackendDocumentStatus } from "./documents-api";
 import type { ComplianceDocument, ComplianceStatus, DocumentType } from "@/types/compliance";
 
-const STATUS_MAP: Record<BackendDocumentStatus, ComplianceStatus> = {
+export const STATUS_MAP: Record<BackendDocumentStatus, ComplianceStatus> = {
   pending_review: "pending",
   approved: "approved",
   rejected: "rejected",
