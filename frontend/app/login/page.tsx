@@ -101,7 +101,7 @@ export default function LoginPage() {
     setError(null);
 
     if (!email.trim() || !password.trim()) {
-      setError("Please enter your email and password.");
+      setError("Please Enter Your Email And Password.");
       return;
     }
 
@@ -112,7 +112,7 @@ export default function LoginPage() {
       const role = await login(email.trim(), password);
       router.push(role === "officer" ? "/officer" : "/advisor");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Unable to sign in. Please try again.");
+      setError(err instanceof ApiError ? err.message : "Unable To Sign In. Please Try Again.");
     } finally {
       setIsLoading(false);
     }
@@ -123,11 +123,11 @@ export default function LoginPage() {
     // that login is wired to the real backend, this shortcut can no
     // longer skip it -- point the user at the real form instead.
     setShowOtherModal(false);
-    setError("Please sign in with a real account below.");
+    setError("Please Sign In With A Real Account Below.");
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 overflow-hidden font-sans">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 overflow-hidden font-inter">
       {/* Soft background ambient radial lighting */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
 
@@ -146,7 +146,7 @@ export default function LoginPage() {
         
         {/* LEFT PANEL — Artistic Blue Panel with 3D Spheres & Swipable Cards */}
         <div
-          className="relative lg:w-[48%] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          className="relative lg:w-[48%] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none font-inter"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onTouchStart={handleTouchStart}
@@ -206,12 +206,12 @@ export default function LoginPage() {
                     )}
                   >
                     {/* Major headline in Inter — lifted up with comfortable gap to paragraph */}
-                    <h2 className="text-[27px] sm:text-[32px] font-bold text-white leading-[1.14] tracking-tight font-sans mb-4 sm:mb-5 drop-shadow-sm -translate-y-2.5">
+                    <h2 className="text-[27px] sm:text-[32px] font-bold text-white leading-[1.14] tracking-tight font-inter mb-4 sm:mb-5 drop-shadow-sm -translate-y-2.5">
                       {card.title}
                     </h2>
 
                     {/* Shortened, elegant descriptive paragraph */}
-                    <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-blue-50/90 font-elegant font-normal max-w-[340px]">
+                    <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-blue-50/90 font-inter font-normal max-w-[340px]">
                       {card.description}
                     </p>
                   </div>
@@ -285,24 +285,21 @@ export default function LoginPage() {
 
             {/* Header */}
             <div className="mb-6">
-              <h2 className="text-[26px] font-bold text-slate-900 tracking-tight font-sans">
-                Sign in
+              <h2 className="text-[26px] font-bold text-slate-900 tracking-tight font-inter">
+                Sign In
               </h2>
-              <p className="text-[12px] text-slate-400 mt-1 font-roboto">
-                Enter your credentials to access your compliance account
-              </p>
             </div>
 
             {/* Signup success message (TA-62) */}
             {signupSuccess && !error && (
-              <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700 mb-4 font-sans">
-                <span>Account created. Please sign in.</span>
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700 mb-4 font-inter">
+                <span>Account Created. Please Sign In.</span>
               </div>
             )}
 
             {/* Error Message */}
             {error && (
-              <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose-700 mb-4 font-sans">
+              <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose-700 mb-4 font-inter">
                 <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -326,7 +323,7 @@ export default function LoginPage() {
                       setError(null);
                     }}
                     placeholder="Email"
-                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-sans"
+                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                 </div>
@@ -348,16 +345,16 @@ export default function LoginPage() {
                       setError(null);
                     }}
                     placeholder="Password"
-                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-sans"
+                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="pr-3.5 text-[11px] font-bold tracking-wider text-[#2575bc] hover:text-[#185386] transition-colors uppercase shrink-0 cursor-pointer select-none font-roboto"
+                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#2575bc] hover:text-[#185386] transition-colors shrink-0 cursor-pointer select-none font-inter"
                     tabIndex={-1}
                   >
-                    {showPassword ? "HIDE" : "SHOW"}
+                    {showPassword ? "Hide" : "Show"}
                   </button>
                 </div>
               </div>
@@ -372,12 +369,12 @@ export default function LoginPage() {
                     className="h-3.5 w-3.5 rounded border-slate-300 text-[#1e4c77] focus:ring-[#2575bc]"
                     disabled={isLoading}
                   />
-                  <span className="text-[12px] text-slate-600 font-sans">Remember me</span>
+                  <span className="text-[12px] text-slate-600 font-inter">Remember Me</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => alert("Password reset link sent to registered enterprise email.")}
-                  className="text-[12px] font-medium text-[#2575bc] hover:text-[#185386] hover:underline transition-colors font-sans"
+                  className="text-[12px] font-medium text-[#2575bc] hover:text-[#185386] hover:underline transition-colors font-inter"
                 >
                   Forgot Password?
                 </button>
@@ -387,12 +384,12 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl bg-[#1e4c77] hover:bg-[#163c60] active:bg-[#112f4c] text-white font-semibold text-[14px] shadow-sm transition-all flex items-center justify-center cursor-pointer disabled:opacity-60 disabled:pointer-events-none mt-2 font-sans"
+                className="w-full h-11 rounded-xl bg-[#1e4c77] hover:bg-[#163c60] active:bg-[#112f4c] text-white font-semibold text-[14px] shadow-sm transition-all flex items-center justify-center cursor-pointer disabled:opacity-60 disabled:pointer-events-none mt-2 font-inter"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin text-white" />
                 ) : (
-                  "Sign in"
+                  "Sign In"
                 )}
               </button>
 
@@ -401,7 +398,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200" />
                 </div>
-                <div className="relative bg-white px-3 text-[11px] text-slate-400 uppercase tracking-wider font-medium font-roboto">
+                <div className="relative bg-white px-3 text-[11px] text-slate-400 tracking-wider font-medium font-inter">
                   Or
                 </div>
               </div>
@@ -411,21 +408,21 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowOtherModal(true)}
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium text-[13px] transition-all flex items-center justify-center cursor-pointer shadow-2xs font-sans"
+                className="w-full h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium text-[13px] transition-all flex items-center justify-center cursor-pointer shadow-2xs font-inter"
               >
-                Sign in with other
+                Sign In With Other
               </button>
             </form>
 
             {/* Footer Sign Up Link */}
-            <div className="mt-5 text-center text-[12px] text-slate-500 font-sans">
-              Don&apos;t have an account?{" "}
+            <div className="mt-5 text-center text-[12px] text-slate-500 font-inter">
+              Don&apos;t Have An Account?{" "}
               <button
                 type="button"
                 onClick={() => router.push("/signup")}
-                className="font-semibold text-[#2575bc] hover:text-[#185386] hover:underline"
+                className="font-semibold text-[#2575bc] hover:text-[#185386] hover:underline font-inter"
               >
-                Sign up
+                Sign Up
               </button>
             </div>
           </div>
@@ -434,29 +431,29 @@ export default function LoginPage() {
 
       {/* Quick Role Selection Modal (For testing / SSO) */}
       {showOtherModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 font-sans">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
-            <h3 className="text-base font-bold text-slate-900 mb-1">
-              Sign In with SSO / Demo Role
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 font-inter">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 font-inter">
+            <h3 className="text-base font-bold text-slate-900 mb-1 font-inter">
+              Sign In With SSO / Demo Role
             </h3>
-            <p className="text-xs text-slate-500 mb-4 font-roboto">
-              Select an account to access the Verity document review platform:
+            <p className="text-xs text-slate-500 mb-4 font-inter">
+              Select An Account To Access The Verity Document Review Platform:
             </p>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 font-inter">
               <button
                 onClick={() => handleQuickLogin("officer")}
                 className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-[#2575bc] hover:bg-blue-50/50 transition-colors text-left group cursor-pointer"
               >
                 <div>
-                  <div className="text-xs font-semibold text-slate-900 group-hover:text-[#1e4c77]">
+                  <div className="text-xs font-semibold text-slate-900 group-hover:text-[#1e4c77] font-inter">
                     Compliance Officer
                   </div>
-                  <div className="text-[11px] text-slate-500 font-roboto">
+                  <div className="text-[11px] text-slate-500 font-inter">
                     Sarah Jenkins · Queue, AI Flags, Approvals
                   </div>
                 </div>
-                <div className="h-6 w-6 rounded-full bg-blue-100 text-[#1e4c77] flex items-center justify-center text-[10px] font-bold">
+                <div className="h-6 w-6 rounded-full bg-blue-100 text-[#1e4c77] flex items-center justify-center text-[10px] font-bold font-inter">
                   SJ
                 </div>
               </button>
@@ -466,14 +463,14 @@ export default function LoginPage() {
                 className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-[#2575bc] hover:bg-blue-50/50 transition-colors text-left group cursor-pointer"
               >
                 <div>
-                  <div className="text-xs font-semibold text-slate-900 group-hover:text-[#1e4c77]">
+                  <div className="text-xs font-semibold text-slate-900 group-hover:text-[#1e4c77] font-inter">
                     Financial Advisor
                   </div>
-                  <div className="text-[11px] text-slate-500 font-roboto">
+                  <div className="text-[11px] text-slate-500 font-inter">
                     James Adams · Submissions, Document Status
                   </div>
                 </div>
-                <div className="h-6 w-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-[10px] font-bold">
+                <div className="h-6 w-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-[10px] font-bold font-inter">
                   JA
                 </div>
               </button>
@@ -483,7 +480,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowOtherModal(false)}
-                className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
+                className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer font-inter"
               >
                 Cancel
               </button>
