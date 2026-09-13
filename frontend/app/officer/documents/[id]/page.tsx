@@ -26,17 +26,31 @@ import { useRequireAuth } from "@/lib/use-require-auth";
 import { apiFetch, fetchFileBlob, ApiError } from "@/lib/api-client";
 import type { BackendDocument } from "@/lib/documents-api";
 
+interface MatchedRule {
+  id: string;
+  text: string;
+  type: string;
+}
+
 interface AnalysisFlag {
   passage_excerpt: string;
+  matched_rule: MatchedRule | null;
   explanation: string;
   severity: string;
+}
+
+interface Precedent {
+  document_id: string;
+  masked_text: string;
+  decision: string;
+  comment: string | null;
 }
 
 interface AnalysisResponse {
   status: string;
   summary: string | null;
   flags: AnalysisFlag[];
-  precedents: { decision: string; comment: string | null }[];
+  precedents: Precedent[];
 }
 
 export default function OfficerDocumentViewerPage() {
@@ -174,6 +188,11 @@ export default function OfficerDocumentViewerPage() {
           ) : analysis.status !== "succeeded" ? (
             <p className="text-xs text-slate-400">Analysis not yet available.</p>
           ) : (
+            // TA-68: summary at top, flags always carry passage + matched
+            // rule + reason + severity together (never severity alone),
+            // a genuine clean-result state when there are no flags, and
+            // the three precedents -- purely factual, nothing here
+            // pre-fills or suggests a decision.
             <div className="space-y-4">
               {analysis.summary && (
                 <div>
@@ -181,21 +200,75 @@ export default function OfficerDocumentViewerPage() {
                   <p className="text-xs text-slate-700 leading-relaxed">{analysis.summary}</p>
                 </div>
               )}
-              {analysis.flags.length > 0 && (
-                <div>
-                  <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
-                    Flags ({analysis.flags.length})
-                  </p>
+
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
+                  Flags ({analysis.flags.length})
+                </p>
+                {analysis.flags.length === 0 ? (
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                    No issues flagged -- this document read as clean.
+                  </div>
+                ) : (
                   <div className="space-y-2">
                     {analysis.flags.map((flag, i) => (
-                      <div key={i} className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs">
-                        <p className="italic text-slate-700 mb-1">&ldquo;{flag.passage_excerpt}&rdquo;</p>
+                      <div key={i} className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              flag.severity === "high"
+                                ? "bg-rose-100 text-rose-800"
+                                : flag.severity === "medium"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {flag.severity}
+                          </span>
+                          {flag.matched_rule && (
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {flag.matched_rule.type.replace(/_/g, " ")}
+                            </span>
+                          )}
+                        </div>
+                        <p className="italic text-slate-700">&ldquo;{flag.passage_excerpt}&rdquo;</p>
+                        {flag.matched_rule && (
+                          <p className="text-slate-600 border-l-2 border-amber-300 pl-2">
+                            {flag.matched_rule.text}
+                          </p>
+                        )}
                         <p className="text-slate-600">{flag.explanation}</p>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
+                  Similar Precedents ({analysis.precedents.length})
+                </p>
+                {analysis.precedents.length === 0 ? (
+                  <p className="text-xs text-slate-400">No similar precedents found yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {analysis.precedents.map((p, i) => (
+                      <div key={i} className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-xs space-y-1">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            p.decision === "approved"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {p.decision.replace(/_/g, " ")}
+                        </span>
+                        {p.comment && <p className="text-slate-600">{p.comment}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
