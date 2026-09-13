@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ComplianceDocument } from "@/types/compliance";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
 
 interface SubmissionsTableProps {
@@ -271,18 +272,24 @@ export function SubmissionsTable({
           <thead>
             {/* Headers: Non-bold, CamelCase Inter font */}
             <tr className="border-b border-slate-100 bg-[#f8fafc]/90 text-[12px] font-normal text-slate-400 font-inter tracking-normal">
-              <th className="py-3 px-5 sm:px-6 font-normal">Document Name & ID</th>
+              <th className="py-3 px-5 sm:px-6 font-normal">
+                {variant === "overview" ? "Document Name" : "Document Name & ID"}
+              </th>
               <th className="py-3 px-3 font-normal">Type</th>
               <th className="py-3 px-3 font-normal">Submitted</th>
               <th className="py-3 px-3 font-normal">Status</th>
-              <th className="py-3 px-3 font-normal">Reviewer</th>
-              <th className="py-3 px-5 sm:px-6 text-right font-normal">Action</th>
+              <th className={cn("py-3 px-3 font-normal", variant === "overview" && "pr-5 sm:pr-6")}>
+                Reviewer
+              </th>
+              {variant === "full" && (
+                <th className="py-3 px-5 sm:px-6 text-right font-normal">Action</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
             {displayedDocuments.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center">
+                <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center">
                   <div className="max-w-xs mx-auto flex flex-col items-center">
                     <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
                       <FileText className="h-5 w-5" strokeWidth={1.8} />
@@ -332,23 +339,23 @@ export function SubmissionsTable({
                     onClick={() => onSelectDocument(doc)}
                     className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                   >
-                    {/* Document Title & Reference */}
+                    {/* Document Title & Distinguishable Format Icon */}
                     <td className="py-3.5 px-5 sm:px-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-[#ebf4fb] text-[#1e4c77] flex items-center justify-center shrink-0 group-hover:bg-[#1e4c77] group-hover:text-white transition-colors">
-                          <FileText className="h-4.5 w-4.5" strokeWidth={1.8} />
-                        </div>
-                        <div className="min-w-0 max-w-[240px] sm:max-w-xs md:max-w-sm">
+                        <FileTypeIcon filename={doc.title} type={doc.type} size="md" />
+                        <div className="min-w-0 max-w-[260px] sm:max-w-xs md:max-w-md">
                           <p className="font-normal text-slate-800 truncate group-hover:text-[#1e4c77] transition-colors text-[13px] font-inter">
                             {doc.title}
                           </p>
-                          <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 font-inter font-normal">
-                            <span className="font-normal font-numbers text-slate-400">{doc.id}</span>
-                            <span>·</span>
-                            <span className="font-numbers">v{doc.version}</span>
-                            <span>·</span>
-                            <span className="font-numbers">{doc.file_size_mb} MB</span>
-                          </div>
+                          {variant === "full" && (
+                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 font-inter font-normal">
+                              <span className="font-normal font-numbers text-slate-400">{doc.id}</span>
+                              <span>·</span>
+                              <span className="font-numbers">v{doc.version}</span>
+                              <span>·</span>
+                              <span className="font-numbers">{doc.file_size_mb} MB</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -369,7 +376,7 @@ export function SubmissionsTable({
                     </td>
 
                     {/* Reviewer */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className={cn("py-3.5 px-3 whitespace-nowrap", variant === "overview" && "pr-5 sm:pr-6")}>
                       {doc.officer_name ? (
                         <span className="text-[12px] font-normal font-inter text-slate-600">
                           {doc.officer_name}
@@ -381,40 +388,42 @@ export function SubmissionsTable({
                       )}
                     </td>
 
-                    {/* Action Buttons: Non-bold, CamelCase Inter */}
-                    <td
-                      className="py-3.5 px-5 sm:px-6 text-right whitespace-nowrap"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {isNeedsRevision ? (
-                        <button
-                          type="button"
-                          onClick={() => onReviseClick(doc)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] text-white text-[11.5px] font-normal font-inter transition-all shadow-xs cursor-pointer"
-                        >
-                          <Edit3 className="h-3.5 w-3.5" strokeWidth={1.8} />
-                          <span>Revise</span>
-                        </button>
-                      ) : isApproved ? (
-                        <button
-                          type="button"
-                          onClick={() => onCertificateClick(doc)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11.5px] font-normal font-inter transition-all cursor-pointer shadow-2xs"
-                        >
-                          <FileCheck className="h-3.5 w-3.5" strokeWidth={1.8} />
-                          <span>Certificate</span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => onSelectDocument(doc)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 text-[11.5px] font-normal font-inter transition-all cursor-pointer shadow-2xs"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-slate-500" strokeWidth={1.8} />
-                          <span>View</span>
-                        </button>
-                      )}
-                    </td>
+                    {/* Action Buttons: Only in dedicated My Submissions dashboard view */}
+                    {variant === "full" && (
+                      <td
+                        className="py-3.5 px-5 sm:px-6 text-right whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {isNeedsRevision ? (
+                          <button
+                            type="button"
+                            onClick={() => onReviseClick(doc)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-[11.5px] font-normal font-inter transition-all shadow-xs cursor-pointer"
+                          >
+                            <Edit3 className="h-3.5 w-3.5 stroke-[1.8]" />
+                            <span>Revise</span>
+                          </button>
+                        ) : isApproved ? (
+                          <button
+                            type="button"
+                            onClick={() => onCertificateClick(doc)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#2575bc]/30 bg-[#ebf4fb] hover:bg-[#dbeafe] text-[#1e4c77] text-[11.5px] font-normal font-inter transition-all cursor-pointer shadow-2xs"
+                          >
+                            <FileCheck className="h-3.5 w-3.5 stroke-[1.8] text-[#2575bc]" />
+                            <span>Certificate</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onSelectDocument(doc)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-[#1e4c77] text-[11.5px] font-normal font-inter transition-all cursor-pointer shadow-2xs"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-slate-400 group-hover:text-[#1e4c77]" strokeWidth={1.8} />
+                            <span>View</span>
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })

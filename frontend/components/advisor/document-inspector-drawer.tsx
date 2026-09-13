@@ -17,6 +17,7 @@ import {
 import { ComplianceDocument } from "@/types/compliance";
 import { MOCK_AI_ANALYSIS, MOCK_DOCUMENT_CONTENT } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
 
 interface DocumentInspectorDrawerProps {
@@ -44,16 +45,19 @@ export function DocumentInspectorDrawer({
       <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300">
         {/* Drawer Header */}
         <div className="p-5 border-b border-slate-200 flex items-start justify-between bg-[#f8fafc]">
-          <div className="min-w-0 flex-1 pr-3">
-            <div className="flex items-center gap-2 mb-1.5">
-              <StatusBadge status={doc.status} />
-              <span className="text-xs font-semibold text-slate-500 font-roboto">
-                {doc.id} · v{doc.version}
-              </span>
+          <div className="flex items-start gap-3 min-w-0 flex-1 pr-3">
+            <FileTypeIcon filename={doc.title} type={doc.type} size="lg" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <StatusBadge status={doc.status} />
+                <span className="text-xs font-normal text-slate-400 font-numbers font-inter">
+                  {doc.id} · v{doc.version}
+                </span>
+              </div>
+              <h2 className="text-base font-medium text-slate-900 leading-snug break-words font-inter">
+                {doc.title}
+              </h2>
             </div>
-            <h2 className="text-base font-bold text-slate-900 leading-snug break-words">
-              {doc.title}
-            </h2>
           </div>
 
           <button

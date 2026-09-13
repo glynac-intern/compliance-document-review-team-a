@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { ComplianceDocument, DocumentType } from "@/types/compliance";
+import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
 
 interface NewSubmissionViewProps {
@@ -299,13 +300,7 @@ export function NewSubmissionView({
           ) : (
             <div className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-10 w-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#1e4c77] shrink-0 shadow-2xs">
-                  {file.name.endsWith(".xlsx") || file.name.endsWith(".xls") ? (
-                    <FileSpreadsheet className="h-5 w-5 stroke-[1.8]" />
-                  ) : (
-                    <FileText className="h-5 w-5 stroke-[1.8]" />
-                  )}
-                </div>
+                <FileTypeIcon filename={file.name} size="md" />
                 <div className="min-w-0 font-inter">
                   <p className="text-xs font-medium text-slate-800 truncate">
                     {file.name}
