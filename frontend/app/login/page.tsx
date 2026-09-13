@@ -39,7 +39,7 @@ const PROJECT_CARDS = [
   },
 ];
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, token, role: currentRole, isLoading: authLoading } = useAuth();
@@ -500,5 +500,13 @@ export default function LoginPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <LoginForm />
+    </React.Suspense>
   );
 }
