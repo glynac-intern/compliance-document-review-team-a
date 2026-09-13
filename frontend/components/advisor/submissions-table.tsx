@@ -290,22 +290,37 @@ export function SubmissionsTable({
                     <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
                       <FileText className="h-5 w-5" strokeWidth={1.8} />
                     </div>
-                    <p className="text-sm font-normal text-slate-800 font-inter">
-                      No matching submissions
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1 font-inter font-normal">
-                      No documents match the current filter or search criteria.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTypeFilter("all");
-                        onResetFilters();
-                      }}
-                      className="mt-3 text-xs font-normal text-[#1e4c77] hover:underline cursor-pointer font-inter"
-                    >
-                      Reset all filters
-                    </button>
+                    {documents.length === 0 ? (
+                      // TA-63: a genuinely empty account (no submissions
+                      // ever), distinct from "filtered to nothing" below.
+                      <>
+                        <p className="text-sm font-normal text-slate-800 font-inter">
+                          No submissions yet
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1 font-inter font-normal">
+                          Upload your first document to get started with compliance review.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-normal text-slate-800 font-inter">
+                          No matching submissions
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1 font-inter font-normal">
+                          No documents match the current filter or search criteria.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTypeFilter("all");
+                            onResetFilters();
+                          }}
+                          className="mt-3 text-xs font-normal text-[#1e4c77] hover:underline cursor-pointer font-inter"
+                        >
+                          Reset all filters
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
