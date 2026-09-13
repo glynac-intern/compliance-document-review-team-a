@@ -164,4 +164,33 @@ export const authApi = {
     }),
 };
 
-export { apiFetch, API_BASE_URL };
+/**
+ * TA-67: fetches a file's raw bytes as a Blob, for rendering a
+ * protected document in an <iframe> (blob URLs, not the raw
+ * Authorization-requiring endpoint URL directly -- browsers can't
+ * attach custom headers to a plain iframe src). Reuses the same
+ * auth-header and 401 handling as apiFetch, just returns a Blob
+ * instead of parsed JSON.
+ */
+async function fetchFileBlob(path: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  const token = getStoredToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers });
+
+  if (response.status === 401) {
+    clearStoredToken();
+    if (onUnauthorized) onUnauthorized();
+    throw new ApiError(401, "Session expired. Please log in again.");
+  }
+  if (!response.ok) {
+    throw new ApiError(response.status, `Failed to load file (${response.status})`);
+  }
+
+  return response.blob();
+}
+
+export { apiFetch, fetchFileBlob, API_BASE_URL };
