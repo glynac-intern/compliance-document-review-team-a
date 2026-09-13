@@ -36,7 +36,12 @@ function decodeToken(token: string): DecodedToken | null {
   try {
     const payload = token.split(".")[1];
     const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(decoded) as DecodedToken;
+    const parsed = JSON.parse(decoded) as DecodedToken;
+    // Expiration check: if token has expired, treat as invalid
+    if (parsed.exp && parsed.exp * 1000 <= Date.now()) {
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

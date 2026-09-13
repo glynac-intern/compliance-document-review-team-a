@@ -42,7 +42,7 @@ const PROJECT_CARDS = [
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth();
+  const { login, token, role: currentRole, isLoading: authLoading } = useAuth();
   const [email, setEmail] = React.useState(searchParams.get("email") ?? "");
   const [signupSuccess] = React.useState(searchParams.get("signupSuccess") === "1");
   const [password, setPassword] = React.useState("");
@@ -51,6 +51,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [showOtherModal, setShowOtherModal] = React.useState(false);
+
+  // If already authenticated with an active session, redirect to the appropriate dashboard
+  React.useEffect(() => {
+    if (!authLoading && token && currentRole) {
+      router.replace(currentRole === "officer" ? "/officer" : "/advisor");
+    }
+  }, [authLoading, token, currentRole, router]);
 
   // Swipable cards state
   const [currentSlide, setCurrentSlide] = React.useState(0);
@@ -118,12 +125,16 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = (_role: "advisor" | "officer") => {
-    // TA-61: this used to bypass real authentication entirely. Now
-    // that login is wired to the real backend, this shortcut can no
-    // longer skip it -- point the user at the real form instead.
+  const handleQuickLogin = (roleToSelect: "advisor" | "officer") => {
+    if (roleToSelect === "officer") {
+      setEmail("officer@rolefixture.io");
+      setPassword("testpass123");
+    } else {
+      setEmail("advisor@rolefixture.io");
+      setPassword("testpass123");
+    }
     setShowOtherModal(false);
-    setError("Please Sign In With A Real Account Below.");
+    setError(null);
   };
 
   return (

@@ -21,7 +21,14 @@ def get_current_user(
             detail="Invalid or expired token",
         )
 
-    user = db.query(User).filter(User.id == payload["sub"]).first()
+    user_id = payload["sub"]
+    try:
+        import uuid
+        user_uuid = uuid.UUID(str(user_id))
+    except (ValueError, AttributeError):
+        user_uuid = user_id
+
+    user = db.query(User).filter(User.id == user_uuid).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
