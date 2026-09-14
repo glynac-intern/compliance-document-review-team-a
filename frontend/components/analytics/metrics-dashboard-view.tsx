@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { AnalyticsTimeHorizon, AnalyticsDataSet } from "@/types/analytics";
-import { getAnalyticsData, getHorizonLabel } from "@/lib/mock-analytics";
+import { AnalyticsTimeHorizon } from "@/types/analytics";
+import { computeRealAnalytics, getHorizonLabel, AnyDocument } from "@/lib/real-analytics";
+import { documentsApi } from "@/lib/documents-api";
 import { KpiSummaryStrip } from "./kpi-summary-strip";
 import { SubmissionTrendChart } from "./submission-trend-chart";
 import { OutcomeDistributionChart } from "./outcome-distribution-chart";
@@ -17,40 +18,57 @@ import {
 import { cn } from "@/lib/utils";
 
 interface MetricsDashboardViewProps {
+  documents?: AnyDocument[];
   onExportReport?: () => void;
   onShowToast?: (msg: string) => void;
 }
 
 export function MetricsDashboardView({
+  documents: externalDocuments,
   onExportReport,
   onShowToast,
 }: MetricsDashboardViewProps) {
   const [timeHorizon, setTimeHorizon] = React.useState<AnalyticsTimeHorizon>("12m");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(!externalDocuments);
   const [hasError, setHasError] = React.useState(false);
-  const [data, setData] = React.useState<AnalyticsDataSet>(() => getAnalyticsData("12m"));
+  const [fetchedDocuments, setFetchedDocuments] = React.useState<AnyDocument[]>([]);
 
-  // Handle Horizon Change with micro-loading transition
-  const handleHorizonChange = (horizon: AnalyticsTimeHorizon) => {
-    if (horizon === timeHorizon) return;
-    setIsLoading(true);
-    setTimeHorizon(horizon);
+  const rawDocuments = externalDocuments ?? fetchedDocuments;
+  const data = React.useMemo(
+    () => computeRealAnalytics(rawDocuments, timeHorizon),
+    [rawDocuments, timeHorizon]
+  );
 
-    setTimeout(() => {
-      setData(getAnalyticsData(horizon));
-      setIsLoading(false);
-    }, 250);
-  };
-
-  const handleRefresh = () => {
+  const fetchDocs = React.useCallback(async () => {
     setIsLoading(true);
     setHasError(false);
-
-    setTimeout(() => {
-      setData(getAnalyticsData(timeHorizon));
+    try {
+      const docs = await documentsApi.list();
+      setFetchedDocuments(docs);
+    } catch (err) {
+      console.error("Failed to load documents for compliance metrics:", err);
+      setFetchedDocuments([]);
+    } finally {
       setIsLoading(false);
-      onShowToast?.("Compliance metrics synced with repository.");
-    }, 350);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!externalDocuments) {
+      fetchDocs();
+    }
+  }, [externalDocuments, fetchDocs]);
+
+  // Handle Horizon Change
+  const handleHorizonChange = (horizon: AnalyticsTimeHorizon) => {
+    setTimeHorizon(horizon);
+  };
+
+  const handleRefresh = async () => {
+    if (!externalDocuments) {
+      await fetchDocs();
+    }
+    onShowToast?.("Compliance metrics synced with repository.");
   };
 
   const handleExport = () => {

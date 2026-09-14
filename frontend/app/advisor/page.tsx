@@ -387,6 +387,7 @@ export default function AdvisorDashboardPage() {
           {/* VIEW 4: METRICS & ANALYTICS DASHBOARD */}
           {activeView === "metrics" && (
             <MetricsDashboardView
+              documents={documents}
               onShowToast={showToast}
             />
           )}

@@ -9,7 +9,6 @@ interface OutcomeDistributionChartProps {
   title?: string;
 }
 
-// Generates an exact SVG annular sector path (donut slice) with crisp radial seams
 function getAnnularSectorPath(
   cx: number,
   cy: number,
@@ -45,7 +44,6 @@ export function OutcomeDistributionChart({
 }: OutcomeDistributionChartProps) {
   const [activeSegment, setActiveSegment] = React.useState<string | null>(null);
 
-  // Donut geometry constants
   const size = 190;
   const cx = size / 2;
   const cy = size / 2;
@@ -53,10 +51,8 @@ export function OutcomeDistributionChart({
   const rOuterBase = 76;
   const rOuterHover = 82;
 
-  // Strictly brand blue monochromatic palette:
-  // Approved: Royal Blue (#2575bc)
-  // Needs Revision: Sky Blue (#4a9ae1)
-  // Rejected: Midnight Navy (#0f2b48)
+  const hasReviewedDocs = data.totalReviewed > 0;
+
   const segments = [
     {
       id: "approved",
@@ -81,12 +77,12 @@ export function OutcomeDistributionChart({
     },
   ];
 
-  // Pre-calculate exact sector angles with clean hairline separation gaps (no overlapping round caps)
-  const gap = 0.032; // ~1.8 degree clean gap between slices
-  let accumulatedAngle = -Math.PI / 2; // Start at 12 o'clock
+  const gap = 0.032;
+  let accumulatedAngle = -Math.PI / 2;
 
   const sectorData = segments.map((seg) => {
-    const spanAngle = (seg.percentage / 100) * 2 * Math.PI;
+    const pct = hasReviewedDocs ? seg.percentage : 0;
+    const spanAngle = (pct / 100) * 2 * Math.PI;
     const startAngle = accumulatedAngle + gap / 2;
     const endAngle = accumulatedAngle + spanAngle - gap / 2;
     accumulatedAngle += spanAngle;
@@ -99,17 +95,16 @@ export function OutcomeDistributionChart({
   });
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs font-inter flex flex-col justify-between h-full">
-      {/* Card Header (Minimal, no subtitle) */}
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
+      {/* Card Header */}
       <div className="pb-3 border-b border-slate-100 mb-4">
-        <h2 className="text-sm font-medium text-slate-800 font-inter">
+        <h2 className="text-sm sm:text-base font-medium text-slate-800 tracking-tight font-inter">
           {title}
         </h2>
       </div>
 
       {/* Visual & Summary Container */}
       <div className="flex flex-col items-center justify-center my-auto">
-        {/* SVG Donut with mathematically exact annular sectors */}
         <div className="relative w-[190px] h-[190px] flex items-center justify-center select-none">
           <svg
             width={size}
@@ -123,51 +118,57 @@ export function OutcomeDistributionChart({
               cy={cy}
               r={(rInner + rOuterBase) / 2}
               fill="transparent"
-              stroke="#f8fafc"
+              stroke="#f1f5f9"
               strokeWidth={rOuterBase - rInner}
             />
 
-            {/* Crisp Annular Sector Slices */}
-            {sectorData.map((seg) => {
-              const isHovered = activeSegment === seg.id;
-              const isDimmed = activeSegment !== null && !isHovered;
-              const rOuter = isHovered ? rOuterHover : rOuterBase;
-              const pathD = getAnnularSectorPath(
-                cx,
-                cy,
-                rInner,
-                rOuter,
-                seg.startAngle,
-                seg.endAngle
-              );
+            {/* Slices when real reviews exist */}
+            {hasReviewedDocs &&
+              sectorData.map((seg) => {
+                if (seg.percentage <= 0) return null;
+                const isHovered = activeSegment === seg.id;
+                const isDimmed = activeSegment !== null && !isHovered;
+                const rOuter = isHovered ? rOuterHover : rOuterBase;
+                const pathD = getAnnularSectorPath(
+                  cx,
+                  cy,
+                  rInner,
+                  rOuter,
+                  seg.startAngle,
+                  seg.endAngle
+                );
 
-              return (
-                <path
-                  key={seg.id}
-                  d={pathD}
-                  fill={seg.color}
-                  className="transition-all duration-200 cursor-pointer ease-out"
-                  style={{
-                    opacity: isDimmed ? 0.45 : 1,
-                  }}
-                  onMouseEnter={() => setActiveSegment(seg.id)}
-                  onMouseLeave={() => setActiveSegment(null)}
-                />
-              );
-            })}
+                return (
+                  <path
+                    key={seg.id}
+                    d={pathD}
+                    fill={seg.color}
+                    className="transition-all duration-200 cursor-pointer ease-out"
+                    style={{
+                      opacity: isDimmed ? 0.45 : 1,
+                    }}
+                    onMouseEnter={() => setActiveSegment(seg.id)}
+                    onMouseLeave={() => setActiveSegment(null)}
+                  />
+                );
+              })}
           </svg>
 
           {/* Donut Center Display */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
             <span className="text-2xl sm:text-[26px] font-bold text-slate-900 font-numbers tabular-nums leading-none">
-              {activeSegment
-                ? segments.find((s) => s.id === activeSegment)?.count
-                : data.totalReviewed}
+              {hasReviewedDocs
+                ? activeSegment
+                  ? segments.find((s) => s.id === activeSegment)?.count
+                  : data.totalReviewed
+                : "00"}
             </span>
-            <span className="text-[10px] text-slate-400 font-inter uppercase tracking-wide mt-1">
-              {activeSegment
-                ? `${segments.find((s) => s.id === activeSegment)?.label}`
-                : "Reviewed"}
+            <span className="text-[10px] text-slate-400 font-inter uppercase tracking-wider mt-1">
+              {hasReviewedDocs
+                ? activeSegment
+                  ? segments.find((s) => s.id === activeSegment)?.label
+                  : "Reviewed"
+                : "No data"}
             </span>
           </div>
         </div>
@@ -176,6 +177,7 @@ export function OutcomeDistributionChart({
         <div className="w-full mt-5 space-y-1.5 font-inter">
           {segments.map((seg) => {
             const isHovered = activeSegment === seg.id;
+            const hasCount = hasReviewedDocs && seg.count > 0;
 
             return (
               <div
@@ -183,31 +185,24 @@ export function OutcomeDistributionChart({
                 onMouseEnter={() => setActiveSegment(seg.id)}
                 onMouseLeave={() => setActiveSegment(null)}
                 className={cn(
-                  "flex items-center justify-between p-2 rounded-lg transition-colors cursor-pointer text-xs",
-                  isHovered ? "bg-slate-50" : "hover:bg-slate-50/70"
+                  "flex items-center justify-between py-1 px-2 rounded-lg transition-colors cursor-pointer text-xs",
+                  isHovered ? "bg-slate-50" : "hover:bg-slate-50/60"
                 )}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2">
                   <span
-                    className="h-2.5 w-2.5 rounded-xs shrink-0"
+                    className="h-2 w-2 rounded-xs shrink-0"
                     style={{ backgroundColor: seg.color }}
                   />
-                  <div className="min-w-0">
-                    <p className="font-normal text-slate-800 truncate">
-                      {seg.label}
-                    </p>
-                  </div>
+                  <span className="text-slate-700 font-normal">{seg.label}</span>
                 </div>
 
-                <div className="flex items-center gap-3 text-right shrink-0">
-                  <span className="text-slate-500 font-numbers tabular-nums">
-                    {seg.count} docs
+                <div className="flex items-center gap-2.5 font-numbers tabular-nums text-right">
+                  <span className="text-slate-400 text-[11px]">
+                    {hasCount ? `${seg.count} docs` : "00 docs"}
                   </span>
-                  <span
-                    className="font-numbers tabular-nums font-medium text-slate-900 w-12 text-right"
-                    style={{ color: isHovered ? seg.color : undefined }}
-                  >
-                    {seg.percentage.toFixed(1)}%
+                  <span className="font-medium text-slate-900 w-12 text-right">
+                    {hasCount ? `${seg.percentage.toFixed(1)}%` : "No data"}
                   </span>
                 </div>
               </div>

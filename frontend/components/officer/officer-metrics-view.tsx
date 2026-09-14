@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { AnalyticsTimeHorizon, AnalyticsDataSet } from "@/types/analytics";
-import { getAnalyticsData, getHorizonLabel } from "@/lib/mock-analytics";
+import { AnalyticsTimeHorizon } from "@/types/analytics";
+import { computeRealAnalytics, getHorizonLabel } from "@/lib/real-analytics";
+import { reviewsApi, type QueueDocument } from "@/lib/reviews-api";
 import { KpiSummaryStrip } from "@/components/analytics/kpi-summary-strip";
 import { SubmissionTrendChart } from "@/components/analytics/submission-trend-chart";
 import { OutcomeDistributionChart } from "@/components/analytics/outcome-distribution-chart";
@@ -19,36 +20,55 @@ import {
 import { cn } from "@/lib/utils";
 
 interface OfficerMetricsViewProps {
+  documents?: QueueDocument[];
   onShowToast?: (msg: string) => void;
 }
 
-export function OfficerMetricsView({ onShowToast }: OfficerMetricsViewProps) {
+export function OfficerMetricsView({
+  documents: externalDocuments,
+  onShowToast,
+}: OfficerMetricsViewProps) {
   const [timeHorizon, setTimeHorizon] = React.useState<AnalyticsTimeHorizon>("12m");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(!externalDocuments);
   const [hasError, setHasError] = React.useState(false);
-  const [data, setData] = React.useState<AnalyticsDataSet>(() => getAnalyticsData("12m"));
+  const [fetchedDocuments, setFetchedDocuments] = React.useState<QueueDocument[]>([]);
 
-  // Handle Horizon Change with micro-loading transition
-  const handleHorizonChange = (horizon: AnalyticsTimeHorizon) => {
-    if (horizon === timeHorizon) return;
-    setIsLoading(true);
-    setTimeHorizon(horizon);
+  const rawDocuments = externalDocuments ?? fetchedDocuments;
+  const data = React.useMemo(
+    () => computeRealAnalytics(rawDocuments, timeHorizon),
+    [rawDocuments, timeHorizon]
+  );
 
-    setTimeout(() => {
-      setData(getAnalyticsData(horizon));
-      setIsLoading(false);
-    }, 250);
-  };
-
-  const handleRefresh = () => {
+  const fetchQueue = React.useCallback(async () => {
     setIsLoading(true);
     setHasError(false);
-
-    setTimeout(() => {
-      setData(getAnalyticsData(timeHorizon));
+    try {
+      const queueDocs = await reviewsApi.getQueue();
+      setFetchedDocuments(queueDocs);
+    } catch (err) {
+      console.error("Failed to load compliance review queue for analytics:", err);
+      setFetchedDocuments([]);
+    } finally {
       setIsLoading(false);
-      onShowToast?.("Compliance review operations data synchronized with repository.");
-    }, 350);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!externalDocuments) {
+      fetchQueue();
+    }
+  }, [externalDocuments, fetchQueue]);
+
+  // Handle Horizon Change
+  const handleHorizonChange = (horizon: AnalyticsTimeHorizon) => {
+    setTimeHorizon(horizon);
+  };
+
+  const handleRefresh = async () => {
+    if (!externalDocuments) {
+      await fetchQueue();
+    }
+    onShowToast?.("Compliance review operations data synchronized with repository.");
   };
 
   const handleExport = () => {
@@ -260,6 +280,8 @@ export function OfficerMetricsView({ onShowToast }: OfficerMetricsViewProps) {
 
             <TurnaroundVelocityCard
               tiers={data.turnaroundTiers}
+              slaCompliancePct={data.kpis.slaCompliancePct}
+              medianHours={data.kpis.medianTurnaroundHours}
               title="Review Velocity & SLA Tiers"
             />
           </div>
@@ -276,112 +298,153 @@ export function OfficerMetricsView({ onShowToast }: OfficerMetricsViewProps) {
               {/* Header */}
               <div className="pb-3.5 border-b border-slate-100 mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-sm sm:text-base font-normal text-slate-800 tracking-tight font-inter">
-                    AI Assist & Supervisory Oversight
+                  <h2 className="text-sm sm:text-base font-medium text-slate-800 tracking-tight font-inter">
+                    Supervisory & Quality Telemetry
                   </h2>
                 </div>
-                <span className="text-[11.5px] text-slate-400 font-normal font-inter">
-                  Risk Telemetry
+                <span className="text-[11px] uppercase tracking-wider font-medium text-slate-400 font-inter">
+                  Real Operations
                 </span>
               </div>
 
-              {/* Metrics Rows */}
-              <div className="space-y-4 pt-1">
-                {/* Metric 1: AI Concordance */}
-                <div className="group flex items-center justify-between gap-3 text-xs">
-                  <div className="w-36 sm:w-44 shrink-0">
-                    <span className="font-normal text-slate-800 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
-                      AI Flag Concordance
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-[60px] h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      style={{ width: "94.8%" }}
-                      className="h-full rounded-full bg-[#2575bc] transition-all duration-300"
-                      title="AI Concordance: 94.8%"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 text-right">
-                    <span className="text-[11.5px] text-slate-400 font-numbers tabular-nums w-16 text-right">
-                      High align
-                    </span>
-                    <span className="text-[12px] font-numbers font-medium text-[#1e4c77] tabular-nums w-12 text-right">
-                      94.8%
-                    </span>
-                  </div>
-                </div>
+              {/* Real Metrics Rows */}
+              <div className="space-y-3 pt-0.5">
+                {/* Metric 1: First-Pass Clearance */}
+                {(() => {
+                  const hasReviewed = data.outcomeDistribution.totalReviewed > 0;
+                  const rate = data.kpis.firstPassClearanceRatePct;
+                  return (
+                    <div className="group flex items-center justify-between gap-3 text-xs">
+                      <div className="w-36 sm:w-44 shrink-0">
+                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                          First-Pass Clearance
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          style={{ width: `${hasReviewed ? rate : 0}%` }}
+                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 text-right">
+                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                          {hasReviewed ? `${data.outcomeDistribution.approvedCount} approved` : "00 approved"}
+                        </span>
+                        <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
+                          {hasReviewed ? (
+                            <span className="text-[#1e4c77]">{rate.toFixed(1)}%</span>
+                          ) : (
+                            <span className="text-slate-400 font-normal">No data</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-                {/* Metric 2: High-Risk Flags Intercepted */}
-                <div className="group flex items-center justify-between gap-3 text-xs">
-                  <div className="w-36 sm:w-44 shrink-0">
-                    <span className="font-normal text-slate-800 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
-                      High-Risk Flags Intercepted
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-[60px] h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      style={{ width: "86.0%" }}
-                      className="h-full rounded-full bg-[#2575bc] transition-all duration-300"
-                      title="High-Risk Intercept: 86.0%"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 text-right">
-                    <span className="text-[11.5px] text-slate-400 font-numbers tabular-nums w-16 text-right">
-                      38 flags
-                    </span>
-                    <span className="text-[12px] font-numbers font-medium text-[#1e4c77] tabular-nums w-12 text-right">
-                      86.0%
-                    </span>
-                  </div>
-                </div>
+                {/* Metric 2: Revision Required Rate */}
+                {(() => {
+                  const hasReviewed = data.outcomeDistribution.totalReviewed > 0;
+                  const rate = data.kpis.revisionRatePct;
+                  return (
+                    <div className="group flex items-center justify-between gap-3 text-xs">
+                      <div className="w-36 sm:w-44 shrink-0">
+                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                          Revision Iterations
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          style={{ width: `${hasReviewed ? rate : 0}%` }}
+                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 text-right">
+                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                          {hasReviewed ? `${data.outcomeDistribution.revisionCount} revisions` : "00 revisions"}
+                        </span>
+                        <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
+                          {hasReviewed && rate > 0 ? (
+                            <span className="text-[#1e4c77]">{rate.toFixed(1)}%</span>
+                          ) : hasReviewed ? (
+                            <span className="text-slate-500">00%</span>
+                          ) : (
+                            <span className="text-slate-400 font-normal">No data</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-                {/* Metric 3: First-Pass Clearance Rate */}
-                <div className="group flex items-center justify-between gap-3 text-xs">
-                  <div className="w-36 sm:w-44 shrink-0">
-                    <span className="font-normal text-slate-800 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
-                      First-Pass Clearance Rate
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-[60px] h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      style={{ width: `${data.kpis.firstPassClearanceRatePct}%` }}
-                      className="h-full rounded-full bg-[#2575bc] transition-all duration-300"
-                      title={`First-Pass Clearance: ${data.kpis.firstPassClearanceRatePct.toFixed(1)}%`}
-                    />
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 text-right">
-                    <span className="text-[11.5px] text-slate-400 font-numbers tabular-nums w-16 text-right">
-                      Clean cycle
-                    </span>
-                    <span className="text-[12px] font-numbers font-medium text-[#1e4c77] tabular-nums w-12 text-right">
-                      {data.kpis.firstPassClearanceRatePct.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
+                {/* Metric 3: Rejection Intercept Rate */}
+                {(() => {
+                  const hasReviewed = data.outcomeDistribution.totalReviewed > 0;
+                  const rate = data.kpis.rejectionRatePct;
+                  return (
+                    <div className="group flex items-center justify-between gap-3 text-xs">
+                      <div className="w-36 sm:w-44 shrink-0">
+                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                          Determination Rejections
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          style={{ width: `${hasReviewed ? rate : 0}%` }}
+                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 text-right">
+                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                          {hasReviewed ? `${data.outcomeDistribution.rejectedCount} rejected` : "00 rejected"}
+                        </span>
+                        <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
+                          {hasReviewed && rate > 0 ? (
+                            <span className="text-[#1e4c77]">{rate.toFixed(1)}%</span>
+                          ) : hasReviewed ? (
+                            <span className="text-slate-500">00%</span>
+                          ) : (
+                            <span className="text-slate-400 font-normal">No data</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-                {/* Metric 4: Avg Revision Cycles */}
-                <div className="group flex items-center justify-between gap-3 text-xs">
-                  <div className="w-36 sm:w-44 shrink-0">
-                    <span className="font-normal text-slate-800 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
-                      Avg Revision Iterations
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-[60px] h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      style={{ width: "24.0%" }}
-                      className="h-full rounded-full bg-[#2575bc] transition-all duration-300"
-                      title="1.2 cycles average"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 text-right">
-                    <span className="text-[11.5px] text-slate-400 font-numbers tabular-nums w-16 text-right">
-                      Per revised doc
-                    </span>
-                    <span className="text-[12px] font-numbers font-medium text-[#1e4c77] tabular-nums w-12 text-right">
-                      1.2x
-                    </span>
-                  </div>
-                </div>
+                {/* Metric 4: Active Queue Backlog */}
+                {(() => {
+                  const pendingCount = rawDocuments.filter((d) => d.status === "pending_review").length;
+                  const totalCount = rawDocuments.length;
+                  const pendingPct = totalCount > 0 ? (pendingCount / totalCount) * 100 : 0;
+                  return (
+                    <div className="group flex items-center justify-between gap-3 text-xs">
+                      <div className="w-36 sm:w-44 shrink-0">
+                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                          Active Intake in Queue
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          style={{ width: `${totalCount > 0 ? pendingPct : 0}%` }}
+                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 text-right">
+                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                          {totalCount > 0 ? `${pendingCount} pending` : "00 docs"}
+                        </span>
+                        <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
+                          {totalCount > 0 ? (
+                            <span className="text-[#1e4c77]">{pendingPct.toFixed(1)}%</span>
+                          ) : (
+                            <span className="text-slate-400 font-normal">No data</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Subtle Footer Note */}
@@ -391,7 +454,9 @@ export function OfficerMetricsView({ onShowToast }: OfficerMetricsViewProps) {
                   Human-in-the-Loop Safeguard
                 </span>
                 <span className="text-slate-600 font-medium">
-                  100% Officer Determination
+                  {rawDocuments.length > 0
+                    ? `${rawDocuments.length} repository records`
+                    : "No data"}
                 </span>
               </div>
             </div>
