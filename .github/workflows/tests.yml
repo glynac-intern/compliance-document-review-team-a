@@ -31,9 +31,10 @@ jobs:
       - name: Build backend image
         run: docker compose build backend
 
-      - name: Run setup script (TA-80 -- same path the README uses,
-          seeding skipped: CI's dummy LLM_API_KEY can't make real
-          embedding calls, which pytest doesn't need anyway)
+      # TA-80: same path the README uses, seeding skipped -- CI's
+      # dummy LLM_API_KEY can't make real embedding calls, which
+      # pytest doesn't need anyway.
+      - name: Run setup script
         run: SKIP_SEEDING=1 ./scripts/setup.sh
 
       - name: Run test suite (role boundary + masker)
