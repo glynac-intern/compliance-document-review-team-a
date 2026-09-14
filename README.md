@@ -30,39 +30,18 @@ consistently.
    - `BACKEND_SECRET_KEY` — generate one with `openssl rand -hex 32`
    - `LLM_API_KEY` — your Gemini API key from Google AI Studio
 
-3. **Start the database and backend:**
+3. **Run the setup script** (TA-80 -- one command from a clean
+   checkout to a running, seeded, verified app; this IS the same
+   path CI uses, not a separate duplicate of it):
    ```bash
-   docker compose up -d db backend
+   ./scripts/setup.sh
    ```
+   Starts the database and backend, runs migrations, seeds rules,
+   disclosures, and precedents, then verifies the seeded counts
+   before reporting success. Safe to re-run at any time -- every
+   step it calls is idempotent.
 
-4. **Run database migrations:**
-   ```bash
-   docker compose run --rm backend alembic upgrade head
-   ```
-
-5. **Seed the rules/disclosures corpus** (required for retrieval and
-   disclosure-by-absence detection to work):
-   ```bash
-   docker compose run --rm backend python data_pipeline/embeddings/embed_rules.py
-   ```
-
-6. **Seed the precedent index** (TA-59 -- without this, precedent search
-   demonstrates as an empty state on a fresh checkout, even though the
-   feature works correctly):
-   ```bash
-   docker compose run --rm backend python data_pipeline/embeddings/backfill_precedents.py
-   ```
-   Populates precedent_index with the seed corpus's 100 documents, each
-   carrying a plausible, varied decision and officer comment (no real
-   client data -- these are synthetic seed documents).
-
-7. **Verify the backend is running:**
-   ```bash
-   curl http://localhost:8000/health
-   ```
-   Should return `{"status":"ok"}`.
-
-8. **Start the frontend** (once its own Dockerfile/service is ready):
+4. **Start the frontend** (once its own Dockerfile/service is ready):
    ```bash
    docker compose up -d frontend
    ```
