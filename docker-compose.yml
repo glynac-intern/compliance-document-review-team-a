@@ -24,6 +24,20 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # TA-81: found via a real clean-checkout rehearsal -- .env.example
+      # used to ship DATABASE_URL as a literal string with its own
+      # hardcoded password, separate from POSTGRES_PASSWORD. The README
+      # tells a new team member to set POSTGRES_PASSWORD to "any value",
+      # but env_file does no variable substitution, so DATABASE_URL kept
+      # whatever password was literally written in .env -- silently
+      # desyncing the moment someone actually changed POSTGRES_PASSWORD,
+      # with a Postgres auth failure that gives no hint the .env edit
+      # they just made is the cause. Building it here from the same
+      # POSTGRES_* vars the db service uses makes drift impossible.
+      # `environment:` takes precedence over `env_file:` for the same
+      # key, so this always wins over any DATABASE_URL left in .env.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     ports:
       - "8000:8000"
     depends_on:
