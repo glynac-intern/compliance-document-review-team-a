@@ -15,15 +15,11 @@ Run inside the backend container:
     docker compose run --rm backend python data_pipeline/prove_masking_demo.py
 """
 import json
-import sys
 from datetime import datetime, timezone
 
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/ai/compliance")
-sys.path.insert(0, "/app/data_pipeline/embeddings")
 
 from database import SessionLocal
-import analyze_document
+import ai.compliance.analyze_document as analyze_document
 
 FAKE_NAME = "Fake Testperson"
 FAKE_EMAIL = "fake.testperson@example-fake-domain.com"

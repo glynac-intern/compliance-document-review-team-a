@@ -19,7 +19,12 @@ services:
 
   backend:
     build:
-      context: ./backend
+      # TA-79: repo root, not ./backend -- backend/, ai/, and
+      # data_pipeline/ need to land in the image/container as true
+      # siblings (matching the real repo layout), not with ai/
+      # data_pipeline reparented under backend's own root.
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: compliance_backend
     restart: unless-stopped
     env_file:
@@ -44,10 +49,11 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backend:/app
-      - ./data_pipeline:/app/data_pipeline
-      - ./seed:/app/seed
-      - ./ai:/app/ai
+      # TA-79: one mount of the repo root instead of four overlapping
+      # ones -- ai/, data_pipeline/, seed/, and backend/ all land at
+      # their real, sibling paths under /app, so nothing needs
+      # reparenting via sys.path hacks to find them.
+      - .:/app
       - uploads_data:/app/uploads
 
   frontend:

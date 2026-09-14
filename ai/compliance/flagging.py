@@ -10,12 +10,9 @@ model only supplies the explanation and severity judgment.
 """
 
 import json
-import sys
-
 from google.genai import types
 
-sys.path.insert(0, "/app/data_pipeline/embeddings")
-from model_config import GENERATION_MODEL, FLAG_GENERATION_TEMPERATURE
+from data_pipeline.embeddings.model_config import GENERATION_MODEL, FLAG_GENERATION_TEMPERATURE
 
 FLAG_PROMPT_TEMPLATE = """You are a compliance assistant reviewing a passage from a financial advisor's client-facing document. You are NOT making a final decision -- a human compliance officer will review your output.
 

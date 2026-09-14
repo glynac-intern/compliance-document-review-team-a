@@ -4,10 +4,7 @@ entries, lives in its own dedicated seed location, and is reachable
 through the same seeding path as the rest of the rules.
 """
 import json
-import sys
 from pathlib import Path
-
-sys.path.insert(0, "/app")
 
 
 def test_disclosures_json_exists_in_dedicated_directory():

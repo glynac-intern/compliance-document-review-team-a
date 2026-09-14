@@ -12,15 +12,12 @@ Run inside the backend container:
     docker compose run --rm backend python data_pipeline/retrieval/paraphrase_similarity_check.py
 """
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/data_pipeline/embeddings")
 
 from database import SessionLocal
 from models import Rule
-from embed_client import embed_texts_batch, cosine_distance
+from data_pipeline.embeddings.embed_client import embed_texts_batch, cosine_distance
 
 PARAPHRASE_CASES_PATH = Path("/app/seed/disclosures/paraphrase_test_cases.json")
 THRESHOLD = 0.20  # same threshold validated for disclosure-by-absence

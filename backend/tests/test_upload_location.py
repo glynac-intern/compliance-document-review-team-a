@@ -8,10 +8,6 @@ the code-level fix: UPLOAD_DIR is read from the environment rather than
 hardcoded, and a real upload actually lands at that configured path.
 """
 import os
-import sys
-
-sys.path.insert(0, "/app")
-
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

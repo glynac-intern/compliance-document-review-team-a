@@ -6,14 +6,18 @@ baseline has genuinely been recorded (not just claimed).
 import json
 from pathlib import Path
 
+# TA-79: __file__-relative, not a hardcoded container path -- resolves
+# the same way in Docker or outside it.
+REPO_ROOT = Path(__file__).parent.parent.parent
+
 
 def test_harness_lives_in_evaluation_directory():
-    path = Path("/app/data_pipeline/evaluation/retrieval_quality_harness.py")
+    path = REPO_ROOT / "data_pipeline" / "evaluation" / "retrieval_quality_harness.py"
     assert path.exists()
 
 
 def test_baseline_results_recorded():
-    path = Path("/app/data_pipeline/evaluation/baseline_results.json")
+    path = REPO_ROOT / "data_pipeline" / "evaluation" / "baseline_results.json"
     assert path.exists()
 
     data = json.loads(path.read_text())

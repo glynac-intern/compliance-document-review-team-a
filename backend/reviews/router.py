@@ -1,4 +1,3 @@
-import sys
 import uuid
 from typing import Optional
 
@@ -9,8 +8,7 @@ from database import get_db
 from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
 from audit_utils import record_view_if_new
 
-sys.path.insert(0, "/app/ai/compliance")
-from precedent_indexer import index_document_as_precedent
+from ai.compliance.precedent_indexer import index_document_as_precedent
 from auth.dependencies import require_role
 from documents.schemas import DocumentResponse
 from reviews.schemas import DecisionRequest, ReviewResponse

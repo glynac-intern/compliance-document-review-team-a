@@ -2,10 +2,7 @@
 Unit tests for ai/masking/masker.py. Pure logic, no DB/API dependency --
 fast and deterministic.
 """
-import sys
-sys.path.insert(0, "/app/ai/masking")
-
-from masker import mask_pii, unmask_for_display
+from ai.masking.masker import mask_pii, unmask_for_display
 
 
 def test_email_is_masked():

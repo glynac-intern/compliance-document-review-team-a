@@ -1,9 +1,6 @@
-import sys
-
 from google.genai import types
 
-sys.path.insert(0, "/app/data_pipeline/embeddings")
-from model_config import GENERATION_MODEL, SUMMARY_GENERATION_TEMPERATURE
+from data_pipeline.embeddings.model_config import GENERATION_MODEL, SUMMARY_GENERATION_TEMPERATURE
 
 SUMMARY_PROMPT_TEMPLATE = """Summarize the following client-facing financial document for a compliance officer, in 2-3 sentences. Focus on: what type of document it is, its main purpose, and any notable performance figures or claims mentioned. Do not invent details not present in the text.
 

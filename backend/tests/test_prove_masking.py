@@ -12,14 +12,11 @@ faked. This is what makes the captured payload trustworthy: it's the
 literal string the real code would have sent, not a hand-constructed
 example.
 """
-import sys
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, "/app/ai/compliance")
-sys.path.insert(0, "/app/data_pipeline/embeddings")
 
-import analyze_document
-import embed_client
+import ai.compliance.analyze_document as analyze_document
+import data_pipeline.embeddings.embed_client as embed_client
 
 FAKE_NAME = "Fake Testperson"
 FAKE_EMAIL = "fake.testperson@example-fake-domain.com"

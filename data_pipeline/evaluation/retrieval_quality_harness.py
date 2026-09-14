@@ -46,20 +46,14 @@ Run inside the backend container:
     docker compose run --rm backend python data_pipeline/evaluation/retrieval_quality_harness.py
 """
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/ai/masking")
-sys.path.insert(0, "/app/data_pipeline/chunking")
-sys.path.insert(0, "/app/data_pipeline/embeddings")
-sys.path.insert(0, "/app/data_pipeline/retrieval")
 
-from masker import mask_pii
-from chunker import chunk_paragraphs
-from embed_client import embed_texts_batch, cosine_distance
-from rule_retrieval import retrieve_candidate_rules
-from precedent_retrieval import retrieve_similar_precedents
+from ai.masking.masker import mask_pii
+from data_pipeline.chunking.chunker import chunk_paragraphs
+from data_pipeline.embeddings.embed_client import embed_texts_batch, cosine_distance
+from data_pipeline.retrieval.rule_retrieval import retrieve_candidate_rules
+from data_pipeline.retrieval.precedent_retrieval import retrieve_similar_precedents
 
 from database import SessionLocal
 from models import Rule, PrecedentIndex

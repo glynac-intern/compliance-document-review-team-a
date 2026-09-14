@@ -6,11 +6,7 @@ e.g. "You can reach Maria Gonzalez at..." Fixed with a narrow,
 targeted heuristic (not a broad "any capitalized phrase" rule, which
 would wrongly mask product names like "Balanced Growth Portfolio").
 """
-import sys
-
-sys.path.insert(0, "/app/ai/masking")
-
-from masker import mask_pii
+from ai.masking.masker import mask_pii
 
 
 def test_name_after_contact_verb_is_masked():

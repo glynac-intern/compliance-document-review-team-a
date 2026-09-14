@@ -3,10 +3,6 @@ Tests for TA-51: chunk embeddings are persisted (document_id, chunk_index,
 masked_text, embedding), reusable by retrieval without re-embedding, and
 replaced (not accumulated) when a document is re-analysed.
 """
-import sys
-
-sys.path.insert(0, "/app")
-
 from models import DocumentChunk, AIAnalysis, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
@@ -68,9 +64,7 @@ def test_unique_constraint_prevents_duplicate_index_per_document(client, db_sess
 def test_stored_chunk_embedding_is_reusable_for_retrieval(client, db_session, advisor_token):
     """The actual TA-51 point: a stored vector must be usable for a real
     retrieval query without calling the embedding API again."""
-    import sys
-    sys.path.insert(0, "/app/data_pipeline/retrieval")
-    from rule_retrieval import retrieve_candidate_rules
+    from data_pipeline.retrieval.rule_retrieval import retrieve_candidate_rules
     from models import Rule
 
     submit = client.post(

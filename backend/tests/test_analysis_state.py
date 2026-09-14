@@ -3,10 +3,6 @@ Tests for TA-41: analysis carries an explicit state (not_started,
 in_progress, succeeded, failed) instead of a client having to infer it
 from a bare 503.
 """
-import sys
-
-sys.path.insert(0, "/app")
-
 from models import AIAnalysis, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
