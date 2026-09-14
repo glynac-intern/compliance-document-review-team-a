@@ -18,23 +18,33 @@ export interface QueueDocument {
   replaces_document_id: string | null;
 }
 
-export type ReviewDecisionStatus = "approved" | "rejected" | "needs_revision";
+export type DecisionStatus = "approved" | "rejected" | "needs_revision";
+export type ReviewDecisionStatus = DecisionStatus;
 
 export interface DecisionPayload {
-  status: ReviewDecisionStatus;
+  status: DecisionStatus;
   comment?: string | null;
 }
 
-export interface ReviewResponse {
+export interface DecisionResponse {
   id: string;
   document_id: string;
   officer_id: string;
-  status: ReviewDecisionStatus;
+  status: DecisionStatus;
   comment: string | null;
   decided_at: string;
 }
 
-export const reviewsApi = {
+export type ReviewResponse = DecisionResponse;
+
+export interface ReviewsApiClient {
+  getQueue(statusFilter?: BackendDocumentStatus): Promise<QueueDocument[]>;
+  getDocument(documentId: string): Promise<QueueDocument>;
+  submitDecision(documentId: string, payload: DecisionPayload): Promise<DecisionResponse>;
+  submitDecision(documentId: string, status: DecisionStatus, comment?: string): Promise<DecisionResponse>;
+}
+
+export const reviewsApi: ReviewsApiClient = {
   getQueue: (statusFilter?: BackendDocumentStatus): Promise<QueueDocument[]> => {
     const query = statusFilter ? `?status=${statusFilter}` : "";
     return apiFetch<QueueDocument[]>(`/review/queue${query}`);
@@ -43,9 +53,24 @@ export const reviewsApi = {
   getDocument: (documentId: string): Promise<QueueDocument> =>
     apiFetch<QueueDocument>(`/review/documents/${documentId}`),
 
-  submitDecision: (documentId: string, payload: DecisionPayload): Promise<ReviewResponse> =>
-    apiFetch<ReviewResponse>(`/review/documents/${documentId}/decision`, {
+  // TA-69: the actual decision action. The server rejects with a clear
+  // 400 if the document is no longer pending -- that's surfaced as-is,
+  // not re-implemented client-side.
+  submitDecision: (
+    documentId: string,
+    statusOrPayload: DecisionStatus | DecisionPayload,
+    comment?: string
+  ): Promise<DecisionResponse> => {
+    const payload: { status: DecisionStatus; comment: string | null } =
+      typeof statusOrPayload === "string"
+        ? { status: statusOrPayload, comment: comment?.trim() || null }
+        : {
+            status: statusOrPayload.status,
+            comment: statusOrPayload.comment ? statusOrPayload.comment.trim() || null : null,
+          };
+    return apiFetch<DecisionResponse>(`/review/documents/${documentId}/decision`, {
       method: "POST",
       body: payload,
-    }),
+    });
+  },
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -418,8 +419,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <React.Suspense fallback={null}>
+    <Suspense fallback={null}>
       <LoginForm />
-    </React.Suspense>
+    </Suspense>
   );
 }

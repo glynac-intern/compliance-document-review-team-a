@@ -15,8 +15,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { notificationsApi, type AppNotification } from "@/lib/notifications-api";
 import { useAuth } from "@/lib/auth-context";
-import { notificationsApi, type BackendNotification } from "@/lib/notifications-api";
 
 interface TopBarProps {
   breadcrumbs?: { label: string; href?: string; onClick?: () => void }[];
@@ -24,6 +24,8 @@ interface TopBarProps {
   onToggleMobileSidebar?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  // TA-71: opening a notification takes the advisor to the document.
+  onNotificationClick?: (documentId: string) => void;
 }
 
 function formatNotificationTime(iso: string): string {
@@ -45,12 +47,13 @@ export function TopBar({
   onToggleMobileSidebar,
   onRefresh,
   isRefreshing = false,
+  onNotificationClick,
 }: TopBarProps) {
   const { logout } = useAuth();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showCalendar, setShowCalendar] = React.useState(false);
-  const [notifications, setNotifications] = React.useState<BackendNotification[]>([]);
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
 
   const notificationsRef = React.useRef<HTMLDivElement>(null);
@@ -107,7 +110,7 @@ export function TopBar({
     }
   };
 
-  const handleNotificationClick = async (item: BackendNotification) => {
+  const handleNotificationClick = async (item: AppNotification) => {
     if (!item.is_read) {
       setNotifications((prev) =>
         prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n))
@@ -119,10 +122,14 @@ export function TopBar({
         // ignore
       }
     }
-    // TA-71: Navigate to the document so the advisor can view the decision.
+    setShowNotifications(false);
+    // TA-71: Navigate to the document or invoke onNotificationClick so advisor can view decision.
     if (item.document_id) {
-      setShowNotifications(false);
-      router.push(`/advisor?doc=${item.document_id}`);
+      if (onNotificationClick) {
+        onNotificationClick(item.document_id);
+      } else {
+        router.push(`/advisor?doc=${item.document_id}`);
+      }
     }
   };
 

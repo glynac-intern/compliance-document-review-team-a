@@ -148,9 +148,9 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Role selection */}
+          {/* Role selection -- explained clearly, since it's permanent */}
           <div className="pt-1.5">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1">
               <label className="block text-[12px] font-semibold text-slate-800 font-inter">
                 I Am A...
               </label>
@@ -158,8 +158,11 @@ export default function SignupPage() {
                 Role Selection Is Permanent
               </span>
             </div>
+            <p className="text-[11px] text-slate-400 mb-2.5 font-inter">
+              This determines what you&apos;ll see in Verity. It cannot be changed later --
+              choose the role that matches your actual job.
+            </p>
             <div className="grid grid-cols-2 gap-3 font-inter">
-              {/* Financial Advisor Card */}
               <button
                 type="button"
                 onClick={() => { setRole("advisor"); setError(null); }}

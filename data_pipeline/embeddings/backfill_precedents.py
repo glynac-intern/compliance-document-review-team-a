@@ -29,7 +29,10 @@ sys.path.insert(0, "/app/ai/masking")
 from masker import mask_pii
 from embed_client import embed_texts_batch
 from database import SessionLocal
-from models import Document, DocumentType, DocumentStatus, PrecedentIndex, User, UserRole
+from models import (
+    Document, DocumentType, DocumentStatus, PrecedentIndex, User, UserRole,
+    AuditEvent, Review, AIAnalysis, Flag, PIIMapping, DocumentChunk, Notification,
+)
 from auth.security import hash_password
 
 DOCUMENTS_DIR = Path("/app/seed/documents")
@@ -72,7 +75,34 @@ def main():
         ]
         if existing_doc_ids:
             print(f"Clearing {len(existing_doc_ids)} previously-backfilled document(s)...")
+            # TA-80: found via a real clean-checkout test -- these seed
+            # documents can accumulate rows in EVERY table that
+            # references documents (via real usage during other
+            # testing: views, analyses, flags, etc.), not just
+            # PrecedentIndex. All of them must be cleared, in
+            # dependency order (Flag before AIAnalysis, since Flag
+            # references AIAnalysis's id, not documents.id directly),
+            # or the Document delete fails on a real foreign-key
+            # violation -- exactly what a naive re-seed on a
+            # previously-used checkout hits.
+            existing_analysis_ids = [
+                a.id for a in db.query(AIAnalysis.id).filter(AIAnalysis.document_id.in_(existing_doc_ids)).all()
+            ]
+            if existing_analysis_ids:
+                db.query(Flag).filter(Flag.analysis_id.in_(existing_analysis_ids)).delete(synchronize_session=False)
+            db.query(AIAnalysis).filter(AIAnalysis.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+            db.query(Review).filter(Review.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+            db.query(AuditEvent).filter(AuditEvent.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+            db.query(PIIMapping).filter(PIIMapping.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+            db.query(DocumentChunk).filter(DocumentChunk.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+            db.query(Notification).filter(Notification.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
             db.query(PrecedentIndex).filter(PrecedentIndex.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+            # A document can reference ANOTHER document in this same
+            # set via replaces_document_id -- clear that self-reference
+            # before deleting, or the delete can fail on itself too.
+            db.query(Document).filter(Document.id.in_(existing_doc_ids)).update(
+                {Document.replaces_document_id: None}, synchronize_session=False
+            )
             db.query(Document).filter(Document.id.in_(existing_doc_ids)).delete(synchronize_session=False)
             db.commit()
 

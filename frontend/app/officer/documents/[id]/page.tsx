@@ -3,11 +3,12 @@
 /**
  * Officer Document Review Workspace — Next-Gen Split-screen layout.
  *
- * Left panel:  High-fidelity Document Preview (PDF, DOCX, XLSX) with page controls,
- *              zoom, search, and interactive highlighted compliance flags, plus
- *              switchable submission metadata, thread history, and audit log.
- * Right panel: Gemini-style AI Compliance Intelligence window with animated gradient outline,
- *              interactive "Ask Gemini" prompt bar, and bespoke regulatory decision controls.
+ * Left panel:  High-fidelity Document Preview (PDF via native blob URL iframe,
+ *              DOCX/XLSX download prompts), switchable to submission metadata,
+ *              revision thread history, and audit ledger.
+ * Right panel: Factual AI Compliance Assist with clean state for zero flags,
+ *              rule citations, precedents, degraded 503 error handling with retry,
+ *              and authoritative regulatory determination workflow.
  */
 
 import * as React from "react";
@@ -25,32 +26,52 @@ import {
   Eye,
   ListFilter,
   CheckCircle2,
+  FileWarning,
+  Check,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { apiFetch, ApiError } from "@/lib/api-client";
+import { apiFetch, fetchFileBlob, ApiError } from "@/lib/api-client";
 import {
   documentsApi,
   type BackendDocument,
-  type BackendAnalysis,
   type ThreadEntry,
   type AuditEvent,
 } from "@/lib/documents-api";
-import { reviewsApi, type ReviewDecisionStatus } from "@/lib/reviews-api";
+import { reviewsApi, type DecisionStatus } from "@/lib/reviews-api";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
-import { AiAssistPanel } from "@/components/officer/ai-assist-panel";
-import { ReviewDecisionPanel, type ReviewDecision } from "@/components/officer/review-decision-panel";
-import { DocumentPreviewViewer } from "@/components/officer/document-preview-viewer";
-import {
-  MOCK_QUEUE_DOCUMENTS,
-  MOCK_AI_ANALYSIS,
-  MOCK_PRECEDENTS,
-} from "@/lib/mock-officer-data";
+import { MOCK_QUEUE_DOCUMENTS } from "@/lib/mock-officer-data";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+interface MatchedRule {
+  id: string;
+  text: string;
+  type: string;
+}
+
+interface AnalysisFlag {
+  passage_excerpt: string;
+  matched_rule: MatchedRule | null;
+  explanation: string;
+  severity: string;
+}
+
+interface Precedent {
+  document_id: string;
+  masked_text: string;
+  decision: string;
+  comment: string | null;
+}
+
+interface AnalysisResponse {
+  status: "not_started" | "in_progress" | "succeeded" | "failed";
+  error_message: string | null;
+  summary: string | null;
+  flags: AnalysisFlag[];
+  precedents: Precedent[];
+}
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -62,23 +83,6 @@ function formatDateTime(iso: string): string {
   });
 }
 
-function fileExtension(filename: string): string {
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  return ext;
-}
-
-const MOCK_STATUS_MAP: Record<string, string> = {
-  pending: "pending_review",
-  in_review: "pending_review",
-  approved: "approved",
-  needs_revision: "needs_revision",
-  rejected: "rejected",
-};
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
 export default function OfficerDocumentReviewPage() {
   const { isReady } = useRequireAuth("officer");
   const router = useRouter();
@@ -89,16 +93,9 @@ export default function OfficerDocumentReviewPage() {
   const [doc, setDoc] = React.useState<BackendDocument | null>(null);
   const [docError, setDocError] = React.useState<string | null>(null);
   const [isDocLoading, setIsDocLoading] = React.useState(true);
-
-  // AI Analysis state
-  const [analysis, setAnalysis] = React.useState<BackendAnalysis | null>(null);
-  const [analysisError, setAnalysisError] = React.useState<string | null>(null);
-  const [isAnalysisLoading, setIsAnalysisLoading] = React.useState(true);
-  const [isRetrying, setIsRetrying] = React.useState(false);
-
-  // Interactive Flag & Comment Linking
-  const [activeFlagIndex, setActiveFlagIndex] = React.useState<number | null>(null);
-  const [decisionComment, setDecisionComment] = React.useState<string>("");
+  const [fileBlobUrl, setFileBlobUrl] = React.useState<string | null>(null);
+  const [fileError, setFileError] = React.useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   // Tab state for left panel: "preview" vs "details"
   const [leftTab, setLeftTab] = React.useState<"preview" | "details">("preview");
@@ -107,181 +104,176 @@ export default function OfficerDocumentReviewPage() {
   const [threadEntries, setThreadEntries] = React.useState<ThreadEntry[]>([]);
   const [auditEvents, setAuditEvents] = React.useState<AuditEvent[]>([]);
 
-  // Download state
-  const [isDownloading, setIsDownloading] = React.useState(false);
+  // AI Analysis state (TA-68 & TA-70)
+  const [analysis, setAnalysis] = React.useState<AnalysisResponse | null>(null);
+  const [isRetrying, setIsRetrying] = React.useState(false);
 
-  // Decision success state
-  const [decisionSuccess, setDecisionSuccess] = React.useState<string | null>(null);
+  // Decision state (TA-69)
+  const [recordedReview, setRecordedReview] = React.useState<ThreadEntry["review"] | null>(null);
+  const [comment, setComment] = React.useState("");
+  const [isSubmittingDecision, setIsSubmittingDecision] = React.useState(false);
+  const [decisionError, setDecisionError] = React.useState<string | null>(null);
+  const [justDecided, setJustDecided] = React.useState(false);
 
-  // Mock data detection
-  const [usingMock, setUsingMock] = React.useState(false);
   const mockDoc = React.useMemo(
     () => MOCK_QUEUE_DOCUMENTS.find((d) => d.id === documentId),
     [documentId]
   );
 
-  // Load document
-  React.useEffect(() => {
-    if (!isReady) return;
-    let ignore = false;
-
-    apiFetch<BackendDocument>(`/review/documents/${documentId}`)
-      .then((data) => {
-        if (!ignore) {
-          setDoc(data);
-          setDocError(null);
-          setUsingMock(false);
-        }
-      })
+  // TA-70: load analysis with 503 degraded error handling
+  const loadAnalysis = React.useCallback(() => {
+    apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis`)
+      .then(setAnalysis)
       .catch((err) => {
-        if (!ignore) {
-          if (mockDoc) {
-            setDoc({
-              id: mockDoc.id,
-              advisor_id: mockDoc.advisor_id,
-              status: (MOCK_STATUS_MAP[mockDoc.status] ?? "pending_review") as BackendDocument["status"],
-              original_filename: mockDoc.title,
-              type: fileExtension(mockDoc.title) as BackendDocument["type"],
-              uploaded_at: mockDoc.uploaded_at,
-              thread_id: mockDoc.thread_id,
-              replaces_document_id: mockDoc.replaces_document_id,
-            });
-            setDocError(null);
-            setUsingMock(true);
-          } else {
-            setDocError(err instanceof ApiError ? err.message : "Unable to load this document.");
-          }
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsDocLoading(false);
-        }
+        setAnalysis({
+          status: "failed",
+          error_message: err instanceof ApiError ? err.message : "Analysis failed unexpectedly.",
+          summary: null,
+          flags: [],
+          precedents: [],
+        });
       });
+  }, [documentId]);
 
-    return () => {
-      ignore = true;
-    };
-  }, [isReady, documentId, mockDoc]);
-
-  // Load AI analysis
-  React.useEffect(() => {
-    if (!isReady) return;
-    let ignore = false;
-
-    documentsApi
-      .getAnalysis(documentId)
-      .then((data) => {
-        if (!ignore) {
-          setAnalysis(data);
-          setAnalysisError(null);
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setAnalysisError(null);
-          setUsingMock(true);
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsAnalysisLoading(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [isReady, documentId]);
-
-  // Load thread and audit
-  React.useEffect(() => {
-    if (!isReady) return;
-    let ignore = false;
-
-    documentsApi
-      .getThread(documentId)
-      .then((entries) => {
-        if (!ignore) setThreadEntries(entries);
-      })
-      .catch(() => {});
-
-    documentsApi
-      .getAudit(documentId)
-      .then((events) => {
-        if (!ignore) setAuditEvents(events);
-      })
-      .catch(() => {});
-
-    return () => {
-      ignore = true;
-    };
-  }, [isReady, documentId]);
-
-  // Retry analysis
-  const handleRetryAnalysis = React.useCallback(async () => {
+  const handleRetryAnalysis = async () => {
     setIsRetrying(true);
-    setAnalysisError(null);
     try {
-      const data = await documentsApi.retryAnalysis(documentId);
-      setAnalysis(data);
+      const result = await apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis/retry`, {
+        method: "POST",
+      });
+      setAnalysis(result);
     } catch (err) {
-      setAnalysisError(
-        err instanceof ApiError ? err.message : "Retry failed. The AI service may be unavailable."
-      );
+      setAnalysis({
+        status: "failed",
+        error_message: err instanceof ApiError ? err.message : "Retry failed unexpectedly.",
+        summary: null,
+        flags: [],
+        precedents: [],
+      });
     } finally {
       setIsRetrying(false);
     }
-  }, [documentId]);
+  };
 
-  // Download file
+  // Load document & file
+  React.useEffect(() => {
+    if (!isReady) return;
+
+    // Opening this page calls GET /review/documents/{id}, which records a view in audit trail (TA-28)
+    apiFetch<BackendDocument>(`/review/documents/${documentId}`)
+      .then((d) => {
+        setDoc(d);
+        setDocError(null);
+        return fetchFileBlob(`/documents/${documentId}/file`);
+      })
+      .then((blob) => {
+        setFileBlobUrl(URL.createObjectURL(blob));
+      })
+      .catch((err) => {
+        if (mockDoc) {
+          setDoc({
+            id: mockDoc.id,
+            advisor_id: mockDoc.advisor_id,
+            status: (mockDoc.status === "in_review" || mockDoc.status === "pending"
+              ? "pending_review"
+              : mockDoc.status) as BackendDocument["status"],
+            original_filename: mockDoc.title,
+            type: (mockDoc.title.split(".").pop()?.toLowerCase() ?? "pdf") as BackendDocument["type"],
+            uploaded_at: mockDoc.uploaded_at,
+            thread_id: mockDoc.thread_id,
+            replaces_document_id: mockDoc.replaces_document_id,
+          });
+        } else {
+          setDocError(err instanceof ApiError ? err.message : "Unable to load this document.");
+        }
+        setFileError(err instanceof ApiError ? err.message : "Unable to load the file preview.");
+      })
+      .finally(() => {
+        setIsDocLoading(false);
+      });
+
+    loadAnalysis();
+
+    documentsApi
+      .getThread(documentId)
+      .then((thread) => {
+        setThreadEntries(thread);
+        const entry = thread.find((t) => t.document_id === documentId);
+        setRecordedReview(entry?.review ?? null);
+      })
+      .catch(() => setRecordedReview(null));
+
+    documentsApi
+      .getAudit(documentId)
+      .then(setAuditEvents)
+      .catch(() => {});
+  }, [isReady, documentId, loadAnalysis, mockDoc]);
+
+  // Clean up blob URL
+  React.useEffect(() => {
+    return () => {
+      if (fileBlobUrl) URL.revokeObjectURL(fileBlobUrl);
+    };
+  }, [fileBlobUrl]);
+
+  // Download file handler
   const handleDownload = async () => {
-    if (!doc) return;
     setIsDownloading(true);
     try {
-      await documentsApi.downloadFile(doc.id, doc.original_filename || `document-${doc.id}`);
+      const blob = await fetchFileBlob(`/documents/${documentId}/file`);
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement("a");
+      a.href = url;
+      a.download = doc?.original_filename ?? `document-${documentId}`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch {
-      // Handled
+      // Fallback
+      if (doc) {
+        await documentsApi.downloadFile(doc.id, doc.original_filename || `document-${doc.id}`).catch(() => {});
+      }
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // Submit decision
-  const handleSubmitDecision = async (decision: ReviewDecision, comment: string) => {
-    const payload = {
-      status: decision as ReviewDecisionStatus,
-      comment,
-    };
-    const result = await reviewsApi.submitDecision(documentId, payload);
-    if (doc) {
-      setDoc({ ...doc, status: result.status as BackendDocument["status"] });
+  // Submit decision handler (TA-69)
+  const handleDecision = async (status: DecisionStatus) => {
+    setDecisionError(null);
+    setIsSubmittingDecision(true);
+    try {
+      const result = await reviewsApi.submitDecision(documentId, status, comment);
+      setRecordedReview({
+        status: result.status,
+        comment: result.comment,
+        decided_at: result.decided_at,
+      });
+      setJustDecided(true);
+      // Confirm server's real persisted status
+      const updated = await apiFetch<BackendDocument>(`/review/documents/${documentId}`);
+      setDoc(updated);
+    } catch (err) {
+      setDecisionError(err instanceof ApiError ? err.message : "Failed to record decision.");
+    } finally {
+      setIsSubmittingDecision(false);
     }
-    setDecisionSuccess(
-      decision === "approved"
-        ? "Document approved and cleared for client distribution."
-        : decision === "needs_revision"
-        ? "Revision requested. Audit notes dispatched to advisor."
-        : "Document prohibited. Regulatory refusal recorded."
-    );
   };
 
   if (!isReady) return null;
 
-  // Derived display values
+  const isPdf = doc?.type === "pdf";
   const displayTitle = doc?.original_filename ?? mockDoc?.title ?? `Document ${documentId.slice(0, 8)}`;
   const displayAdvisor = mockDoc?.advisor_name ?? doc?.advisor_id ?? "Unknown";
-  const displayStatus = doc?.status ?? (mockDoc ? MOCK_STATUS_MAP[mockDoc.status] : "pending_review");
-  const displayType = mockDoc?.type ?? doc?.type?.toUpperCase() ?? "—";
+  const displayStatus = doc?.status ?? "pending_review";
+  const displayType = doc?.type?.toUpperCase() ?? mockDoc?.type?.toUpperCase() ?? "—";
   const displaySize = mockDoc?.file_size_mb ? `${mockDoc.file_size_mb} MB` : "—";
-  const displayVersion = mockDoc?.version ?? 1;
+  const displayVersion = mockDoc?.version ?? (threadEntries.length > 0 ? threadEntries.length : 1);
   const displayUploadedAt = doc?.uploaded_at ?? mockDoc?.uploaded_at ?? "";
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 font-inter select-none">
+    <div className="flex flex-col h-screen bg-slate-50 font-inter">
       {/* ===== TOP NAVIGATION BAR ===== */}
       <header className="sticky top-0 z-30 h-14 border-b border-slate-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between px-5 shrink-0">
-        {/* Back to Queue */}
         <button
           type="button"
           onClick={() => router.push("/officer")}
@@ -291,18 +283,16 @@ export default function OfficerDocumentReviewPage() {
           <span>Review Queue</span>
         </button>
 
-        {/* Center: Document title & status badge */}
         <div className="flex items-center gap-3">
           <StatusBadge status={displayStatus} />
           <span className="text-[13px] font-semibold text-slate-800 font-inter max-w-[320px] truncate hidden sm:block">
             {displayTitle}
           </span>
-          <span className="text-[11px] text-slate-400 font-numbers tabular-nums hidden md:block">
+          <span className="text-[11px] text-slate-400 font-mono tabular-nums hidden md:block">
             {documentId}
           </span>
         </div>
 
-        {/* Download original button */}
         <button
           type="button"
           onClick={handleDownload}
@@ -319,15 +309,15 @@ export default function OfficerDocumentReviewPage() {
       </header>
 
       {/* Decision Success Banner */}
-      {decisionSuccess && (
+      {justDecided && (
         <div className="px-5 py-2 bg-emerald-50 border-b border-emerald-200 text-[12px] text-emerald-800 font-inter flex items-center justify-between animate-in fade-in shrink-0">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            <span className="font-medium">{decisionSuccess}</span>
+            <span className="font-medium">Decision recorded.</span>
           </div>
           <button
             type="button"
-            onClick={() => setDecisionSuccess(null)}
+            onClick={() => setJustDecided(false)}
             className="text-[11px] text-emerald-700 underline cursor-pointer"
           >
             Dismiss
@@ -335,10 +325,17 @@ export default function OfficerDocumentReviewPage() {
         </div>
       )}
 
+      {/* Error Banner */}
+      {docError && (
+        <div className="px-5 py-2 bg-rose-50 border-b border-rose-200 text-[12px] text-rose-700 font-inter shrink-0">
+          <span>{docError}</span>
+        </div>
+      )}
+
       {/* ===== MAIN CONTENT — SPLIT SCREEN ===== */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
         {/* ===== LEFT PANEL: Document Workspace ===== */}
-        <div className="w-[58%] min-w-[420px] border-r border-slate-200 flex flex-col bg-white overflow-hidden">
+        <div className="flex-1 min-w-0 lg:w-[58%] border-r border-slate-200 flex flex-col bg-white overflow-hidden">
           {/* Sub-Header: View Mode Tabs */}
           <div className="h-10 border-b border-slate-200 px-4 flex items-center justify-between bg-slate-50/70 shrink-0">
             <div className="flex items-center gap-1">
@@ -372,36 +369,54 @@ export default function OfficerDocumentReviewPage() {
           </div>
 
           {/* Left Panel Body */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden flex flex-col">
             {isDocLoading ? (
               <div className="p-8 space-y-4 animate-pulse">
                 <div className="h-8 w-64 bg-slate-100 rounded" />
                 <div className="h-4 w-48 bg-slate-50 rounded" />
                 <div className="h-64 w-full bg-slate-100 rounded-lg mt-6" />
               </div>
-            ) : docError ? (
-              <div className="p-8">
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 font-inter">
-                  {docError}
-                </div>
-              </div>
             ) : leftTab === "preview" ? (
-              /* REAL DOCUMENT PREVIEW (PDF, DOCX, XLSX) */
-              <DocumentPreviewViewer
-                documentId={documentId}
-                title={displayTitle}
-                docType={doc?.type ?? mockDoc?.type}
-                fileSizeMb={mockDoc?.file_size_mb}
-                uploadedAt={displayUploadedAt}
-                advisorName={displayAdvisor}
-                activeFlagIndex={activeFlagIndex}
-                onSelectFlag={(index) => setActiveFlagIndex(index)}
-                onDownload={handleDownload}
-              />
+              /* REAL DOCUMENT PREVIEW (PDF in iframe, DOCX/XLSX download prompt) */
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {isPdf && fileBlobUrl ? (
+                  <iframe src={fileBlobUrl} className="flex-1 w-full h-full border-0" title="Document preview" />
+                ) : fileError ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+                    <FileWarning className="h-8 w-8 text-slate-300" />
+                    <p className="text-xs text-slate-500">{fileError}</p>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1e4c77] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#163c60]"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Download to view
+                    </button>
+                  </div>
+                ) : doc && !isPdf ? (
+                  /* DOCX/XLSX: clear download action instead of failing silently (TA-67) */
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+                    <FileWarning className="h-8 w-8 text-slate-300" />
+                    <p className="text-xs text-slate-500">
+                      {doc.type.toUpperCase()} files can&apos;t be previewed inline. Download to view the original.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1e4c77] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#163c60]"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Download
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-xs text-slate-400">
+                    Loading document...
+                  </div>
+                )}
+              </div>
             ) : (
               /* SUBMISSION DETAILS & AUDIT LOG VIEW */
-              <div className="h-full overflow-y-auto p-6 sm:p-8 space-y-6">
-                {/* Header */}
+              <div className="h-full overflow-y-auto p-6 sm:p-8 space-y-6 font-inter">
                 <div className="flex items-start gap-4">
                   <FileTypeIcon filename={displayTitle} type={doc?.type ?? "pdf"} size="lg" />
                   <div>
@@ -432,7 +447,7 @@ export default function OfficerDocumentReviewPage() {
                     <Calendar className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase tracking-wider">Submitted</p>
-                      <p className="text-[13px] font-medium text-slate-800 font-numbers tabular-nums">
+                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
                         {displayUploadedAt ? formatDateTime(displayUploadedAt) : "—"}
                       </p>
                     </div>
@@ -441,7 +456,7 @@ export default function OfficerDocumentReviewPage() {
                     <Hash className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase tracking-wider">File Size</p>
-                      <p className="text-[13px] font-medium text-slate-800 font-numbers tabular-nums">
+                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
                         {displaySize}
                       </p>
                     </div>
@@ -450,7 +465,7 @@ export default function OfficerDocumentReviewPage() {
                     <Layers className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase tracking-wider">Version</p>
-                      <p className="text-[13px] font-medium text-slate-800 font-numbers tabular-nums">
+                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
                         v{displayVersion}
                       </p>
                     </div>
@@ -459,34 +474,12 @@ export default function OfficerDocumentReviewPage() {
                     <Clock className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase tracking-wider">Thread ID</p>
-                      <p className="text-[13px] font-medium text-slate-800 font-numbers tabular-nums">
+                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
                         {doc?.thread_id ?? mockDoc?.thread_id ?? "—"}
                       </p>
                     </div>
                   </div>
                 </div>
-
-                {/* Prior Feedback */}
-                {mockDoc?.officer_feedback && (
-                  <div>
-                    <h3 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2">
-                      Previous Officer Determination
-                    </h3>
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                      <p className="text-[12px] text-slate-700 leading-relaxed font-inter">
-                        {mockDoc.officer_feedback}
-                      </p>
-                      {mockDoc.officer_name && (
-                        <p className="text-[10px] text-slate-400 mt-2">
-                          — {mockDoc.officer_name}
-                          {mockDoc.reviewed_at && (
-                            <span> · {formatDateTime(mockDoc.reviewed_at)}</span>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Revision Thread */}
                 {threadEntries.length > 1 && (
@@ -530,7 +523,7 @@ export default function OfficerDocumentReviewPage() {
                           className="flex items-center justify-between py-1.5 text-[11px]"
                         >
                           <span className="text-slate-700 font-medium">{event.action}</span>
-                          <span className="text-slate-400 font-numbers tabular-nums">
+                          <span className="text-slate-400 tabular-nums">
                             {formatDateTime(event.timestamp)}
                           </span>
                         </div>
@@ -543,31 +536,200 @@ export default function OfficerDocumentReviewPage() {
           </div>
         </div>
 
-        {/* ===== RIGHT PANEL: GEMINI AI ASSIST + BESPOKE DECISION PANEL ===== */}
-        <div className="flex-1 min-w-[360px] flex flex-col bg-slate-100/40 overflow-hidden">
-          {/* Scrollable Gemini AI Window */}
-          <div className="flex-1 overflow-hidden">
-            <AiAssistPanel
-              analysis={analysis}
-              mockAnalysis={usingMock ? MOCK_AI_ANALYSIS : undefined}
-              mockPrecedents={usingMock ? MOCK_PRECEDENTS : undefined}
-              isLoading={isAnalysisLoading}
-              errorMessage={analysisError}
-              onRetry={handleRetryAnalysis}
-              isRetrying={isRetrying}
-              activeFlagIndex={activeFlagIndex}
-              onSelectFlag={(idx) => setActiveFlagIndex(idx)}
-              onInsertComment={(text) => setDecisionComment(text)}
-            />
+        {/* ===== RIGHT PANEL: AI ASSIST + DECISION ACTION ===== */}
+        <div className="w-full lg:w-[42%] shrink-0 flex flex-col bg-white overflow-hidden min-h-0">
+          {/* Scrollable AI Assist Window (TA-68 & TA-70) */}
+          <div className="flex-1 p-5 overflow-y-auto space-y-4 font-inter">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">AI Assist</h2>
+
+            {!analysis ? (
+              /* TA-70: in-flight loading state */
+              <div className="flex items-center gap-2 text-xs text-slate-400 py-4">
+                <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 border-t-[#2575bc] animate-spin" />
+                <span>Analyzing document...</span>
+              </div>
+            ) : analysis.status === "failed" ? (
+              /* TA-70: distinct failed state with retry control */
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center">
+                <FileWarning className="h-6 w-6 text-rose-400 mx-auto mb-2" />
+                <p className="text-xs font-semibold text-rose-800 mb-1">
+                  AI assist is currently unavailable
+                </p>
+                <p className="text-[11px] text-rose-600 mb-3">
+                  {analysis.error_message ?? "The analysis could not be completed."}
+                </p>
+                <p className="text-[11px] text-slate-500 mb-3">
+                  You can still review and decide on this document normally -- the assist panel is supplementary, not required.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRetryAnalysis}
+                  disabled={isRetrying}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
+                >
+                  {isRetrying ? "Retrying..." : "Retry Analysis"}
+                </button>
+              </div>
+            ) : (
+              /* TA-68: factual summary, rule-cited flags, clean-state, and precedents */
+              <div className="space-y-4">
+                {analysis.summary && (
+                  <div>
+                    <p className="text-[11px] font-semibold text-slate-500 mb-1">Summary</p>
+                    <p className="text-xs text-slate-700 leading-relaxed">{analysis.summary}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
+                    Flags ({analysis.flags.length})
+                  </p>
+                  {analysis.flags.length === 0 ? (
+                    <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                      No issues flagged -- this document read as clean.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {analysis.flags.map((flag, i) => (
+                        <div key={i} className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                flag.severity === "high"
+                                  ? "bg-rose-100 text-rose-800"
+                                  : flag.severity === "medium"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {flag.severity}
+                            </span>
+                            {flag.matched_rule && (
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {flag.matched_rule.type.replace(/_/g, " ")}
+                              </span>
+                            )}
+                          </div>
+                          <p className="italic text-slate-700">&ldquo;{flag.passage_excerpt}&rdquo;</p>
+                          {flag.matched_rule && (
+                            <p className="text-slate-600 border-l-2 border-amber-300 pl-2">
+                              {flag.matched_rule.text}
+                            </p>
+                          )}
+                          <p className="text-slate-600">{flag.explanation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
+                    Similar Precedents ({analysis.precedents.length})
+                  </p>
+                  {analysis.precedents.length === 0 ? (
+                    <p className="text-xs text-slate-400">No similar precedents found yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {analysis.precedents.map((p, i) => (
+                        <div key={i} className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-xs space-y-1">
+                          <span
+                            className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              p.decision === "approved"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {p.decision.replace(/_/g, " ")}
+                          </span>
+                          {p.comment && <p className="text-slate-600">{p.comment}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Bespoke Decision Controls (Authoritative) */}
-          <ReviewDecisionPanel
-            documentStatus={displayStatus}
-            onSubmitDecision={handleSubmitDecision}
-            disabled={isDocLoading || !!docError}
-            externalComment={decisionComment}
-          />
+          {/* ===== TA-69: DECISION WORKFLOW AREA ===== */}
+          <div className="border-t border-slate-200 bg-slate-50/70 p-4 shrink-0 font-inter">
+            {doc?.status !== "pending_review" || recordedReview ? (
+              /* Recorded Decision view once document is no longer pending */
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-slate-800">
+                  Recorded decision:{" "}
+                  <span className="uppercase font-bold text-[#1e4c77]">
+                    {recordedReview?.status.replace(/_/g, " ") ?? doc?.status}
+                  </span>
+                </p>
+                {recordedReview?.comment && (
+                  <p className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 leading-relaxed">
+                    &ldquo;{recordedReview.comment}&rdquo;
+                  </p>
+                )}
+                {recordedReview?.decided_at && (
+                  <p className="text-[11px] text-slate-400">
+                    Decided at: {new Date(recordedReview.decided_at).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            ) : (
+              /* Decision Submission Form when pending review */
+              <div className="space-y-2.5">
+                {decisionError && (
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700">
+                    {decisionError}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Comment -- this is what the advisor will read
+                  </label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    disabled={isSubmittingDecision}
+                    placeholder="Explain the decision, or what needs to change..."
+                    className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#2575bc] resize-none disabled:opacity-60 shadow-2xs font-inter"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDecision("approved")}
+                    disabled={isSubmittingDecision}
+                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-colors shadow-2xs font-inter"
+                  >
+                    <Check className="h-3.5 w-3.5" /> Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDecision("needs_revision")}
+                    disabled={isSubmittingDecision}
+                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-colors shadow-2xs font-inter"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> Revision
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDecision("rejected")}
+                    disabled={isSubmittingDecision}
+                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-colors shadow-2xs font-inter"
+                  >
+                    <X className="h-3.5 w-3.5" /> Reject
+                  </button>
+                </div>
+                {isSubmittingDecision && (
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Recording decision...</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
