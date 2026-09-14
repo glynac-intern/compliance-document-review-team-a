@@ -95,6 +95,17 @@ fi
 info "Seeding rules and disclosures..."
 docker compose run --rm backend python data_pipeline/embeddings/embed_rules.py || fail "Rule/disclosure seeding failed"
 
+# On a fresh clean checkout, this embeds 54 rules/disclosures in one
+# batch call and the next step embeds 100 more right behind it -- both
+# against the same Google AI Studio free-tier quota (100 embed_content
+# requests/minute). Run back to back with no gap, the precedent step
+# reliably trips a 429 RESOURCE_EXHAUSTED, which is exactly the
+# friction TA-80 exists to remove for a new team member's first run.
+# A short pause lets the per-minute window clear before we spend it
+# again.
+info "Pausing briefly to stay under the free-tier embedding rate limit..."
+sleep 60
+
 # --- Step 6: seed precedents (TA-49/TA-59) ---
 info "Seeding precedent index..."
 docker compose run --rm backend python data_pipeline/embeddings/backfill_precedents.py || fail "Precedent seeding failed"
@@ -106,13 +117,21 @@ RULE_COUNT=$(docker compose exec -T db psql -U compliance_user -d compliance_db 
     "SELECT COUNT(*) FROM rules WHERE is_active = true AND type != 'disclosure';")
 DISCLOSURE_COUNT=$(docker compose exec -T db psql -U compliance_user -d compliance_db -tAc \
     "SELECT COUNT(*) FROM rules WHERE is_active = true AND type = 'disclosure';")
+# Scoped to the seed-corpus advisor account (backfill_precedents.py's
+# SEED_ADVISOR_EMAIL), not a bare COUNT(*) over the whole table --
+# on a reused volume, precedent_index also holds real entries from
+# actual advisor documents reviewed through the app, so an unscoped
+# count can look healthy without the seeding step having done anything.
 PRECEDENT_COUNT=$(docker compose exec -T db psql -U compliance_user -d compliance_db -tAc \
-    "SELECT COUNT(*) FROM precedent_index;")
+    "SELECT COUNT(*) FROM precedent_index pi
+     JOIN documents d ON d.id = pi.document_id
+     JOIN users u ON u.id = d.advisor_id
+     WHERE u.email = 'seed-corpus@internal.system';")
 
 echo ""
-echo "  Rules (non-disclosure): ${RULE_COUNT}"
-echo "  Disclosures:            ${DISCLOSURE_COUNT}"
-echo "  Precedents:             ${PRECEDENT_COUNT}"
+echo "  Rules (non-disclosure):   ${RULE_COUNT}"
+echo "  Disclosures:              ${DISCLOSURE_COUNT}"
+echo "  Precedents (seed corpus): ${PRECEDENT_COUNT}"
 echo ""
 
 if [ "$RULE_COUNT" -eq 0 ]; then
