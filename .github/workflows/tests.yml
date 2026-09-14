@@ -38,7 +38,7 @@ jobs:
         run: SKIP_SEEDING=1 ./scripts/setup.sh
 
       - name: Run test suite (role boundary + masker)
-        run: docker compose run --rm --workdir /app/backend backend pytest tests/ -v
+        run: docker compose run --rm backend pytest tests/ -v
 
       - name: Tear down
         if: always()
@@ -94,5 +94,5 @@ jobs:
             cd ~/compliance-document-review-team-a
             git pull origin main
             docker compose up -d db backend
-            docker compose run --rm --workdir /app/backend backend alembic upgrade head
+            docker compose run --rm backend alembic upgrade head
             echo "Deploy complete"
