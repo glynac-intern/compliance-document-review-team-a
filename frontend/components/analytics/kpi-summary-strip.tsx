@@ -7,13 +7,20 @@ import { cn } from "@/lib/utils";
 
 interface KpiSummaryStripProps {
   kpis: OperationalKPIs;
+  labels?: {
+    total?: string;
+    approved?: string;
+    revisions?: string;
+    rejections?: string;
+    velocity?: string;
+  };
 }
 
-export function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
+export function KpiSummaryStrip({ kpis, labels }: KpiSummaryStripProps) {
   const cards = [
     {
       id: "total",
-      label: "Total Submissions",
+      label: labels?.total ?? "Total Submissions",
       value: kpis.totalSubmissions.toLocaleString(),
       delta: kpis.totalSubmissionsDeltaPct,
       gradient: "from-[#1b4a74] via-[#215e96] to-[#163f64]",
@@ -21,7 +28,7 @@ export function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
     },
     {
       id: "approved",
-      label: "Approval Rate",
+      label: labels?.approved ?? "Approval Rate",
       value: `${kpis.approvalRatePct.toFixed(1)}%`,
       delta: kpis.approvalRateDeltaPct,
       gradient: "from-[#1a4872] via-[#205b92] to-[#153e63]",
@@ -29,7 +36,7 @@ export function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
     },
     {
       id: "revisions",
-      label: "Revision Rate",
+      label: labels?.revisions ?? "Revision Rate",
       value: `${kpis.revisionRatePct.toFixed(1)}%`,
       delta: kpis.revisionRateDeltaPct,
       gradient: "from-[#18456e] via-[#1e578c] to-[#143a5d]",
@@ -37,7 +44,7 @@ export function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
     },
     {
       id: "rejections",
-      label: "Rejection Rate",
+      label: labels?.rejections ?? "Rejection Rate",
       value: `${kpis.rejectionRatePct.toFixed(1)}%`,
       delta: kpis.rejectionRateDeltaPct,
       gradient: "from-[#1e4c77] via-[#24619a] to-[#18446c]",
@@ -45,7 +52,7 @@ export function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
     },
     {
       id: "velocity",
-      label: "Median Turnaround",
+      label: labels?.velocity ?? "Median Turnaround",
       value: `${kpis.medianTurnaroundHours.toFixed(1)}h`,
       subtext: `${kpis.slaCompliancePct.toFixed(1)}% SLA`,
       gradient: "from-[#17426b] via-[#1f558a] to-[#133758]",

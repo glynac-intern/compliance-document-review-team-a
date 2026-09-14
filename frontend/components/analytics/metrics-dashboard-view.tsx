@@ -7,7 +7,6 @@ import { KpiSummaryStrip } from "./kpi-summary-strip";
 import { SubmissionTrendChart } from "./submission-trend-chart";
 import { OutcomeDistributionChart } from "./outcome-distribution-chart";
 import { CategoryBreakdownCard } from "./category-breakdown-card";
-import { TurnaroundVelocityCard } from "./turnaround-velocity-card";
 import {
   Download,
   RotateCw,

@@ -46,6 +46,6 @@ export const reviewsApi = {
   submitDecision: (documentId: string, payload: DecisionPayload): Promise<ReviewResponse> =>
     apiFetch<ReviewResponse>(`/review/documents/${documentId}/decision`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: payload,
     }),
 };

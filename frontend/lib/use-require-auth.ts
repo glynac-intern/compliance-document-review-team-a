@@ -19,7 +19,6 @@ import type { UserRole } from "./api-client";
 export function useRequireAuth(requiredRole?: UserRole): { isReady: boolean } {
   const router = useRouter();
   const { token, role, isLoading } = useAuth();
-  const [isReady, setIsReady] = React.useState(false);
 
   React.useEffect(() => {
     if (isLoading) return; // wait for localStorage hydration first
@@ -36,9 +35,8 @@ export function useRequireAuth(requiredRole?: UserRole): { isReady: boolean } {
       router.replace(role === "officer" ? "/officer" : "/advisor");
       return;
     }
-
-    setIsReady(true);
   }, [isLoading, token, role, requiredRole, router]);
 
+  const isReady = !isLoading && !!token && (!requiredRole || role === requiredRole);
   return { isReady };
 }

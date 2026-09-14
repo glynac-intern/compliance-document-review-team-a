@@ -189,16 +189,16 @@ export function DocumentInspectorDrawer({
                   {currentEntry.review.status === "approved" ? "✓" : "!"}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900">
+                  <p className="text-xs font-bold text-slate-900 font-inter">
                     {STATUS_LABELS[currentEntry.review.status] ?? currentEntry.review.status}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-roboto">
+                  <p className="text-[10px] text-slate-500 font-inter font-numbers">
                     Decided {formatDate(currentEntry.review.decided_at)}
                   </p>
                 </div>
               </div>
               {currentEntry.review.comment && (
-                <p className="text-xs text-slate-800 leading-relaxed font-sans bg-white/80 p-3 rounded-lg border border-slate-200">
+                <p className="text-xs text-slate-800 leading-relaxed font-inter bg-white/80 p-3 rounded-lg border border-slate-200">
                   &ldquo;{currentEntry.review.comment}&rdquo;
                 </p>
               )}
@@ -217,25 +217,25 @@ export function DocumentInspectorDrawer({
             <div className="rounded-xl border border-slate-200 p-4 bg-white">
               <div className="flex items-center gap-1.5 mb-3">
                 <History className="h-4 w-4 text-[#2575bc]" />
-                <h4 className="text-xs font-bold text-slate-900">Revision History</h4>
-                <span className="text-[10px] text-slate-400 font-roboto">
+                <h4 className="text-xs font-bold text-slate-900 font-inter">Revision History</h4>
+                <span className="text-[10px] text-slate-400 font-inter font-numbers">
                   ({thread.length} version{thread.length !== 1 ? "s" : ""})
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 font-inter">
                 {thread.map((entry, idx) => (
                   <div
                     key={entry.document_id}
                     className={cn(
-                      "flex items-center justify-between rounded-lg p-2.5 border text-xs",
+                      "flex items-center justify-between rounded-lg p-2.5 border text-xs font-inter",
                       entry.document_id === doc.id
                         ? "border-[#2575bc] bg-blue-50/40"
                         : "border-slate-100 bg-[#f8fafc]"
                     )}
                   >
                     <div>
-                      <span className="font-semibold text-slate-800">v{idx + 1}</span>
-                      <span className="text-slate-400 ml-2 font-roboto">
+                      <span className="font-semibold text-slate-800 font-inter">v{idx + 1}</span>
+                      <span className="text-slate-400 ml-2 font-inter font-numbers">
                         {formatDate(entry.uploaded_at)}
                       </span>
                     </div>
@@ -251,13 +251,13 @@ export function DocumentInspectorDrawer({
             <div className="rounded-xl border border-slate-200 p-4 bg-white">
               <div className="flex items-center gap-1.5 mb-3">
                 <ListChecks className="h-4 w-4 text-[#2575bc]" />
-                <h4 className="text-xs font-bold text-slate-900">Audit Trail</h4>
+                <h4 className="text-xs font-bold text-slate-900 font-inter">Audit Trail</h4>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 font-inter">
                 {audit.map((event) => (
-                  <div key={event.id} className="flex items-center justify-between text-[11px] py-1 border-b border-slate-50 last:border-0">
+                  <div key={event.id} className="flex items-center justify-between text-[11px] py-1 border-b border-slate-50 last:border-0 font-inter">
                     <span className="text-slate-700 capitalize">{event.action.replace(/_/g, " ")}</span>
-                    <span className="text-slate-400 font-roboto">{formatDate(event.timestamp)}</span>
+                    <span className="text-slate-400 font-inter font-numbers">{formatDate(event.timestamp)}</span>
                   </div>
                 ))}
               </div>

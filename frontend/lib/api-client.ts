@@ -162,6 +162,13 @@ export const authApi = {
       body: { name, email, password, role },
       skipAuth: true,
     }),
+
+  getMe: (): Promise<UserResponse> => apiFetch<UserResponse>("/auth/me"),
+
+  logout: (): Promise<{ detail: string }> =>
+    apiFetch<{ detail: string }>("/auth/logout", {
+      method: "POST",
+    }),
 };
 
 export { apiFetch, API_BASE_URL };

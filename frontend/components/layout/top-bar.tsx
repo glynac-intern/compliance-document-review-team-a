@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   RotateCw,
   Bell,
@@ -46,6 +47,7 @@ export function TopBar({
   isRefreshing = false,
 }: TopBarProps) {
   const { logout } = useAuth();
+  const router = useRouter();
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showCalendar, setShowCalendar] = React.useState(false);
   const [notifications, setNotifications] = React.useState<BackendNotification[]>([]);
@@ -54,28 +56,45 @@ export function TopBar({
   const notificationsRef = React.useRef<HTMLDivElement>(null);
   const calendarRef = React.useRef<HTMLDivElement>(null);
 
-  const loadNotifications = React.useCallback(async () => {
-    try {
-      const [list, countRes] = await Promise.all([
-        notificationsApi.list(),
-        notificationsApi.getUnreadCount(),
-      ]);
-      setNotifications(list);
-      setUnreadCount(countRes.unread_count);
-    } catch {
-      // Offline fallback: keep harmless state
-    }
+  React.useEffect(() => {
+    let ignore = false;
+    Promise.all([
+      notificationsApi.list(),
+      notificationsApi.getUnreadCount(),
+    ])
+      .then(([list, countRes]) => {
+        if (!ignore) {
+          setNotifications(list);
+          setUnreadCount(countRes.unread_count);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   React.useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
+    if (!showNotifications && !isRefreshing) return;
+    let ignore = false;
 
-  React.useEffect(() => {
-    if (showNotifications || isRefreshing) {
-      loadNotifications();
-    }
-  }, [showNotifications, isRefreshing, loadNotifications]);
+    Promise.all([
+      notificationsApi.list(),
+      notificationsApi.getUnreadCount(),
+    ])
+      .then(([list, countRes]) => {
+        if (!ignore) {
+          setNotifications(list);
+          setUnreadCount(countRes.unread_count);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      ignore = true;
+    };
+  }, [showNotifications, isRefreshing]);
 
   const handleMarkAllRead = async () => {
     const unread = notifications.filter((n) => !n.is_read);
@@ -99,6 +118,11 @@ export function TopBar({
       } catch {
         // ignore
       }
+    }
+    // TA-71: Navigate to the document so the advisor can view the decision.
+    if (item.document_id) {
+      setShowNotifications(false);
+      router.push(`/advisor?doc=${item.document_id}`);
     }
   };
 
@@ -374,19 +398,23 @@ export function TopBar({
               </div>
             </div>
           )}
-        </div>
+          </div>
 
-        {/* TA-61: real logout -- clears the session and returns to /login */}
-        <button
-          type="button"
-          onClick={logout}
-          title="Log out"
-          className="h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer border shadow-2xs bg-white border-slate-200/90 text-slate-600 hover:text-red-600 hover:bg-red-50 hover:border-red-200 active:scale-95"
-        >
-          <LogOut className="h-[18px] w-[18px] stroke-[1.8]" />
-        </button>
+          {/* Hairline Divider */}
+          <div className="h-3.5 w-px bg-slate-200/90 mx-0.5" />
+
+          {/* TA-61: real logout -- clears the session and returns to /login */}
+          <button
+            type="button"
+            onClick={logout}
+            title="Log out"
+            aria-label="Log out"
+            className="h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-red-600 hover:bg-white hover:shadow-2xs"
+          >
+            <LogOut className="h-4 w-4 stroke-[1.8]" />
+          </button>
+        </div>
       </div>
-    </div>
   </header>
   );
 }

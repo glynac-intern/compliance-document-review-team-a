@@ -17,6 +17,7 @@ import {
   clearStoredToken,
   setUnauthorizedHandler,
   type UserRole,
+  type UserResponse,
 } from "./api-client";
 
 interface DecodedToken {
@@ -52,6 +53,7 @@ interface AuthContextValue {
   token: string | null;
   userId: string | null;
   role: UserRole | null;
+  user: UserResponse | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<UserRole>;
   logout: () => void;
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = React.useState<string | null>(null);
   const [role, setRole] = React.useState<UserRole | null>(null);
   const [userId, setUserId] = React.useState<string | null>(null);
+  const [user, setUser] = React.useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const applyToken = React.useCallback((newToken: string | null) => {
@@ -79,19 +82,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(null);
         setRole(null);
         setUserId(null);
+        setUser(null);
         return;
       }
       setToken(newToken);
       setRole(decoded.role);
       setUserId(decoded.sub);
+      authApi.getMe().then(setUser).catch(() => {});
     } else {
       setToken(null);
       setRole(null);
       setUserId(null);
+      setUser(null);
     }
   }, []);
 
   const logout = React.useCallback(() => {
+    authApi.logout().catch(() => {});
     clearStoredToken();
     applyToken(null);
     router.push("/login");
@@ -151,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applyToken]
   );
 
-  const value: AuthContextValue = { token, userId, role, isLoading, login, logout };
+  const value: AuthContextValue = { token, userId, role, user, isLoading, login, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

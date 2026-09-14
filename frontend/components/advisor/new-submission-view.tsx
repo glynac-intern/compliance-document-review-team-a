@@ -13,9 +13,11 @@ import {
 import { ComplianceDocument, DocumentType } from "@/types/compliance";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
+import { documentsApi, type BackendDocument } from "@/lib/documents-api";
+import { ApiError } from "@/lib/api-client";
 
 interface NewSubmissionViewProps {
-  onSubmit: (newDoc: Partial<ComplianceDocument>) => void;
+  onSubmit: (newDoc: BackendDocument | Partial<ComplianceDocument>) => void;
   onCancel: () => void;
 }
 
@@ -53,6 +55,7 @@ export function NewSubmissionView({
   const [file, setFile] = React.useState<File | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState(0);
   const [error, setError] = React.useState<string | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -161,32 +164,17 @@ export function NewSubmissionView({
 
     setIsSubmitting(true);
     setError(null);
+    setUploadProgress(0);
 
-    // Simulate API intake response matching POST /documents contract (Blueprint 3.3)
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    const newDocId = `DOC-2026-0${Math.floor(100 + Math.random() * 900)}`;
-    const extension = "." + file.name.split(".").pop()?.toLowerCase();
-    const cleanTitle = title.trim().endsWith(extension) ? title.trim() : `${title.trim()}${extension}`;
-    const resolvedCategory = (category === "Other" ? customCategory.trim() : category) as DocumentType;
-
-    onSubmit({
-      id: newDocId,
-      title: cleanTitle,
-      advisor_id: "adv-101",
-      advisor_name: "James Adams",
-      advisor_email: "j.adams@apexadvisory.com",
-      status: "pending",
-      file_reference: `s3://compliance-vault/docs/2026/${newDocId}${extension}`,
-      type: resolvedCategory || "Presentation / Deck",
-      uploaded_at: new Date().toISOString(),
-      thread_id: `THR-${Math.floor(1000 + Math.random() * 9000)}`,
-      replaces_document_id: null,
-      version: 1,
-      file_size_mb: Number((file.size / (1024 * 1024)).toFixed(1)),
-    });
-
-    setIsSubmitting(false);
+    try {
+      // TA-63: real upload to backend POST /documents with progress events
+      const uploaded = await documentsApi.submit(file, setUploadProgress);
+      onSubmit(uploaded);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Upload failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isCategoryValid = category === "Other" ? Boolean(customCategory.trim()) : Boolean(category);
@@ -224,7 +212,7 @@ export function NewSubmissionView({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Uploading Document...</span>
+                <span>Uploading... {uploadProgress}%</span>
               </>
             ) : (
               <span>Submit for Review</span>
@@ -232,6 +220,22 @@ export function NewSubmissionView({
           </button>
         </div>
       </div>
+
+      {/* Progress Bar (TA-63) */}
+      {isSubmitting && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 space-y-1.5 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between text-xs font-inter text-slate-700">
+            <span className="font-medium">Uploading document to Compliance Vault...</span>
+            <span className="font-numbers">{uploadProgress}%</span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-blue-200/50 overflow-hidden">
+            <div
+              className="h-full bg-[#1e4c77] transition-all duration-150 rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main Submission Form */}
       <div className="space-y-5">

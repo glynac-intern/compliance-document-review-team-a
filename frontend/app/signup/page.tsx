@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User, AlertCircle, Loader2, Scale, Briefcase, Check } from "lucide-react";
+import { Mail, Lock, User, Loader2, Scale, Briefcase, Check } from "lucide-react";
 import { VerityLogo } from "@/components/ui/verity-logo";
 import { authApi, ApiError, type UserRole } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -94,8 +94,7 @@ export default function SignupPage() {
         </div>
 
         {error && (
-          <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose-700 mb-4 font-inter">
-            <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+          <div className="rounded-xl border border-rose-200/90 bg-rose-50/90 px-3.5 py-2.5 text-[12.5px] text-rose-700 mb-4 font-inter text-center font-normal animate-in fade-in duration-150 shadow-2xs">
             <span>{error}</span>
           </div>
         )}
@@ -151,9 +150,14 @@ export default function SignupPage() {
 
           {/* Role selection */}
           <div className="pt-1.5">
-            <label className="block text-[12px] font-semibold text-slate-800 mb-2 font-inter">
-              I Am A...
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-[12px] font-semibold text-slate-800 font-inter">
+                I Am A...
+              </label>
+              <span className="text-[11px] text-slate-400 font-inter">
+                Role Selection Is Permanent
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-3 font-inter">
               {/* Financial Advisor Card */}
               <button
@@ -255,6 +259,9 @@ export default function SignupPage() {
                 </div>
               </button>
             </div>
+            <p className="mt-2 text-[11px] text-slate-400 text-center font-inter">
+              Role selection is permanent and cannot be changed after registration.
+            </p>
           </div>
 
           <button

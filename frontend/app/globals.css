@@ -175,3 +175,37 @@ body {
 .animate-sleek-spin {
   animation: sleek-spin 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+/* AI Review Copilot Subtle Elevation & Brand Accent Outline (#1e4c77) */
+@keyframes verity-ambient-glow {
+  0%, 100% {
+    box-shadow: 0 0 16px -2px rgba(30, 76, 119, 0.12), 0 2px 8px -1px rgba(15, 23, 42, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 24px -1px rgba(30, 76, 119, 0.20), 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+  }
+}
+
+.gemini-agent-container {
+  position: relative;
+  background: linear-gradient(135deg, #1e4c77, #2d6fa8, #334155, #1e4c77);
+  background-size: 250% 250%;
+  animation: gemini-gradient-flow 10s ease infinite, verity-ambient-glow 5s ease-in-out infinite;
+  padding: 1.5px;
+  border-radius: 1rem;
+}
+
+.gemini-agent-inner {
+  background: #ffffff;
+  border-radius: calc(1rem - 1.5px);
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.gemini-sparkle-gradient {
+  color: #1e4c77;
+}
+

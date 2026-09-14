@@ -7,7 +7,6 @@ import {
   Mail,
   Lock,
   Loader2,
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -50,7 +49,6 @@ function LoginForm() {
   const [remember, setRemember] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [showOtherModal, setShowOtherModal] = React.useState(false);
 
   // If already authenticated with an active session, redirect to the appropriate dashboard
   React.useEffect(() => {
@@ -120,23 +118,6 @@ function LoginForm() {
       router.push(role === "officer" ? "/officer" : "/advisor");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Unable To Sign In. Please Try Again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickLogin = async (roleToSelect: "advisor" | "officer") => {
-    setShowOtherModal(false);
-    setError(null);
-    setIsLoading(true);
-    const chosenEmail = roleToSelect === "officer" ? "officer@rolefixture.io" : "advisor@rolefixture.io";
-    setEmail(chosenEmail);
-    setPassword("testpass123");
-    try {
-      const role = await login(chosenEmail, "testpass123");
-      router.push(role === "officer" ? "/officer" : "/advisor");
-    } catch {
-      router.push(roleToSelect === "officer" ? "/officer" : "/advisor");
     } finally {
       setIsLoading(false);
     }
@@ -315,8 +296,7 @@ function LoginForm() {
 
             {/* Error Message */}
             {error && (
-              <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose-700 mb-4 font-inter">
-                <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+              <div className="rounded-xl border border-rose-200/90 bg-rose-50/90 px-3.5 py-2.5 text-[12.5px] text-rose-700 mb-4 font-inter text-center font-normal animate-in fade-in duration-150 shadow-2xs">
                 <span>{error}</span>
               </div>
             )}
@@ -419,91 +399,19 @@ function LoginForm() {
                 </div>
               </div>
 
-              {/* Secondary Action — Sign In With Other Button */}
-              <button
-                type="button"
-                onClick={() => setShowOtherModal(true)}
-                disabled={isLoading}
-                className="w-full h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium text-[13px] transition-all flex items-center justify-center cursor-pointer shadow-2xs font-inter"
-              >
-                Sign In With Other
-              </button>
-            </form>
-
-            {/* Footer Sign Up Link */}
-            <div className="mt-5 text-center text-[12px] text-slate-500 font-inter">
-              Don&apos;t Have An Account?{" "}
+              {/* Secondary Action — Sign Up Button */}
               <button
                 type="button"
                 onClick={() => router.push("/signup")}
-                className="font-semibold text-[#2575bc] hover:text-[#185386] hover:underline font-inter"
+                disabled={isLoading}
+                className="w-full h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium text-[13px] transition-all flex items-center justify-center cursor-pointer shadow-2xs font-inter"
               >
                 Sign Up
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
-
-      {/* Quick Role Selection Modal (For testing / SSO) */}
-      {showOtherModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 font-inter">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 font-inter">
-            <h3 className="text-base font-bold text-slate-900 mb-1 font-inter">
-              Sign In With SSO / Demo Role
-            </h3>
-            <p className="text-xs text-slate-500 mb-4 font-inter">
-              Select An Account To Access The Verity Document Review Platform:
-            </p>
-
-            <div className="space-y-2.5 font-inter">
-              <button
-                onClick={() => handleQuickLogin("officer")}
-                className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-[#2575bc] hover:bg-blue-50/50 transition-colors text-left group cursor-pointer"
-              >
-                <div>
-                  <div className="text-xs font-semibold text-slate-900 group-hover:text-[#1e4c77] font-inter">
-                    Compliance Officer
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-inter">
-                    Sarah Jenkins · Queue, AI Flags, Approvals
-                  </div>
-                </div>
-                <div className="h-6 w-6 rounded-full bg-blue-100 text-[#1e4c77] flex items-center justify-center text-[10px] font-bold font-inter">
-                  SJ
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleQuickLogin("advisor")}
-                className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-[#2575bc] hover:bg-blue-50/50 transition-colors text-left group cursor-pointer"
-              >
-                <div>
-                  <div className="text-xs font-semibold text-slate-900 group-hover:text-[#1e4c77] font-inter">
-                    Financial Advisor
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-inter">
-                    James Adams · Submissions, Document Status
-                  </div>
-                </div>
-                <div className="h-6 w-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-[10px] font-bold font-inter">
-                  JA
-                </div>
-              </button>
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowOtherModal(false)}
-                className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer font-inter"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
