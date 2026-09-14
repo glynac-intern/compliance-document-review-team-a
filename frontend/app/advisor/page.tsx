@@ -302,6 +302,7 @@ export default function AdvisorDashboardPage() {
               {/* Recent Activity Feed Section */}
               <div id="recent-activity-section">
                 <RecentActivity
+                  documents={documents}
                   onViewAllClick={() => {
                     setActiveView("history");
                   }}
@@ -323,9 +324,6 @@ export default function AdvisorDashboardPage() {
                   <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
                     My Submissions
                   </h1>
-                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
-                    Manage, search, and track all your compliance marketing filings and pre-screening requests.
-                  </p>
                 </div>
 
                 <button
@@ -363,25 +361,22 @@ export default function AdvisorDashboardPage() {
 
           {/* VIEW 3: HISTORY VIEW */}
           {activeView === "history" && (
-            <>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
-                    History
-                  </h1>
-                  <p className="text-xs font-normal text-slate-400 mt-1 font-inter">
-                    Full audit trail of compliance reviews, revisions, and approval decisions.
-                  </p>
-                </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
+                <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 tracking-tight font-inter">
+                  History
+                </h1>
               </div>
 
               <RecentActivity
+                documents={documents}
+                isFullHistory={true}
                 onItemClick={(docId) => {
                   const target = documents.find((d) => d.id === docId);
                   if (target) setSelectedDocument(target);
                 }}
               />
-            </>
+            </div>
           )}
 
           {/* VIEW 4: METRICS & ANALYTICS DASHBOARD */}
