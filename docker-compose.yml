@@ -59,6 +59,13 @@ services:
   frontend:
     build:
       context: ./frontend
+      # NEXT_PUBLIC_* vars are baked into the JS bundle at `next build`
+      # time, not read at container start -- passing it as a build arg
+      # (sourced from .env, same mechanism the backend's DATABASE_URL
+      # substitution above already relies on) is the only way it
+      # actually reaches the production bundle.
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
     container_name: compliance_frontend
     restart: unless-stopped
     env_file:
@@ -67,9 +74,10 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    # No source bind mount here (unlike backend) -- this service runs a
+    # real `next build` + `next start` baked into the image, not `next
+    # dev` against live-mounted source. A bind mount would shadow that
+    # build with whatever's on the host, and defeat the point of it.
 
 volumes:
   db_data:
