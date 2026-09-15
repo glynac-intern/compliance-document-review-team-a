@@ -37,7 +37,16 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${plusJakarta.variable} ${inter.variable} ${roboto.variable} font-sans h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Apply saved theme before first paint to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=JSON.parse(localStorage.getItem("verity-user-settings")||"{}");var t=s.theme||"light";if(t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-slate-200">
         <AuthProvider>{children}</AuthProvider>
       </body>

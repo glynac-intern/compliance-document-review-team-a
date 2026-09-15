@@ -57,6 +57,8 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<UserRole>;
   logout: () => void;
+  /** Re-fetches user data from the backend, propagating updates globally. */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
@@ -158,7 +160,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applyToken]
   );
 
-  const value: AuthContextValue = { token, userId, role, user, isLoading, login, logout };
+  const refreshUser = React.useCallback(async () => {
+    try {
+      const updated = await authApi.getMe();
+      setUser(updated);
+    } catch {
+      // If backend is unreachable, keep the current user data
+    }
+  }, []);
+
+  const value: AuthContextValue = { token, userId, role, user, isLoading, login, logout, refreshUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

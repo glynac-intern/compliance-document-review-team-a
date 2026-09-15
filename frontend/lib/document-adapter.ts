@@ -49,6 +49,7 @@ export function adaptBackendDocument(
     uploaded_at: doc.uploaded_at,
     thread_id: doc.thread_id,
     replaces_document_id: doc.replaces_document_id,
+    revision_notes: doc.revision_notes ?? undefined,
     version: 1, // real revision count needs the /thread endpoint (separate ticket)
     file_size_mb: 0, // not knowable from the list endpoint after upload
   };

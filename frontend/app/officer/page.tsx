@@ -93,6 +93,8 @@ interface QueueTableRow {
   uploaded_at: string;
   original_filename: string | null;
   flags_count?: { high: number; medium: number; low: number };
+  replaces_document_id?: string | null;
+  revision_notes?: string | null;
 }
 
 function adaptMockToQueueRow(doc: (typeof MOCK_QUEUE_DOCUMENTS)[0]): QueueTableRow {
@@ -112,6 +114,8 @@ function adaptMockToQueueRow(doc: (typeof MOCK_QUEUE_DOCUMENTS)[0]): QueueTableR
     uploaded_at: doc.uploaded_at,
     original_filename: doc.title,
     flags_count: doc.flags_count,
+    replaces_document_id: doc.replaces_document_id,
+    revision_notes: doc.revision_notes,
   };
 }
 
@@ -542,9 +546,16 @@ export default function OfficerDashboardPage() {
                                   size="sm"
                                 />
                                 <div className="min-w-0">
-                                  <p className="text-[13px] font-normal text-slate-800 truncate max-w-[280px] font-inter">
-                                    {doc.title}
-                                  </p>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="text-[13px] font-normal text-slate-800 truncate max-w-[260px] font-inter">
+                                      {doc.title}
+                                    </p>
+                                    {(doc.replaces_document_id || doc.revision_notes) && (
+                                      <span className="rounded-md bg-blue-50 border border-blue-200/80 px-1.5 py-0.5 text-[10px] font-medium text-[#1e4c77] shrink-0 font-inter">
+                                        Revision
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className="text-[11px] text-slate-400 font-numbers tabular-nums mt-0.5">
                                     {doc.id}
                                   </p>

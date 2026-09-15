@@ -250,17 +250,14 @@ export function TopBar({
 
             {/* Notifications Popover */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200/90 shadow-xl z-50 animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden font-inter">
+              <div className="absolute right-0 mt-2.5 w-80 sm:w-88 rounded-xl bg-white border border-slate-200 shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden font-inter">
                 {/* Popover Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70">
+                <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-lg bg-[#ebf4fb] border border-[#2575bc]/20 text-[#1e4c77] flex items-center justify-center">
-                      <Bell className="h-3.5 w-3.5 stroke-[1.8]" />
-                    </div>
-                    <h3 className="text-[13px] font-medium text-slate-800 font-inter">Notifications</h3>
+                    <h3 className="text-xs font-semibold text-slate-800 font-inter">Notifications</h3>
                     {unreadCount > 0 && (
-                      <span className="rounded-full bg-[#ebf4fb] border border-[#2575bc]/20 px-2 py-0.5 text-[10px] font-medium text-[#1e4c77] font-numbers tabular-nums">
-                        {unreadCount} unread
+                      <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-medium text-slate-600 font-numbers tabular-nums">
+                        {unreadCount}
                       </span>
                     )}
                   </div>
@@ -268,9 +265,8 @@ export function TopBar({
                     <button
                       type="button"
                       onClick={handleMarkAllRead}
-                      className="text-[11px] font-normal text-[#1e4c77] hover:text-[#163e63] hover:underline transition-colors cursor-pointer flex items-center gap-1 font-inter"
+                      className="text-[11px] font-normal text-[#1e4c77] hover:underline transition-colors cursor-pointer font-inter"
                     >
-                      <Check className="h-3 w-3 stroke-[2]" />
                       Mark all read
                     </button>
                   )}
@@ -279,14 +275,8 @@ export function TopBar({
                 {/* Notifications List */}
                 <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto font-inter">
                   {notifications.length === 0 ? (
-                    <div className="py-10 px-4 text-center font-inter">
-                      <div className="h-9 w-9 rounded-full bg-slate-100/80 border border-slate-200/60 text-slate-400 flex items-center justify-center mx-auto mb-2.5">
-                        <BellOff className="h-4 w-4 stroke-[1.8]" />
-                      </div>
-                      <p className="text-[12px] font-medium text-slate-700">No notifications yet</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        You&apos;re all caught up. Review decisions and updates will appear here.
-                      </p>
+                    <div className="py-7 px-4 text-center font-inter">
+                      <p className="text-xs text-slate-400">No notifications</p>
                     </div>
                   ) : (
                     notifications.map((item) => {
@@ -306,12 +296,12 @@ export function TopBar({
                         : "general";
 
                       const title = isApproved
-                        ? "Document Approved"
+                        ? "Approved"
                         : isRejected
-                        ? "Document Rejected"
+                        ? "Rejected"
                         : isRevision
                         ? "Revision Requested"
-                        : "Compliance Update";
+                        : "Update";
 
                       // Parse any comment embedded by backend review decisions (" Comment: ...")
                       let bodyText = msg;
@@ -327,88 +317,42 @@ export function TopBar({
                           key={item.id}
                           onClick={() => handleNotificationClick(item)}
                           className={cn(
-                            "py-3 px-3.5 transition-colors cursor-pointer group hover:bg-slate-50/80 flex items-start gap-3",
-                            !item.is_read && "bg-[#ebf4fb]/30 border-l-2 border-[#1e4c77]"
+                            "py-2.5 px-3.5 transition-colors cursor-pointer group hover:bg-slate-50 flex items-start gap-2.5",
+                            !item.is_read && "bg-slate-50/60"
                           )}
                         >
-                          {/* Status Icon */}
-                          <div
-                            className={cn(
-                              "mt-0.5 h-7 w-7 rounded-lg flex items-center justify-center shrink-0 shadow-2xs",
-                              iconType === "approved" &&
-                                "bg-emerald-50 text-emerald-700 border border-emerald-200/80",
-                              iconType === "revision" &&
-                                "bg-amber-50 text-amber-800 border border-amber-200/80",
-                              iconType === "rejected" &&
-                                "bg-rose-50 text-rose-700 border border-rose-200/80",
-                              iconType === "general" &&
-                                "bg-[#ebf4fb] text-[#1e4c77] border border-[#2575bc]/20"
-                            )}
-                          >
-                            {iconType === "approved" && (
-                              <CheckCircle2 className="h-3.5 w-3.5 stroke-[2]" />
-                            )}
-                            {iconType === "revision" && (
-                              <AlertCircle className="h-3.5 w-3.5 stroke-[1.8]" />
-                            )}
-                            {iconType === "rejected" && (
-                              <XCircle className="h-3.5 w-3.5 stroke-[1.8]" />
-                            )}
-                            {iconType === "general" && (
-                              <Clock className="h-3.5 w-3.5 stroke-[1.8]" />
-                            )}
-                          </div>
-
-                          {/* Content */}
                           <div className="flex-1 min-w-0 font-inter">
                             <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <p className="text-[12px] font-medium text-slate-800 truncate">
-                                  {title}
-                                </p>
-                                {!item.is_read && (
-                                  <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] shrink-0" />
+                              <span
+                                className={cn(
+                                  "text-[12px] font-medium truncate",
+                                  iconType === "approved" && "text-[#166534]",
+                                  iconType === "revision" && "text-[#92400e]",
+                                  iconType === "rejected" && "text-[#991b1b]",
+                                  iconType === "general" && "text-slate-800"
                                 )}
-                              </div>
-                              <span className="text-[10px] text-slate-400 shrink-0 font-normal font-numbers tabular-nums">
+                              >
+                                {title}
+                              </span>
+                              <span className="text-[10.5px] text-slate-400 shrink-0 font-normal font-numbers tabular-nums">
                                 {formatNotificationTime(item.created_at)}
                               </span>
                             </div>
 
-                            <p className="text-[11px] text-slate-600 leading-snug mt-0.5 font-normal">
+                            <p className="text-[11.5px] text-slate-600 leading-snug mt-0.5 font-normal">
                               {bodyText}
                             </p>
 
                             {commentText && (
-                              <div className="mt-1.5 p-1.5 rounded-md bg-slate-100/70 border border-slate-200/60 text-[11px] text-slate-700 leading-relaxed font-normal">
-                                <span className="text-slate-400 font-medium mr-1">Note:</span>
-                                {commentText}
-                              </div>
-                            )}
-
-                            {item.document_id && (
-                              <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[#1e4c77] group-hover:underline">
-                                View document
-                                <ChevronRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
-                              </span>
+                              <p className="mt-1 text-[11px] text-slate-500 italic">
+                                &ldquo;{commentText}&rdquo;
+                              </p>
                             )}
                           </div>
                         </div>
                       );
                     })
                   )}
-                </div>
-
-                {/* Footer status indicator */}
-                <div className="px-4 py-2 bg-slate-50/70 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between font-inter">
-                  <span className="flex items-center gap-1.5">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                    </span>
-                    Live audit trail
-                  </span>
-                  <span>Compliance Team A</span>
                 </div>
               </div>
             )}

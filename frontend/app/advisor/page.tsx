@@ -10,7 +10,7 @@ import { DocumentInspectorDrawer } from "@/components/advisor/document-inspector
 import { NewSubmissionView } from "@/components/advisor/new-submission-view";
 import { MetricsDashboardView } from "@/components/analytics/metrics-dashboard-view";
 import { RevisionUploadModal } from "@/components/advisor/revision-upload-modal";
-import { CertificateModal } from "@/components/advisor/certificate-modal";
+import { SettingsView } from "@/components/advisor/settings-view";
 import { ComplianceDocument } from "@/types/compliance";
 import { Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -62,7 +62,7 @@ export default function AdvisorDashboardPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
   const [activeView, setActiveView] = React.useState<
-    "overview" | "my_submissions" | "new_submission" | "history" | "metrics"
+    "overview" | "my_submissions" | "new_submission" | "history" | "metrics" | "settings"
   >("overview");
 
   // TA-63: real documents, fetched from the backend -- not mock data.
@@ -101,7 +101,6 @@ export default function AdvisorDashboardPage() {
   // Modal and drawer states
   const [selectedDocument, setSelectedDocument] = React.useState<ComplianceDocument | null>(null);
   const [revisionDoc, setRevisionDoc] = React.useState<ComplianceDocument | null>(null);
-  const [certificateDoc, setCertificateDoc] = React.useState<ComplianceDocument | null>(null);
 
   // Toast feedback with smooth slide enter & slide exit
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
@@ -245,6 +244,7 @@ export default function AdvisorDashboardPage() {
             el?.scrollIntoView({ behavior: "smooth" });
           }
         }}
+        userName={user?.name}
       />
 
       {/* Main Workspace Column */}
@@ -269,6 +269,8 @@ export default function AdvisorDashboardPage() {
                   ? "History"
                   : activeView === "metrics"
                   ? "Metrics"
+                  : activeView === "settings"
+                  ? "Settings"
                   : "Overview",
             },
           ]}
@@ -323,7 +325,6 @@ export default function AdvisorDashboardPage() {
                   onSortByChange={setSortBy}
                   onSelectDocument={(doc) => setSelectedDocument(doc)}
                   onReviseClick={(doc) => setRevisionDoc(doc)}
-                  onCertificateClick={(doc) => setCertificateDoc(doc)}
                   onResetFilters={() => {
                     setSearchQuery("");
                     setStatusFilter("all");
@@ -381,7 +382,6 @@ export default function AdvisorDashboardPage() {
                   onSortByChange={setSortBy}
                   onSelectDocument={(doc) => setSelectedDocument(doc)}
                   onReviseClick={(doc) => setRevisionDoc(doc)}
-                  onCertificateClick={(doc) => setCertificateDoc(doc)}
                   onResetFilters={() => {
                     setSearchQuery("");
                     setStatusFilter("all");
@@ -393,11 +393,23 @@ export default function AdvisorDashboardPage() {
 
           {/* VIEW 3: HISTORY VIEW */}
           {activeView === "history" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
-                <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 tracking-tight font-inter">
-                  History
-                </h1>
+            <div className="space-y-6">
+              {/* Dedicated History Header matching My Submissions header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                    Submission &amp; Review History
+                  </h1>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveView("new_submission")}
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-normal font-inter transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                >
+                  <Plus className="h-4 w-4 stroke-[1.8]" />
+                  <span>New Submission</span>
+                </button>
               </div>
 
               <RecentActivity
@@ -429,6 +441,11 @@ export default function AdvisorDashboardPage() {
               onCancel={() => setActiveView("overview")}
             />
           )}
+
+          {/* VIEW 6: SETTINGS */}
+          {activeView === "settings" && (
+            <SettingsView />
+          )}
         </main>
       </div>
 
@@ -448,13 +465,6 @@ export default function AdvisorDashboardPage() {
         isOpen={!!revisionDoc}
         onClose={() => setRevisionDoc(null)}
         onSubmitRevision={handleRevisionSubmit}
-      />
-
-      {/* Compliance Approval Certificate Modal */}
-      <CertificateModal
-        document={certificateDoc}
-        isOpen={!!certificateDoc}
-        onClose={() => setCertificateDoc(null)}
       />
 
       {/* Toast Notification Container — Elegant slide-in from right edge and slide-back exit */}

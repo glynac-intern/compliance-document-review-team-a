@@ -66,8 +66,10 @@ interface SidebarProps {
   onHistoryClick?: () => void;
   onActivityHistoryClick?: () => void;
   onMetricsClick?: () => void;
-  activeView?: "overview" | "my_submissions" | "new_submission" | "history" | "metrics";
-  onSelectView?: (view: "overview" | "my_submissions" | "new_submission" | "history" | "metrics") => void;
+  activeView?: "overview" | "my_submissions" | "new_submission" | "history" | "metrics" | "settings";
+  onSelectView?: (view: "overview" | "my_submissions" | "new_submission" | "history" | "metrics" | "settings") => void;
+  userName?: string | null;
+  onSettingsClick?: () => void;
 }
 
 export function Sidebar({
@@ -81,6 +83,8 @@ export function Sidebar({
   onMetricsClick,
   activeView = "overview",
   onSelectView,
+  userName,
+  onSettingsClick,
 }: SidebarProps) {
   const handleHistory = onHistoryClick || onActivityHistoryClick;
 
@@ -252,22 +256,36 @@ export function Sidebar({
             isCollapsed && "justify-center p-1.5 bg-transparent border-transparent"
           )}
         >
-          {/* Avatar and Name */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-7 w-7 rounded-full bg-[#1e4c77] text-white font-medium text-[11px] flex items-center justify-center shrink-0 shadow-xs font-inter">
-              JA
-            </div>
-            {!isCollapsed && (
-              <span className="text-[13px] font-normal text-slate-800 truncate font-inter">
-                James A
-              </span>
-            )}
-          </div>
+          {/* Avatar and Name — derived from authenticated user */}
+          {(() => {
+            const displayName = userName || "User";
+            const parts = displayName.trim().split(/\s+/);
+            const initials = parts.length >= 2
+              ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+              : parts[0].slice(0, 2).toUpperCase();
+            const firstName = parts[0];
 
-          {/* Setting gear icon on right matching "setting" annotation */}
+            return (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-7 w-7 rounded-full bg-[#1e4c77] text-white font-medium text-[11px] flex items-center justify-center shrink-0 shadow-xs font-inter">
+                  {initials}
+                </div>
+                {!isCollapsed && (
+                  <span className="text-[13px] font-normal text-slate-800 truncate font-inter">
+                    {firstName}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Setting gear icon — opens Settings view */}
           <button
             type="button"
-            onClick={() => alert("Advisor Settings & Regulatory Preferences")}
+            onClick={() => {
+              onSettingsClick?.();
+              onSelectView?.("settings");
+            }}
             title="Settings"
             aria-label="Settings"
             className={cn(

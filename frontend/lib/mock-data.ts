@@ -139,6 +139,7 @@ export const MOCK_DOCUMENTS: ComplianceDocument[] = [
     uploaded_at: "2026-03-05T10:15:00Z",
     thread_id: "THR-0884",
     replaces_document_id: "DOC-2026-0884",
+    revision_notes: "Updated page 2 footer disclosures and replaced non-standard terminology as requested.",
     version: 2,
     file_size_mb: 1.3,
     flags_count: {
