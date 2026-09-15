@@ -165,6 +165,13 @@ def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> 
     analysis.error_message = None
     db.flush()
 
+    # Replace any prior flags/mapping/chunks for this document only NOW
+    # that the new run has actually succeeded (TA-87) -- clearing them
+    # up front, before the pipeline runs, would destroy a previously
+    # cached successful analysis if THIS attempt then failed.
+    db.query(Flag).filter(Flag.analysis_id == analysis.id).delete()
+    db.query(PIIMapping).filter(PIIMapping.document_id == document.id).delete()
+
     for f in flags_data:
         db.add(Flag(
             analysis_id=analysis.id,
@@ -409,10 +416,10 @@ def retry_analysis(
         db.add(analysis)
         db.flush()
 
-    # Clear previous results -- retry moves the state forward, it never
-    # leaves stale flags/mapping from a prior attempt lying around.
-    db.query(Flag).filter(Flag.analysis_id == analysis.id).delete()
-    db.query(PIIMapping).filter(PIIMapping.document_id == document_id).delete()
+    # Stale flags/mapping from a prior attempt are only cleared once the
+    # new run actually succeeds -- see _execute_analysis (TA-87). A retry
+    # that fails again must leave any previously cached analysis intact,
+    # not wipe it up front and then fail.
     analysis.error_message = None
     db.commit()
 
