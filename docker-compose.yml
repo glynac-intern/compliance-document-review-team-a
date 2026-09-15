@@ -79,6 +79,31 @@ services:
     # dev` against live-mounted source. A bind mount would shadow that
     # build with whatever's on the host, and defeat the point of it.
 
+  # TA-89: sole public entry point. backend/frontend keep their `ports:`
+  # above for local dev convenience, but on a real deployment those
+  # ports must be closed at the firewall/NSG level -- only 80/443 should
+  # be reachable from the internet. Caddy gets automatic HTTPS for free
+  # for any real hostname in PUBLIC_HOST (a free one via sslip.io works
+  # fine -- Let's Encrypt just can't issue a cert for a bare IP).
+  caddy:
+    image: caddy:2-alpine
+    container_name: compliance_caddy
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
 volumes:
   db_data:
   uploads_data:
+  caddy_data:
+  caddy_config:

@@ -94,6 +94,6 @@ jobs:
             cd ~/compliance-document-review-team-a
             git pull origin main
             docker compose build backend frontend
-            docker compose up -d db backend frontend
+            docker compose up -d db backend frontend caddy
             docker compose run --rm backend alembic -c backend/alembic.ini upgrade head
             echo "Deploy complete"

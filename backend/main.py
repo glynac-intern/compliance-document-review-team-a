@@ -17,10 +17,17 @@ app = FastAPI(title="Compliance Document Review API")
 # on the VM, uncommitted, with nothing else in the repo ever setting
 # it: any future `git checkout`/reset there would have silently wiped
 # it and broken the live demo with no obvious cause.
+#
+# TA-89: PUBLIC_HOST is now a real hostname (Caddy needs one for
+# automatic HTTPS -- it cannot issue a cert for a bare IP), served over
+# HTTPS through Caddy rather than :3000 directly. The old bare-IP/:3000
+# form is kept too so a deployment mid-migration (DNS/NSG not switched
+# over yet) doesn't lose CORS access.
 allowed_origins = ["http://localhost:3000"]
 public_host = os.environ.get("PUBLIC_HOST")
 if public_host:
     allowed_origins.append(f"http://{public_host}:3000")
+    allowed_origins.append(f"https://{public_host}")
 
 app.add_middleware(
     CORSMiddleware,
