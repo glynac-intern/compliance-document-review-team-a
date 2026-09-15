@@ -1,0 +1,20 @@
+# TA-89: reverse proxy in front of both services, with automatic HTTPS.
+#
+# {$PUBLIC_HOST} is the bare hostname the deployed instance is reached
+# at (e.g. 104-211-102-169.sslip.io -- see .env.example). Caddy requests
+# and renews a real Let's Encrypt cert for it automatically; nothing
+# else to configure. Using a real hostname (even a free sslip.io one)
+# rather than a bare IP is what makes automatic HTTPS possible at all --
+# Let's Encrypt cannot issue a cert for a bare IP address.
+#
+# Backend is reached at api.{$PUBLIC_HOST}, a separate subdomain rather
+# than a /api path prefix -- no path-stripping, no risk of colliding
+# with a real frontend route that happens to start with /api.
+
+{$PUBLIC_HOST} {
+	reverse_proxy frontend:3000
+}
+
+api.{$PUBLIC_HOST} {
+	reverse_proxy backend:8000
+}
