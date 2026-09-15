@@ -15,16 +15,48 @@ import { ComplianceDocument } from "@/types/compliance";
 import { Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { useAuth } from "@/lib/auth-context";
 import { documentsApi, type BackendDocument } from "@/lib/documents-api";
 import { adaptBackendDocument } from "@/lib/document-adapter";
 import { ApiError } from "@/lib/api-client";
 import { MOCK_DOCUMENTS } from "@/lib/mock-data";
+
+/**
+ * Returns a time-of-day greeting that updates every minute so the
+ * salutation stays accurate even if the page is left open all day.
+ *
+ *   before 12:00  → "Good morning"
+ *   12:00–16:59   → "Good afternoon"
+ *   17:00+        → "Good evening"
+ */
+function useGreeting(): string {
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const [greeting, setGreeting] = React.useState(getGreeting);
+
+  React.useEffect(() => {
+    // Re-evaluate every 60 seconds so the greeting transitions naturally
+    const id = setInterval(() => setGreeting(getGreeting()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return greeting;
+}
 
 export default function AdvisorDashboardPage() {
   // TA-61: unauthenticated visitors redirected to /login; an
   // authenticated officer landing here gets sent to their own
   // dashboard instead.
   const { isReady } = useRequireAuth("advisor");
+  const { user } = useAuth();
+  const greeting = useGreeting();
+  // Extract first name from the authenticated user, fallback to "there"
+  const firstName = user?.name?.split(" ")[0] || "there";
 
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
@@ -258,7 +290,7 @@ export default function AdvisorDashboardPage() {
               {/* Top Salutation — Big elegant non-bold Inter font with Advisor name */}
               <div>
                 <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-normal text-slate-800 tracking-tight font-inter leading-tight">
-                  Good morning, James.
+                  {greeting}, {firstName}.
                 </h1>
               </div>
 

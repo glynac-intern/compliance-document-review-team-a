@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import {
   RotateCw,
   Bell,
-  Calendar as CalendarIcon,
   ChevronRight,
   Menu,
   Check,
+  CheckCircle2,
   Clock,
   AlertCircle,
+  XCircle,
+  BellOff,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,15 +51,13 @@ export function TopBar({
   isRefreshing = false,
   onNotificationClick,
 }: TopBarProps) {
-  const { logout } = useAuth();
+  const { role, logout } = useAuth();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = React.useState(false);
-  const [showCalendar, setShowCalendar] = React.useState(false);
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
 
   const notificationsRef = React.useRef<HTMLDivElement>(null);
-  const calendarRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     let ignore = false;
@@ -123,17 +123,17 @@ export function TopBar({
       }
     }
     setShowNotifications(false);
-    // TA-71: Navigate to the document or invoke onNotificationClick so advisor can view decision.
+    // TA-71: Navigate to the document or invoke onNotificationClick so advisor/officer can view decision.
     if (item.document_id) {
       if (onNotificationClick) {
         onNotificationClick(item.document_id);
       } else {
-        router.push(`/advisor?doc=${item.document_id}`);
+        router.push(role === "officer" ? `/officer/documents/${item.document_id}` : `/advisor?doc=${item.document_id}`);
       }
     }
   };
 
-  // Close popovers on click outside
+  // Close popover on click outside
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -142,31 +142,10 @@ export function TopBar({
       ) {
         setShowNotifications(false);
       }
-      if (
-        calendarRef.current &&
-        !calendarRef.current.contains(e.target as Node)
-      ) {
-        setShowCalendar(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const calendarEvents = [
-    {
-      date: "Mar 15, 2026",
-      title: "Q1 Marketing Filing Deadline",
-      type: "SEC Reg. Cutoff",
-      urgent: true,
-    },
-    {
-      date: "Mar 20, 2026",
-      title: "FINRA Rule 2210 Annual Attestation",
-      type: "Firm Compliance",
-      urgent: false,
-    },
-  ];
 
   return (
     // Taller vertically (h-16 = 64px, +8px from previous h-14), providing airy, elevated feel
@@ -246,59 +225,6 @@ export function TopBar({
             />
           </button>
 
-          {/* Regulatory Calendar Button */}
-          <div className="relative" ref={calendarRef}>
-            <button
-              type="button"
-              onClick={() => setShowCalendar(!showCalendar)}
-              title="Regulatory Calendar & Deadlines"
-              className={cn(
-                "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
-                showCalendar && "bg-white text-[#1e4c77] shadow-2xs"
-              )}
-            >
-              <CalendarIcon className="h-4 w-4 stroke-[1.8]" />
-            </button>
-
-            {/* Calendar Popover */}
-            {showCalendar && (
-              <div className="absolute right-0 mt-2 w-80 rounded-xl bg-white border border-slate-200/90 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-[#1e4c77] stroke-[1.8]" />
-                    <h3 className="text-[13px] font-normal text-slate-800 font-inter">
-                      Regulatory Deadlines
-                    </h3>
-                  </div>
-                  <span className="text-[11px] font-normal text-slate-400 font-inter">
-                    Q1 2026
-                  </span>
-                </div>
-
-                <div className="space-y-2 pt-2.5">
-                  {calendarEvents.map((evt, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-lg border border-slate-100 bg-[#f8fafc] hover:border-slate-200 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-normal text-[#1e4c77] font-inter">
-                          {evt.type}
-                        </span>
-                        <span className="text-[11px] font-normal text-slate-500 font-numbers tabular-nums">
-                          {evt.date}
-                        </span>
-                      </div>
-                      <p className="text-[12px] font-normal text-slate-700 leading-snug font-inter">
-                        {evt.title}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Hairline Divider */}
           <div className="h-3.5 w-px bg-slate-200/90 mx-0.5" />
 
@@ -307,7 +233,8 @@ export function TopBar({
             <button
               type="button"
               onClick={() => setShowNotifications(!showNotifications)}
-              title="Notifications"
+              title={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+              aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
               className={cn(
                 "relative h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
                 showNotifications && "bg-white text-[#1e4c77] shadow-2xs"
@@ -315,96 +242,176 @@ export function TopBar({
             >
               <Bell className="h-4 w-4 stroke-[1.8]" />
               {unreadCount > 0 && (
-                <span
-                  className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#1e4c77] ring-2 ring-white"
-                />
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#1e4c77] text-white text-[9px] font-medium font-numbers flex items-center justify-center ring-2 ring-white shadow-2xs animate-in zoom-in-50 duration-150">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
               )}
             </button>
 
             {/* Notifications Popover */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl bg-white border border-slate-200/90 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-inter">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200/90 shadow-xl z-50 animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden font-inter">
+                {/* Popover Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-[13px] font-normal text-slate-800 font-inter">Notifications</h3>
+                    <div className="h-6 w-6 rounded-lg bg-[#ebf4fb] border border-[#2575bc]/20 text-[#1e4c77] flex items-center justify-center">
+                      <Bell className="h-3.5 w-3.5 stroke-[1.8]" />
+                    </div>
+                    <h3 className="text-[13px] font-medium text-slate-800 font-inter">Notifications</h3>
                     {unreadCount > 0 && (
-                      <span className="rounded-full bg-[#ebf4fb] px-2 py-0.5 text-[10px] font-normal text-[#1e4c77] font-inter">
-                        {unreadCount} new
+                      <span className="rounded-full bg-[#ebf4fb] border border-[#2575bc]/20 px-2 py-0.5 text-[10px] font-medium text-[#1e4c77] font-numbers tabular-nums">
+                        {unreadCount} unread
                       </span>
                     )}
                   </div>
-                {unreadCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleMarkAllRead}
-                    className="text-[11px] font-normal text-[#1e4c77] hover:underline font-inter cursor-pointer"
-                  >
-                    Mark all read
-                  </button>
-                )}
-              </div>
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllRead}
+                      className="text-[11px] font-normal text-[#1e4c77] hover:text-[#163e63] hover:underline transition-colors cursor-pointer flex items-center gap-1 font-inter"
+                    >
+                      <Check className="h-3 w-3 stroke-[2]" />
+                      Mark all read
+                    </button>
+                  )}
+                </div>
 
-              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto pt-1 font-inter">
-                {notifications.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400 font-inter">
-                    No notifications yet.
-                  </div>
-                ) : (
-                  notifications.map((item) => {
-                    const msg = item.message || "";
-                    const isApproved = msg.toLowerCase().includes("approved");
-                    const isRevision =
-                      msg.toLowerCase().includes("revision") || msg.toLowerCase().includes("rejected");
-                    const iconType = isApproved ? "success" : isRevision ? "warning" : "info";
-                    const title = isApproved
-                      ? "Document Approved"
-                      : isRevision
-                      ? "Needs Revision"
-                      : "Compliance Update";
+                {/* Notifications List */}
+                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto font-inter">
+                  {notifications.length === 0 ? (
+                    <div className="py-10 px-4 text-center font-inter">
+                      <div className="h-9 w-9 rounded-full bg-slate-100/80 border border-slate-200/60 text-slate-400 flex items-center justify-center mx-auto mb-2.5">
+                        <BellOff className="h-4 w-4 stroke-[1.8]" />
+                      </div>
+                      <p className="text-[12px] font-medium text-slate-700">No notifications yet</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        You&apos;re all caught up. Review decisions and updates will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    notifications.map((item) => {
+                      const msg = item.message || "";
+                      const lower = msg.toLowerCase();
+                      const isApproved = lower.includes("approved");
+                      const isRejected = lower.includes("rejected");
+                      const isRevision =
+                        lower.includes("revision") || lower.includes("needs revision");
 
-                    return (
-                      <div
-                        key={item.id}
-                        onClick={() => handleNotificationClick(item)}
-                        className={cn(
-                          "py-2.5 px-2 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer",
-                          !item.is_read && "bg-blue-50/40"
-                        )}
-                      >
-                        <div className="flex items-start gap-2.5">
+                      const iconType = isApproved
+                        ? "approved"
+                        : isRejected
+                        ? "rejected"
+                        : isRevision
+                        ? "revision"
+                        : "general";
+
+                      const title = isApproved
+                        ? "Document Approved"
+                        : isRejected
+                        ? "Document Rejected"
+                        : isRevision
+                        ? "Revision Requested"
+                        : "Compliance Update";
+
+                      // Parse any comment embedded by backend review decisions (" Comment: ...")
+                      let bodyText = msg;
+                      let commentText: string | null = null;
+                      if (msg.includes(" Comment: ")) {
+                        const parts = msg.split(" Comment: ");
+                        bodyText = parts[0];
+                        commentText = parts.slice(1).join(" Comment: ");
+                      }
+
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => handleNotificationClick(item)}
+                          className={cn(
+                            "py-3 px-3.5 transition-colors cursor-pointer group hover:bg-slate-50/80 flex items-start gap-3",
+                            !item.is_read && "bg-[#ebf4fb]/30 border-l-2 border-[#1e4c77]"
+                          )}
+                        >
+                          {/* Status Icon */}
                           <div
                             className={cn(
-                              "mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px]",
-                              iconType === "warning" && "bg-amber-50 text-amber-800 border border-amber-200",
-                              iconType === "success" && "bg-emerald-50 text-emerald-800 border border-emerald-200",
-                              iconType === "info" && "bg-blue-50 text-[#1e4c77] border border-blue-200"
+                              "mt-0.5 h-7 w-7 rounded-lg flex items-center justify-center shrink-0 shadow-2xs",
+                              iconType === "approved" &&
+                                "bg-emerald-50 text-emerald-700 border border-emerald-200/80",
+                              iconType === "revision" &&
+                                "bg-amber-50 text-amber-800 border border-amber-200/80",
+                              iconType === "rejected" &&
+                                "bg-rose-50 text-rose-700 border border-rose-200/80",
+                              iconType === "general" &&
+                                "bg-[#ebf4fb] text-[#1e4c77] border border-[#2575bc]/20"
                             )}
                           >
-                            {iconType === "warning" && <AlertCircle className="h-3 w-3 stroke-[1.8]" />}
-                            {iconType === "success" && <Check className="h-3 w-3 stroke-[2]" />}
-                            {iconType === "info" && <Clock className="h-3 w-3 stroke-[1.8]" />}
+                            {iconType === "approved" && (
+                              <CheckCircle2 className="h-3.5 w-3.5 stroke-[2]" />
+                            )}
+                            {iconType === "revision" && (
+                              <AlertCircle className="h-3.5 w-3.5 stroke-[1.8]" />
+                            )}
+                            {iconType === "rejected" && (
+                              <XCircle className="h-3.5 w-3.5 stroke-[1.8]" />
+                            )}
+                            {iconType === "general" && (
+                              <Clock className="h-3.5 w-3.5 stroke-[1.8]" />
+                            )}
                           </div>
+
+                          {/* Content */}
                           <div className="flex-1 min-w-0 font-inter">
-                            <div className="flex items-center justify-between">
-                              <p className="text-[12px] font-medium text-slate-800 truncate font-inter">
-                                {title}
-                              </p>
-                              <span className="text-[10px] text-slate-400 shrink-0 font-inter font-normal">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <p className="text-[12px] font-medium text-slate-800 truncate">
+                                  {title}
+                                </p>
+                                {!item.is_read && (
+                                  <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] shrink-0" />
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-400 shrink-0 font-normal font-numbers tabular-nums">
                                 {formatNotificationTime(item.created_at)}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-600 leading-snug mt-0.5 font-inter font-normal">
-                              {msg}
+
+                            <p className="text-[11px] text-slate-600 leading-snug mt-0.5 font-normal">
+                              {bodyText}
                             </p>
+
+                            {commentText && (
+                              <div className="mt-1.5 p-1.5 rounded-md bg-slate-100/70 border border-slate-200/60 text-[11px] text-slate-700 leading-relaxed font-normal">
+                                <span className="text-slate-400 font-medium mr-1">Note:</span>
+                                {commentText}
+                              </div>
+                            )}
+
+                            {item.document_id && (
+                              <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[#1e4c77] group-hover:underline">
+                                View document
+                                <ChevronRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
+                              </span>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Footer status indicator */}
+                <div className="px-4 py-2 bg-slate-50/70 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between font-inter">
+                  <span className="flex items-center gap-1.5">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    Live audit trail
+                  </span>
+                  <span>Compliance Team A</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </div>
 
           {/* Hairline Divider */}
