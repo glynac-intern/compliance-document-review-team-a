@@ -16,6 +16,7 @@ export interface QueueDocument {
   uploaded_at: string;
   thread_id: string;
   replaces_document_id: string | null;
+  revision_notes?: string | null;
 }
 
 export type DecisionStatus = "approved" | "rejected" | "needs_revision";

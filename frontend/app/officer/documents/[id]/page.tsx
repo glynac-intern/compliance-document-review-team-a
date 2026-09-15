@@ -30,6 +30,7 @@ import {
   Check,
   X,
   RotateCcw,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
@@ -182,6 +183,7 @@ export default function OfficerDocumentReviewPage() {
             uploaded_at: mockDoc.uploaded_at,
             thread_id: mockDoc.thread_id,
             replaces_document_id: mockDoc.replaces_document_id,
+            revision_notes: mockDoc.revision_notes,
           });
         } else {
           setDocError(err instanceof ApiError ? err.message : "Unable to load this document.");
@@ -379,6 +381,22 @@ export default function OfficerDocumentReviewPage() {
             ) : leftTab === "preview" ? (
               /* REAL DOCUMENT PREVIEW (PDF in iframe, DOCX/XLSX download prompt) */
               <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Advisor Revision Note Callout */}
+                {(doc?.revision_notes || mockDoc?.revision_notes) && (
+                  <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-start gap-3 text-xs shrink-0">
+                    <MessageSquare className="h-4 w-4 text-[#1e4c77] shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-800">
+                        <span>Advisor Revision Note</span>
+                        <span className="text-[11px] text-slate-400 font-normal">· {displayAdvisor}</span>
+                      </div>
+                      <p className="text-slate-700 mt-0.5 leading-relaxed">
+                        {doc?.revision_notes ?? mockDoc?.revision_notes}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {isPdf && fileBlobUrl ? (
                   <iframe src={fileBlobUrl} className="flex-1 w-full h-full border-0" title="Document preview" />
                 ) : fileError ? (
@@ -481,6 +499,21 @@ export default function OfficerDocumentReviewPage() {
                   </div>
                 </div>
 
+                {/* Advisor Revision Note in Details */}
+                {(doc?.revision_notes || mockDoc?.revision_notes) && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 font-inter">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-[#1e4c77]" />
+                      <h3 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
+                        Advisor Revision Note
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      {doc?.revision_notes ?? mockDoc?.revision_notes}
+                    </p>
+                  </div>
+                )}
+
                 {/* Revision Thread */}
                 {threadEntries.length > 1 && (
                   <div>
@@ -491,7 +524,7 @@ export default function OfficerDocumentReviewPage() {
                       {threadEntries.map((entry, i) => (
                         <div
                           key={entry.document_id}
-                          className="rounded-xl border border-slate-200 p-3 text-[12px]"
+                          className="rounded-xl border border-slate-200 p-3 text-[12px] space-y-1.5"
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-700">
@@ -499,8 +532,15 @@ export default function OfficerDocumentReviewPage() {
                             </span>
                             <StatusBadge status={entry.status} />
                           </div>
+                          {entry.revision_notes && (
+                            <div className="text-[11px] text-slate-700 bg-slate-50 rounded-lg p-2 border border-slate-100">
+                              <span className="font-semibold text-slate-900 mr-1">Advisor Note:</span>
+                              <span>{entry.revision_notes}</span>
+                            </div>
+                          )}
                           {entry.review?.comment && (
-                            <p className="text-[11px] text-slate-600 mt-1.5">
+                            <p className="text-[11px] text-slate-600 mt-1">
+                              <span className="font-semibold text-slate-700 mr-1">Officer Note:</span>
                               {entry.review.comment}
                             </p>
                           )}

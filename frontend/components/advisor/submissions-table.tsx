@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ArrowUpDown,
   FileText,
-  FileCheck,
   Eye,
   Edit3,
   X,
@@ -28,7 +27,6 @@ interface SubmissionsTableProps {
   onSortByChange: (sort: "newest" | "oldest" | "title") => void;
   onSelectDocument: (doc: ComplianceDocument) => void;
   onReviseClick: (doc: ComplianceDocument) => void;
-  onCertificateClick: (doc: ComplianceDocument) => void;
   onResetFilters: () => void;
   variant?: "overview" | "full";
   onViewMore?: () => void;
@@ -44,7 +42,6 @@ export function SubmissionsTable({
   onSortByChange,
   onSelectDocument,
   onReviseClick,
-  onCertificateClick,
   onResetFilters,
   variant = "full",
   onViewMore,
@@ -139,18 +136,13 @@ export function SubmissionsTable({
           )}
         </div>
       ) : (
-        /* Dedicated Full Submissions Header Variant: With Search (Gradient halo/border), Status, Sort, Filters */
-        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="text-base sm:text-lg font-normal text-slate-800 tracking-tight font-inter">
-              My Submissions
-            </h2>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs font-normal text-slate-400 font-inter">
-                All submissions (<span className="font-numbers text-slate-600">{filteredDocuments.length}</span>)
-              </span>
+        /* Dedicated Full Submissions Header Variant: Search, Status, Sort, Filters — no redundant title */
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-normal text-slate-400 font-inter">
+              <span className="font-numbers text-slate-600">{filteredDocuments.length}</span> submission{filteredDocuments.length !== 1 ? "s" : ""}
               {hasActiveFilters && (
-                <button
+                <> · <button
                   type="button"
                   onClick={() => {
                     setTypeFilter("all");
@@ -159,9 +151,9 @@ export function SubmissionsTable({
                   className="text-xs font-normal text-[#2575bc] hover:underline cursor-pointer font-inter"
                 >
                   Reset filters
-                </button>
+                </button></>
               )}
-            </div>
+            </span>
           </div>
 
           {/* Full Controls Bar */}
@@ -299,10 +291,10 @@ export function SubmissionsTable({
                       // ever), distinct from "filtered to nothing" below.
                       <>
                         <p className="text-sm font-normal text-slate-800 font-inter">
-                          No submissions yet
+                          Nothing here yet
                         </p>
                         <p className="text-xs text-slate-400 mt-1 font-inter font-normal">
-                          Upload your first document to get started with compliance review.
+                          Submit a document to begin.
                         </p>
                       </>
                     ) : (
@@ -402,15 +394,6 @@ export function SubmissionsTable({
                           >
                             <Edit3 className="h-3.5 w-3.5 stroke-[1.8] text-[#1e4c77]" />
                             <span>Revise</span>
-                          </button>
-                        ) : isApproved ? (
-                          <button
-                            type="button"
-                            onClick={() => onCertificateClick(doc)}
-                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 bg-white hover:bg-[#ebf4fb]/50 hover:border-[#1e4c77]/30 text-slate-700 hover:text-[#1e4c77] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
-                          >
-                            <FileCheck className="h-3.5 w-3.5 stroke-[1.8] text-[#1e4c77]" />
-                            <span>Certificate</span>
                           </button>
                         ) : (
                           <button

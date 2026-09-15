@@ -20,6 +20,7 @@ export interface BackendDocument {
   uploaded_at: string;
   thread_id: string;
   replaces_document_id: string | null;
+  revision_notes?: string | null;
 }
 
 // Mirrors the backend's real constraints (documents/router.py) -- surfaced
@@ -53,6 +54,7 @@ export interface ThreadEntry {
   type: BackendDocumentType;
   uploaded_at: string;
   replaces_document_id: string | null;
+  revision_notes?: string | null;
   review: ThreadReview | null;
 }
 
@@ -211,12 +213,16 @@ export const documentsApi = {
   submitRevision: (
     originalDocumentId: string,
     file: File,
-    onProgress: (percent: number) => void
+    onProgress: (percent: number) => void,
+    comment?: string
   ): Promise<BackendDocument> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const formData = new FormData();
       formData.append("file", file);
+      if (comment && comment.trim()) {
+        formData.append("comment", comment.trim());
+      }
 
       xhr.open("POST", `${API_BASE_URL}/documents/${originalDocumentId}/revisions`);
       const token = getStoredToken();

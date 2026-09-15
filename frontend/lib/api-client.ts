@@ -165,6 +165,12 @@ export const authApi = {
 
   getMe: (): Promise<UserResponse> => apiFetch<UserResponse>("/auth/me"),
 
+  updateMe: (data: { name?: string; email?: string }): Promise<UserResponse> =>
+    apiFetch<UserResponse>("/auth/me", {
+      method: "PATCH",
+      body: data,
+    }),
+
   logout: (): Promise<{ detail: string }> =>
     apiFetch<{ detail: string }>("/auth/logout", {
       method: "POST",

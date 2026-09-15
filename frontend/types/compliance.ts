@@ -50,6 +50,7 @@ export interface ComplianceDocument {
   officer_name?: string;
   reviewed_at?: string;
   ai_summary?: string;
+  revision_notes?: string;
   flags_count?: {
     high: number;
     medium: number;
