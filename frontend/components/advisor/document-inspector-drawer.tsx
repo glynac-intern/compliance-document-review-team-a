@@ -17,6 +17,10 @@ import { ApiError } from "@/lib/api-client";
 
 interface DocumentInspectorDrawerProps {
   document: ComplianceDocument | null;
+  // True if this document has already been superseded by its own
+  // revision -- its needs_revision status is a historical record at
+  // that point, not something still actionable.
+  isSuperseded?: boolean;
   onClose: () => void;
   onReviseClick: (doc: ComplianceDocument) => void;
 }
@@ -37,6 +41,7 @@ function formatDate(iso: string): string {
 
 export function DocumentInspectorDrawer({
   document: doc,
+  isSuperseded = false,
   onClose,
   onReviseClick,
 }: DocumentInspectorDrawerProps) {
@@ -434,7 +439,7 @@ export function DocumentInspectorDrawer({
             <span>{isDownloading ? "Downloading..." : "Download File"}</span>
           </button>
 
-          {doc.status === "needs_revision" ? (
+          {doc.status === "needs_revision" && !isSuperseded ? (
             <button
               type="button"
               onClick={() => {

@@ -99,6 +99,14 @@ export function SubmissionsTable({
   const hasActiveFilters =
     searchQuery.trim() !== "" || statusFilter !== "all" || typeFilter !== "all";
 
+  // A needs_revision document already superseded by its own revision
+  // keeps that status forever as a historical record -- it's not still
+  // actionable, so it shouldn't offer a "Revise" button.
+  const supersededIds = React.useMemo(
+    () => new Set(documents.filter((d) => d.replaces_document_id).map((d) => d.replaces_document_id as string)),
+    [documents]
+  );
+
   const formatDate = (isoString: string) => {
     try {
       const d = new Date(isoString);
@@ -322,7 +330,7 @@ export function SubmissionsTable({
               </tr>
             ) : (
               displayedDocuments.map((doc) => {
-                const isNeedsRevision = doc.status === "needs_revision";
+                const isNeedsRevision = doc.status === "needs_revision" && !supersededIds.has(doc.id);
                 const isApproved = doc.status === "approved";
 
                 return (
