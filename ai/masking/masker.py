@@ -24,7 +24,14 @@ PHONE_RE = re.compile(
     r"(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
 )
 
-SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
+# TA-88: (?<!\d)...(?!\d), not \b on both ends -- \b treats underscore
+# as a word character, so it silently fails to match an SSN directly
+# adjacent to one (e.g. "statement_123-45-6789_final.pdf"), found via
+# an adversarial filename-shaped-text test. The lookarounds specifically
+# reject being preceded/followed by another DIGIT (still won't
+# partial-match inside a longer run like "1234-56-78901"), while
+# allowing underscores, letters, or punctuation on either side.
+SSN_RE = re.compile(r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)")
 
 ACCOUNT_RE = re.compile(
     r"\b(?:account|acct)\.?\s*#?\s*:?\s*(\d{6,17})\b", re.IGNORECASE
@@ -35,12 +42,29 @@ ADDRESS_RE = re.compile(
     rf"\b\d{{1,5}}\s+(?:[A-Z][a-z]+\s){{1,3}}{STREET_SUFFIXES}\b"
 )
 
+# TA-88: each name word requires an uppercase FIRST letter -- covering
+# ASCII (A-Z) and the Latin-1/Latin Extended-A accented uppercase range
+# (À-Ö, Ø-Þ, e.g. É Ñ Ü) -- followed by any run of Unicode letters for
+# the rest of the word (covers lowercase accented letters too, e.g. é
+# ü ç, wherever they fall in the word). The original [A-Z][a-z]+ was
+# ASCII-only and silently mangled "Dr. José García" (partial-matched
+# "Jos", dropped "é García" unmasked); simply switching the whole word
+# to a permissive [^\W\d_]+ (tried first, reverted) broke the mandatory
+# capital-first-letter signal that stops the two-word repetition group
+# at the next lowercase connector word -- confirmed via regression:
+# "reach Maria Gonzalez at maria@..." then captured "Maria Gonzalez at"
+# as the name, "at" included. Requiring a capitalized first letter
+# (now Unicode-aware, not ASCII-only) keeps that stopping behavior
+# while still matching accented names.
+NAME_WORD = r"[A-ZÀ-ÖØ-Þ][^\W\d_]*"
+
 # "Dear" is an optional greeting prefix; Mr/Mrs/Ms/Dr is the REQUIRED title
 # that anchors the capture group onto the actual name, not onto another
 # title word. Without the mandatory title, "Dear John," alone won't match —
 # documented tradeoff below.
 NAME_RE = re.compile(
-    r"\b(?:Dear\s+)?(?:Mr|Mrs|Ms|Dr)\.?\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})\b"
+    rf"\b(?:Dear\s+)?(?:Mr|Mrs|Ms|Dr)\.?\s+({NAME_WORD}(?:\s{NAME_WORD}){{0,2}})\b",
+    re.UNICODE,
 )
 
 # TA-49 addition: names following a contact-verb ("reach", "contact",
@@ -51,7 +75,8 @@ NAME_RE = re.compile(
 # were people. "reach/contact/call" is specific enough that it doesn't
 # collide with product-name mentions in practice.
 CONTACT_VERB_NAME_RE = re.compile(
-    r"\b(?:reach|contact|call)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})\b"
+    rf"\b(?:reach|contact|call)\s+({NAME_WORD}(?:\s{NAME_WORD}){{0,2}})\b",
+    re.UNICODE,
 )
 
 AMOUNT_RE = re.compile(r"\$\s?[\d,]+(?:\.\d{2})?")
@@ -130,7 +155,14 @@ def unmask_for_display(text: str, mapping: dict[str, str]) -> str:
 # - Names: only detected when preceded by Mr./Mrs./Ms./Dr. (optionally
 #   with a leading "Dear"). A bare "Dear John," with no title, or a name
 #   appearing mid-sentence with no salutation ("Jane Smith called..."),
-#   will NOT be masked.
+#   will NOT be masked. This is the single biggest real-world exposure
+#   path in the app: a client-supplied FILENAME carrying a name (e.g.
+#   "John_Smith_portfolio_review.pdf") is never masked at all, anywhere
+#   -- filenames are never passed through mask_pii in the first place,
+#   only extracted document TEXT is. Confirmed via TA-88's adversarial
+#   pass (test_ta88_masker_adversarial.py); not fixed here, since doing
+#   so touches how filenames are stored/displayed across every viewer,
+#   a larger and riskier change than this pass's scope.
 # - Addresses: standard "number + street name + suffix" patterns only
 #   (Street, Ave, Road, Terrace, Circle, etc.). PO boxes, apartment/unit
 #   numbers, and non-US formats are not covered.
@@ -141,5 +173,33 @@ def unmask_for_display(text: str, mapping: dict[str, str]) -> str:
 #   same paragraph (blank-line-delimited block). An amount in its own
 #   paragraph, or referencing a client from several paragraphs earlier,
 #   may be missed.
-# - No handling for nicknames, initials-only names ("J. Smith"), or
-#   names split across a line break.
+# - No handling for nicknames, initials-only names ("J. Smith").
+# - TA-88 adversarial pass, confirmed by running mask_pii() directly
+#   against each of these (test_ta88_masker_adversarial.py), not just
+#   assumed:
+#   - Unicode names (accented/non-ASCII characters, e.g. "José García")
+#     ARE now masked -- found broken (silently partial-matched, leaking
+#     everything past the first non-ASCII character) and fixed in this
+#     same pass by widening NAME_RE/CONTACT_VERB_NAME_RE to match any
+#     Unicode letter instead of the ASCII-only [A-Z][a-z].
+#   - PII split across a line break (an email or SSN broken mid-token
+#     by a line wrap, which real extracted PDF/DOCX text does at
+#     arbitrary points) is NOT masked -- none of the regexes tolerate
+#     embedded whitespace/newlines within a match. Not fixed: joining
+#     wrapped lines before masking is an extraction-stage change, out
+#     of scope for the masker itself.
+#   - SSN without dashes (a bare 9-digit run) is NOT masked -- SSN_RE
+#     requires the dashed shape as its anchor; a bare 9-digit number is
+#     otherwise indistinguishable from an account/reference number.
+#     Deliberate precision/recall tradeoff, not an oversight.
+#   - Non-US phone formats (e.g. "+44 20 7946 0958") and extensions
+#     ("x4521") are NOT masked/stripped -- PHONE_RE is US-format-only.
+#   - PII embedded in filename-shaped text (underscores/hyphens instead
+#     of spaces, no sentence structure) is masked for SSN/email. SSN was
+#     actually broken here until this same pass: SSN_RE used \b on both
+#     ends, and \b treats underscore as a word character, so a
+#     directly-adjacent SSN ("statement_123-45-6789_final.pdf") silently
+#     never matched -- found via this exact adversarial case, fixed by
+#     switching to digit-specific negative lookarounds instead of \b.
+#     Names in this same filename shape are NOT masked, per the filename
+#     point above (no title to anchor on).
