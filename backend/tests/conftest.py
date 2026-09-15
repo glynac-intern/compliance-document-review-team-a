@@ -115,3 +115,10 @@ def advisor_token(client):
 @pytest.fixture()
 def officer_token(client):
     return _signup_and_login(client, "officer@rolefixture.io", "testpass123", "officer")
+
+
+@pytest.fixture()
+def second_advisor_token(client):
+    """A distinct advisor account, for TA-88: cross-advisor access probes
+    need two different advisors, not just advisor-vs-officer."""
+    return _signup_and_login(client, "second-advisor@rolefixture.io", "testpass123", "advisor")
