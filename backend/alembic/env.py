@@ -1,11 +1,8 @@
 import os
-import sys
 from logging.config import fileConfig
 
 from sqlalchemy import create_engine, pool
 from alembic import context
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import Base
 import models  # noqa: F401 — registers all model classes on Base.metadata

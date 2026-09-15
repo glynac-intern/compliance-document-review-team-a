@@ -17,17 +17,12 @@ Run inside the backend container:
     docker compose run --rm backend python data_pipeline/embeddings/backfill_precedents.py
 """
 import json
-import os
-import sys
 import uuid
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/ai/masking")
 
-from masker import mask_pii
-from embed_client import embed_texts_batch
+from ai.masking.masker import mask_pii
+from data_pipeline.embeddings.embed_client import embed_texts_batch
 from database import SessionLocal
 from models import (
     Document, DocumentType, DocumentStatus, PrecedentIndex, User, UserRole,

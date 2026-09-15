@@ -106,8 +106,13 @@ against this after any retrieval tuning to confirm it actually helped.
 ## Running tests
 
 ```bash
-docker compose run --rm backend pytest tests/ -v
+docker compose run --rm backend pytest backend/tests/ -v
 ```
+
+(TA-79: the suite runs the same way outside Docker too -- `pip install
+-r backend/requirements.txt` locally, then `pytest` from the repo
+root. `pyproject.toml`'s `pythonpath` setting resolves the same
+first-party imports either way, without any sys.path hacks in code.)
 
 99 tests (verified by actually running the suite, not just counting
 files): the role boundary (advisor/officer access enforcement, tested

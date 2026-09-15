@@ -22,18 +22,15 @@ path and DATABASE_URL/LLM_API_KEY are set via .env:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, "/app")  # backend/ root, for database.py and models.py imports
 
 from database import SessionLocal
 from models import Rule
 # Reuse the SAME embedding functions as everywhere else -- not a separate
 # copy (TA-34, TA-52, TA-54).
-from embed_client import embed_texts_batch
+from data_pipeline.embeddings.embed_client import embed_texts_batch
 
 RULES_JSON_PATH = Path("/app/seed/rules/rules.json")
 DISCLOSURES_JSON_PATH = Path("/app/seed/disclosures/disclosures.json")

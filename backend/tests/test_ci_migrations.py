@@ -10,11 +10,14 @@ from inside a pytest run here. That step was verified directly (cat'd
 the file, confirmed the step is present) rather than via an automated
 test that could never actually reach it.
 """
+from pathlib import Path
 
 
 def test_conftest_uses_alembic_not_create_all():
     """Structural check: confirms the fix is genuinely in place, not
     just that tests happen to pass today."""
-    content = open("/app/tests/conftest.py").read()
+    # TA-79: __file__-relative, not a hardcoded container path -- this
+    # file and conftest.py are always siblings, in Docker or outside it.
+    content = (Path(__file__).parent / "conftest.py").read_text()
     assert "command.upgrade" in content
     assert "Base.metadata.create_all(engine)" not in content

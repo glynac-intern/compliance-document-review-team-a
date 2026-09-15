@@ -9,14 +9,11 @@ Run inside the backend container:
 """
 
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/ai/compliance")
 
 from database import SessionLocal
-from analyze_document import analyze_text
+from ai.compliance.analyze_document import analyze_text
 
 DOCUMENTS_DIR = Path("/app/seed/documents")
 

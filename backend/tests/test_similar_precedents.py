@@ -4,10 +4,8 @@ documents as precedents, each with decision and comment. The document
 being reviewed is never its own precedent. An empty index degrades to
 an empty list, not an error.
 """
-import sys
 import uuid
 
-sys.path.insert(0, "/app")
 
 from models import Document, DocumentChunk, PrecedentIndex, User, AIAnalysis, AnalysisStatus
 

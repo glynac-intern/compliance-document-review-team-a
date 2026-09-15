@@ -1,6 +1,5 @@
 import io
 import os
-import sys
 import uuid
 import zipfile
 from datetime import datetime
@@ -22,12 +21,9 @@ from documents.schemas import DocumentResponse, ThreadEntryResponse
 from documents.analysis_schemas import AnalysisResponse
 from reviews.schemas import ReviewResponse
 
-sys.path.insert(0, "/app/data_pipeline/extraction")
-sys.path.insert(0, "/app/data_pipeline/retrieval")
-sys.path.insert(0, "/app/ai/compliance")
-from extract import extract_text
-from analyze_document import analyze_text
-from precedent_retrieval import retrieve_similar_precedents
+from data_pipeline.extraction.extract import extract_text
+from ai.compliance.analyze_document import analyze_text
+from data_pipeline.retrieval.precedent_retrieval import retrieve_similar_precedents
 
 router = APIRouter()
 

@@ -10,13 +10,11 @@ proof of the invariant (not just "an exception happened somewhere").
 If the guard is ever removed or bypassed, test_raw_pii_never_reaches_the_api
 below will fail, since the mocked API would then actually get called.
 """
-import sys
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, "/app/data_pipeline/embeddings")
 
-import embed_client
-from embed_client import embed_text, EMBEDDING_DIM
+import data_pipeline.embeddings.embed_client as embed_client
+from data_pipeline.embeddings.embed_client import embed_text, EMBEDDING_DIM
 
 
 def _fake_client_returning(vector):
@@ -76,12 +74,10 @@ def test_rules_corpus_script_uses_the_same_guarded_embed_text():
     function (now the batch version, TA-52) -- not maintain its own
     separate copy that could bypass the guard. This is what makes the
     rules-corpus path covered as well as the document path."""
-    sys.path.insert(0, "/app/data_pipeline/embeddings")
-    import embed_rules
+    import data_pipeline.embeddings.embed_rules as embed_rules
     assert embed_rules.embed_texts_batch is embed_client.embed_texts_batch
 
 
 def test_disclosure_check_script_uses_the_same_guarded_embed_text():
-    sys.path.insert(0, "/app/data_pipeline/retrieval")
-    import disclosure_check
+    import data_pipeline.retrieval.disclosure_check as disclosure_check
     assert disclosure_check.embed_texts_batch is embed_client.embed_texts_batch

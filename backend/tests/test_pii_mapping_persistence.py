@@ -7,10 +7,6 @@ Inserts a cached analysis + mapping directly into the test DB, matching
 the pattern used for TA-40's flag test -- this checks the persistence
 and response-shape guarantees without needing a real LLM call.
 """
-import sys
-
-sys.path.insert(0, "/app")
-
 from models import AIAnalysis, PIIMapping, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")

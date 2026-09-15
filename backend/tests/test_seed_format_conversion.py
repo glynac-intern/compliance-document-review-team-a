@@ -5,11 +5,7 @@ extract_text(), with at least one document carrying a fake name,
 email, and account number together.
 """
 import json
-import sys
 from pathlib import Path
-
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/data_pipeline/extraction")
 
 
 def test_converted_files_exist_in_all_three_formats():
@@ -47,7 +43,7 @@ def test_pii_demo_document_is_present_and_flagged():
 
 
 def test_extraction_works_against_all_three_real_formats():
-    from extract import extract_text
+    from data_pipeline.extraction.extract import extract_text
 
     converted_dir = Path("/app/seed/documents/converted")
     metadata = json.loads((converted_dir / "converted_metadata.json").read_text())
