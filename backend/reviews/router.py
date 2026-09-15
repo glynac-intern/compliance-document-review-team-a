@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from database import get_db
 from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
@@ -24,7 +24,13 @@ def get_queue(
 ):
     # TA-66: eager-load advisor to avoid an N+1 query -- one query
     # for the whole queue, regardless of how many rows it returns.
-    query = db.query(Document).options(joinedload(Document.advisor))
+    # TA-92: same reasoning for advisor_viewed_decision, which reads
+    # reviews + audit_events.
+    query = db.query(Document).options(
+        joinedload(Document.advisor),
+        selectinload(Document.reviews),
+        selectinload(Document.audit_events),
+    )
     if status_filter is not None:
         query = query.filter(Document.status == status_filter)
     return query.order_by(Document.uploaded_at).all()

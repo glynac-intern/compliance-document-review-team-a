@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   Inbox,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
@@ -88,6 +90,7 @@ interface QueueTableRow {
   id: string;
   title: string;
   advisor_name: string;
+  advisor_viewed_decision: boolean | null;
   status: BackendDocumentStatus;
   type: string;
   uploaded_at: string;
@@ -109,6 +112,7 @@ function adaptMockToQueueRow(doc: (typeof MOCK_QUEUE_DOCUMENTS)[0]): QueueTableR
     id: doc.id,
     title: doc.title,
     advisor_name: doc.advisor_name,
+    advisor_viewed_decision: null, // mock/offline fallback -- no real audit data to derive this from
     status: statusMap[doc.status] ?? "pending_review",
     type: doc.type,
     uploaded_at: doc.uploaded_at,
@@ -571,6 +575,26 @@ export default function OfficerDashboardPage() {
                             {/* Status (TA-66) */}
                             <td className="py-3.5 px-4 whitespace-nowrap">
                               <StatusBadge status={doc.status} />
+                              {doc.advisor_viewed_decision !== null && (
+                                <div
+                                  className={cn(
+                                    "flex items-center gap-1 mt-1 text-[10px] font-inter",
+                                    doc.advisor_viewed_decision ? "text-slate-400" : "text-[#1e4c77]"
+                                  )}
+                                >
+                                  {doc.advisor_viewed_decision ? (
+                                    <>
+                                      <Eye className="h-2.5 w-2.5" />
+                                      <span>Seen by advisor</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <EyeOff className="h-2.5 w-2.5" />
+                                      <span>Not seen yet</span>
+                                    </>
+                                  )}
+                                </div>
+                              )}
                             </td>
 
                             {/* Type */}
