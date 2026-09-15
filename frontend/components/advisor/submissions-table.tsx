@@ -398,27 +398,27 @@ export function SubmissionsTable({
                           <button
                             type="button"
                             onClick={() => onReviseClick(doc)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-[11.5px] font-normal font-inter transition-all shadow-xs cursor-pointer"
+                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 bg-white hover:bg-[#ebf4fb]/50 hover:border-[#1e4c77]/30 text-slate-700 hover:text-[#1e4c77] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
                           >
-                            <Edit3 className="h-3.5 w-3.5 stroke-[1.8]" />
+                            <Edit3 className="h-3.5 w-3.5 stroke-[1.8] text-[#1e4c77]" />
                             <span>Revise</span>
                           </button>
                         ) : isApproved ? (
                           <button
                             type="button"
                             onClick={() => onCertificateClick(doc)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#2575bc]/30 bg-[#ebf4fb] hover:bg-[#dbeafe] text-[#1e4c77] text-[11.5px] font-normal font-inter transition-all cursor-pointer shadow-2xs"
+                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 bg-white hover:bg-[#ebf4fb]/50 hover:border-[#1e4c77]/30 text-slate-700 hover:text-[#1e4c77] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
                           >
-                            <FileCheck className="h-3.5 w-3.5 stroke-[1.8] text-[#2575bc]" />
+                            <FileCheck className="h-3.5 w-3.5 stroke-[1.8] text-[#1e4c77]" />
                             <span>Certificate</span>
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => onSelectDocument(doc)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-[#1e4c77] text-[11.5px] font-normal font-inter transition-all cursor-pointer shadow-2xs"
+                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 bg-white hover:bg-[#ebf4fb]/50 hover:border-[#1e4c77]/30 text-slate-700 hover:text-[#1e4c77] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
                           >
-                            <Eye className="h-3.5 w-3.5 text-slate-400 group-hover:text-[#1e4c77]" strokeWidth={1.8} />
+                            <Eye className="h-3.5 w-3.5 stroke-[1.8] text-slate-400 group-hover:text-[#1e4c77] transition-colors" />
                             <span>View</span>
                           </button>
                         )}

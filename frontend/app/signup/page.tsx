@@ -11,13 +11,13 @@ const PASSWORD_MIN_LENGTH = 8; // mirrors the server's real rule (TA-14)
 
 function validatePassword(password: string): string | null {
   if (password.length < PASSWORD_MIN_LENGTH) {
-    return `Password Must Be At Least ${PASSWORD_MIN_LENGTH} Characters Long.`;
+    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`;
   }
   if (!/[a-zA-Z]/.test(password)) {
-    return "Password Must Contain At Least One Letter.";
+    return "Password must contain at least one letter.";
   }
   if (!/[0-9]/.test(password)) {
-    return "Password Must Contain At Least One Digit.";
+    return "Password must contain at least one digit.";
   }
   return null;
 }
@@ -25,7 +25,7 @@ function validatePassword(password: string): string | null {
 function validateEmail(email: string): string | null {
   const simplePattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!simplePattern.test(email)) {
-    return "Please Enter A Valid Email Address.";
+    return "Please enter a valid email address.";
   }
   return null;
 }
@@ -45,7 +45,7 @@ export default function SignupPage() {
     setError(null);
 
     if (!name.trim()) {
-      setError("Please Enter Your Name.");
+      setError("Please enter your name.");
       return;
     }
     const emailError = validateEmail(email);
@@ -59,11 +59,11 @@ export default function SignupPage() {
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords Do Not Match.");
+      setError("Passwords do not match.");
       return;
     }
     if (!role) {
-      setError("Please Select Whether You're An Advisor Or A Compliance Officer.");
+      setError("Please select a role.");
       return;
     }
 
@@ -72,7 +72,7 @@ export default function SignupPage() {
       await authApi.signup(name.trim(), email.trim(), password, role);
       router.push(`/login?signupSuccess=1&email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Unable To Create Your Account. Please Try Again.");
+      setError(err instanceof ApiError ? err.message : "Unable to create your account. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -82,14 +82,14 @@ export default function SignupPage() {
     <div className="relative min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 font-inter">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
 
-      <div className="relative z-10 w-full max-w-[440px] rounded-[28px] bg-white shadow-[0_24px_70px_-15px_rgba(10,38,72,0.45)] px-8 py-9 sm:px-10 sm:py-10 font-inter">
-        <div className="mb-6 flex justify-center">
+      <div className="relative z-10 w-full max-w-[420px] rounded-[28px] bg-white shadow-[0_24px_70px_-15px_rgba(10,38,72,0.45)] px-8 py-9 sm:px-10 sm:py-10 font-inter">
+        <div className="mb-5 flex justify-center">
           <VerityLogo size={24} markClassName="text-[#2575bc]" wordmarkClassName="text-slate-900 text-[14px] tracking-[0.2em]" />
         </div>
 
         <div className="mb-6 text-center">
-          <h2 className="text-[24px] font-bold text-slate-900 tracking-tight font-inter">
-            Create Your Account
+          <h2 className="text-[22px] font-bold text-slate-900 tracking-tight font-inter">
+            Create Account
           </h2>
         </div>
 
@@ -99,14 +99,14 @@ export default function SignupPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative flex items-center rounded-xl bg-[#f4f6f8] border border-slate-200 focus-within:border-[#2575bc] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2575bc]/20">
             <div className="pl-3.5 pr-2 text-slate-400"><User className="h-4 w-4" /></div>
             <input
               type="text"
               value={name}
               onChange={(e) => { setName(e.target.value); setError(null); }}
-              placeholder="Full Name"
+              placeholder="Full name"
               className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
               disabled={isLoading}
             />
@@ -130,7 +130,7 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError(null); }}
-              placeholder="Password (Min. 8 Characters, 1 Letter, 1 Digit)"
+              placeholder="Password"
               className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
               disabled={isLoading}
             />
@@ -142,33 +142,25 @@ export default function SignupPage() {
               type="password"
               value={confirmPassword}
               onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
-              placeholder="Confirm Password"
+              placeholder="Confirm password"
               className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
               disabled={isLoading}
             />
           </div>
 
-          {/* Role selection -- explained clearly, since it's permanent */}
-          <div className="pt-1.5">
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-[12px] font-semibold text-slate-800 font-inter">
-                I Am A...
-              </label>
-              <span className="text-[11px] text-slate-400 font-inter">
-                Role Selection Is Permanent
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 mb-2.5 font-inter">
-              This determines what you&apos;ll see in Verity. It cannot be changed later --
-              choose the role that matches your actual job.
-            </p>
-            <div className="grid grid-cols-2 gap-3 font-inter">
+          {/* Role selection */}
+          <div className="pt-2">
+            <label className="block text-[12px] font-medium text-slate-500 mb-2 font-inter">
+              Role
+            </label>
+            <div className="grid grid-cols-2 gap-2.5 font-inter">
+              {/* Financial Advisor Card */}
               <button
                 type="button"
                 onClick={() => { setRole("advisor"); setError(null); }}
                 disabled={isLoading}
                 className={cn(
-                  "group relative flex flex-col items-start p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer select-none",
+                  "group relative flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none",
                   role === "advisor"
                     ? "border-[#2575bc] bg-[#ebf4fb]/80 ring-2 ring-[#2575bc]/25 shadow-xs"
                     : "border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70"
@@ -177,13 +169,13 @@ export default function SignupPage() {
                 <div className="w-full flex items-center justify-between mb-2.5">
                   <div
                     className={cn(
-                      "h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                      "h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200",
                       role === "advisor"
                         ? "bg-[#2575bc] text-white shadow-2xs"
                         : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-700"
                     )}
                   >
-                    <Briefcase className="h-[18px] w-[18px] stroke-[1.8]" />
+                    <Briefcase className="h-4 w-4 stroke-[1.8]" />
                   </div>
                   <div
                     className={cn(
@@ -197,18 +189,13 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                <div>
-                  <div
-                    className={cn(
-                      "text-[13px] font-semibold leading-snug transition-colors",
-                      role === "advisor" ? "text-[#1e4c77]" : "text-slate-900"
-                    )}
-                  >
-                    Financial Advisor
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-normal">
-                    Submit Documents For Review
-                  </div>
+                <div
+                  className={cn(
+                    "text-[13px] font-semibold leading-snug transition-colors",
+                    role === "advisor" ? "text-[#1e4c77]" : "text-slate-900"
+                  )}
+                >
+                  Financial Advisor
                 </div>
               </button>
 
@@ -218,7 +205,7 @@ export default function SignupPage() {
                 onClick={() => { setRole("officer"); setError(null); }}
                 disabled={isLoading}
                 className={cn(
-                  "group relative flex flex-col items-start p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer select-none",
+                  "group relative flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none",
                   role === "officer"
                     ? "border-[#2575bc] bg-[#ebf4fb]/80 ring-2 ring-[#2575bc]/25 shadow-xs"
                     : "border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70"
@@ -227,13 +214,13 @@ export default function SignupPage() {
                 <div className="w-full flex items-center justify-between mb-2.5">
                   <div
                     className={cn(
-                      "h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                      "h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200",
                       role === "officer"
                         ? "bg-[#2575bc] text-white shadow-2xs"
                         : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-700"
                     )}
                   >
-                    <Scale className="h-[18px] w-[18px] stroke-[1.8]" />
+                    <Scale className="h-4 w-4 stroke-[1.8]" />
                   </div>
                   <div
                     className={cn(
@@ -247,43 +234,35 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                <div>
-                  <div
-                    className={cn(
-                      "text-[13px] font-semibold leading-snug transition-colors",
-                      role === "officer" ? "text-[#1e4c77]" : "text-slate-900"
-                    )}
-                  >
-                    Compliance Officer
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-normal">
-                    Review And Decide On Submissions
-                  </div>
+                <div
+                  className={cn(
+                    "text-[13px] font-semibold leading-snug transition-colors",
+                    role === "officer" ? "text-[#1e4c77]" : "text-slate-900"
+                  )}
+                >
+                  Compliance Officer
                 </div>
               </button>
             </div>
-            <p className="mt-2 text-[11px] text-slate-400 text-center font-inter">
-              Role selection is permanent and cannot be changed after registration.
-            </p>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 rounded-xl bg-[#1e4c77] hover:bg-[#163c60] active:bg-[#112f4c] text-white font-semibold text-[14px] shadow-sm transition-all flex items-center justify-center disabled:opacity-60 mt-3 font-inter cursor-pointer"
+            className="w-full h-11 rounded-xl bg-[#1e4c77] hover:bg-[#163c60] active:bg-[#112f4c] text-white font-semibold text-[14px] shadow-sm transition-all flex items-center justify-center disabled:opacity-60 !mt-5 font-inter cursor-pointer"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : "Create Account"}
           </button>
         </form>
 
         <div className="mt-5 text-center text-[12px] text-slate-500 font-inter">
-          Already Have An Account?{" "}
+          Already have an account?{" "}
           <button
             type="button"
             onClick={() => router.push("/login")}
             className="font-semibold text-[#2575bc] hover:text-[#185386] hover:underline font-inter cursor-pointer"
           >
-            Sign In
+            Sign in
           </button>
         </div>
       </div>

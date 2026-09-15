@@ -98,50 +98,58 @@ export function RevisionUploadModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 font-sans select-none animate-in fade-in duration-150">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-[#f8fafc]">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-                Revision v{nextVersion}
-              </span>
-              <span className="text-xs text-slate-500 font-roboto">{doc.id.slice(0, 8)}</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 font-inter select-none animate-in fade-in duration-150">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-slate-200/90 overflow-hidden flex flex-col font-inter animate-in zoom-in-95 duration-150">
+        {/* Minimal Header */}
+        <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between font-inter">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-[#ebf4fb] border border-[#2575bc]/20 text-[#1e4c77] flex items-center justify-center shadow-2xs shrink-0">
+              <UploadCloud className="h-4 w-4 stroke-[1.8]" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 leading-snug">
-              Revise & Resubmit Document
-            </h3>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-[13px] font-medium text-slate-800 font-inter">
+                  Revise & Resubmit Document
+                </h3>
+                <span className="rounded-full bg-[#ebf4fb] border border-[#2575bc]/20 px-2 py-0.5 text-[10px] font-medium text-[#1e4c77] font-numbers">
+                  v{nextVersion}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-normal font-inter truncate max-w-[280px]">
+                {doc.title}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Close modal"
+            className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 stroke-[1.8]" />
           </button>
         </div>
 
-        {/* Content */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        {/* Form Content */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 font-inter">
           {error && (
-            <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
-              <AlertTriangle className="h-4 w-4 shrink-0" />
+            <div className="flex items-center gap-2 rounded-xl bg-rose-50/80 border border-rose-200/80 px-3 py-2 text-xs text-rose-700 font-inter">
+              <AlertTriangle className="h-4 w-4 shrink-0 stroke-[1.8]" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Real officer comment, while preparing the revision */}
           {isLoadingComment ? (
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 text-xs text-slate-400">
+            <div className="rounded-xl bg-slate-50/70 border border-slate-200/70 p-3.5 text-xs text-slate-400 font-inter">
               Loading officer feedback...
             </div>
           ) : officerComment ? (
-            <div className="rounded-xl bg-amber-50/70 border border-amber-200/80 p-3.5">
-              <p className="text-[11px] font-bold text-amber-900 uppercase font-roboto mb-1">
-                Compliance Officer Request:
+            <div className="rounded-xl bg-amber-50/60 border border-amber-200/70 p-3.5 font-inter">
+              <p className="text-[10px] font-medium text-amber-800 uppercase tracking-wider mb-1 font-inter">
+                Compliance Officer Request
               </p>
-              <p className="text-xs text-amber-950 italic leading-relaxed">
+              <p className="text-xs text-amber-950 italic leading-relaxed font-normal font-inter">
                 &ldquo;{officerComment}&rdquo;
               </p>
             </div>
@@ -149,11 +157,11 @@ export function RevisionUploadModal({
 
           {/* File Upload Zone */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Upload Revised Document File (v{nextVersion})
+            <label className="block text-xs font-normal text-slate-700 mb-1.5 font-inter">
+              Upload Revised File (PDF, DOCX, XLSX)
             </label>
             <div
-              className="border-2 border-dashed border-slate-200 hover:border-[#2575bc] rounded-2xl p-4 text-center bg-[#f8fafc] transition-colors cursor-pointer"
+              className="border border-dashed border-slate-200 hover:border-[#1e4c77]/40 rounded-xl p-5 text-center bg-slate-50/50 hover:bg-[#ebf4fb]/20 transition-all cursor-pointer font-inter"
               onClick={() => window.document.getElementById("revision-file-upload")?.click()}
             >
               <input
@@ -163,50 +171,55 @@ export function RevisionUploadModal({
                 className="hidden"
                 onChange={handleFileChange}
               />
-              <div className="h-8 w-8 rounded-full bg-blue-50 text-[#1e4c77] flex items-center justify-center mx-auto mb-1.5">
-                <UploadCloud className="h-4 w-4 stroke-[2.2]" />
+              <div className="h-8 w-8 rounded-lg bg-[#ebf4fb] text-[#1e4c77] border border-[#2575bc]/15 flex items-center justify-center mx-auto mb-2 shadow-2xs">
+                <UploadCloud className="h-4 w-4 stroke-[1.8]" />
               </div>
               {file ? (
                 <div>
-                  <p className="text-xs font-semibold text-slate-900">{file.name}</p>
-                  <p className="text-[11px] text-slate-400 font-roboto">
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB · Attached
+                  <p className="text-xs font-medium text-slate-800 font-inter">{file.name}</p>
+                  <p className="text-[11px] text-slate-400 font-numbers mt-0.5">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB · Ready to upload
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-slate-600">
-                  Click to select amended <span className="font-semibold">{doc.title}</span>
-                </p>
+                <div>
+                  <p className="text-xs text-slate-600 font-normal font-inter">
+                    Click to select amended file
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 font-inter font-normal">
+                    Replaces current version with tracked revision history
+                  </p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Upload progress */}
           {isSubmitting && (
-            <div className="space-y-1">
+            <div className="space-y-1 font-inter">
               <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full bg-[#2575bc] transition-all duration-150"
+                  className="h-full bg-[#1e4c77] transition-all duration-150"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-              <p className="text-[11px] text-slate-400 text-right">{uploadProgress}%</p>
+              <p className="text-[11px] text-slate-400 text-right font-numbers">{uploadProgress}%</p>
             </div>
           )}
 
-          {/* Footer Actions */}
-          <div className="pt-2 flex items-center justify-end gap-2.5">
+          {/* Minimal Footer Actions */}
+          <div className="pt-2 flex items-center justify-end gap-2 font-inter">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 h-10 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
+              className="h-8.5 px-3.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-normal text-slate-700 transition-all cursor-pointer shadow-2xs font-inter"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 h-10 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="h-8.5 px-3.5 rounded-lg bg-[#1e4c77] hover:bg-[#163e63] active:bg-[#112f4c] text-white text-xs font-normal transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 font-inter"
             >
               {isSubmitting ? (
                 <>
