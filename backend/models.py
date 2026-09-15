@@ -88,6 +88,21 @@ class Document(Base):
         must eager-load the advisor relationship (joinedload) or this
         triggers a separate query per row."""
         return self.advisor.name if self.advisor else "Unknown"
+
+    @property
+    def advisor_viewed_decision(self) -> bool | None:
+        """TA-92: None if not yet decided (nothing to have viewed
+        yet); otherwise whether the advisor has viewed the document
+        since the decision was recorded. Reads self.reviews and
+        self.audit_events -- the caller must eager-load both
+        (selectinload) or this triggers two extra queries per row."""
+        if not self.reviews:
+            return None
+        decided_at = self.reviews[0].decided_at
+        return any(
+            e.actor_id == self.advisor_id and e.action == AuditAction.viewed and e.timestamp > decided_at
+            for e in self.audit_events
+        )
     file_reference = Column(String, nullable=False)
     # Pure display metadata (TA-25) -- NEVER used to construct any
     # filesystem path (that stays fully server-derived, per TA-23).

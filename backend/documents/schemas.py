@@ -11,6 +11,7 @@ class DocumentResponse(BaseModel):
     id: uuid.UUID
     advisor_id: uuid.UUID
     advisor_name: str  # TA-66 -- officers need to know who submitted this
+    advisor_viewed_decision: Optional[bool]  # TA-92 -- None until decided
     status: DocumentStatus
     original_filename: Optional[str]
     type: DocumentType
