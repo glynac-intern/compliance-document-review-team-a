@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { reviewsApi, type QueueDocument } from "@/lib/reviews-api";
+import { reviewsApi } from "@/lib/reviews-api";
 import { ApiError } from "@/lib/api-client";
 import type { BackendDocumentStatus } from "@/lib/documents-api";
 import { OfficerSidebar, type OfficerView } from "@/components/officer/officer-sidebar";
@@ -52,7 +52,6 @@ const TYPE_FILTERS = [
 const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "newest", label: "Newest First" },
   { value: "oldest", label: "Oldest First" },
-  { value: "risk", label: "Risk Priority" },
   { value: "advisor", label: "Advisor Name" },
 ];
 
@@ -76,15 +75,6 @@ function formatRelativeDate(iso: string): string {
 
 function daysInQueue(iso: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
-}
-
-function getTotalFlags(doc: QueueDocument & { flags_count?: { high: number; medium: number; low: number } }): number {
-  if (!doc.flags_count) return 0;
-  return doc.flags_count.high + doc.flags_count.medium + doc.flags_count.low;
-}
-
-function getHighFlags(doc: QueueDocument & { flags_count?: { high: number; medium: number; low: number } }): number {
-  return doc.flags_count?.high ?? 0;
 }
 
 // Adapt mock ComplianceDocument to the shape the queue table expects
@@ -303,8 +293,6 @@ export default function OfficerDashboardPage() {
       switch (sortBy) {
         case "oldest":
           return new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime();
-        case "risk":
-          return getHighFlags(b as never) - getHighFlags(a as never) || getTotalFlags(b as never) - getTotalFlags(a as never);
         case "advisor":
           return a.advisor_name.localeCompare(b.advisor_name);
         case "newest":
@@ -551,9 +539,6 @@ export default function OfficerDashboardPage() {
                         <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
                           Type
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                          Risk
-                        </th>
                         <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
                           Submitted
                         </th>
@@ -561,10 +546,6 @@ export default function OfficerDashboardPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredDocuments.map((doc) => {
-                        const highCount = doc.flags_count?.high ?? 0;
-                        const medCount = doc.flags_count?.medium ?? 0;
-                        const lowCount = doc.flags_count?.low ?? 0;
-                        const totalFlags = highCount + medCount + lowCount;
                         const days = daysInQueue(doc.uploaded_at);
 
                         return (
@@ -632,31 +613,6 @@ export default function OfficerDashboardPage() {
                             {/* Type */}
                             <td className="py-3.5 px-4 text-[13px] text-slate-500 font-inter font-normal">
                               {doc.type}
-                            </td>
-
-                            {/* Risk Flags */}
-                            <td className="py-3.5 px-4">
-                              {totalFlags > 0 ? (
-                                <div className="flex items-center gap-1.5">
-                                  {highCount > 0 && (
-                                    <span className="text-[11px] font-medium text-[#991b1b] font-numbers tabular-nums">
-                                      {highCount}H
-                                    </span>
-                                  )}
-                                  {medCount > 0 && (
-                                    <span className="text-[11px] font-medium text-[#92400e] font-numbers tabular-nums">
-                                      {medCount}M
-                                    </span>
-                                  )}
-                                  {lowCount > 0 && (
-                                    <span className="text-[11px] font-medium text-[#1e4c77] font-numbers tabular-nums">
-                                      {lowCount}L
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-[11px] text-slate-300 font-inter">—</span>
-                              )}
                             </td>
 
                             {/* Submitted */}
