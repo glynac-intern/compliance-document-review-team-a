@@ -10,6 +10,7 @@ export interface QueueDocument {
   id: string;
   advisor_id: string;
   advisor_name: string;
+  advisor_viewed_decision?: boolean | null;
   status: BackendDocumentStatus;
   original_filename: string | null;
   type: BackendDocumentType;

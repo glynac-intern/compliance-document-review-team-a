@@ -26,7 +26,6 @@ import {
   Eye,
   ListFilter,
   CheckCircle2,
-  FileWarning,
   Check,
   X,
   RotateCcw,
@@ -46,6 +45,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { MOCK_QUEUE_DOCUMENTS, MOCK_COMPLETED_REVIEWS } from "@/lib/mock-officer-data";
 import { AiAssistPanel } from "@/components/officer/ai-assist-panel";
+import { DocumentViewer } from "@/components/documents/document-viewer";
 
 interface MatchedRule {
   id: string;
@@ -95,6 +95,7 @@ export default function OfficerDocumentReviewPage() {
   const [doc, setDoc] = React.useState<BackendDocument | null>(null);
   const [docError, setDocError] = React.useState<string | null>(null);
   const [isDocLoading, setIsDocLoading] = React.useState(true);
+  const [fileBlob, setFileBlob] = React.useState<Blob | null>(null);
   const [fileBlobUrl, setFileBlobUrl] = React.useState<string | null>(null);
   const [fileError, setFileError] = React.useState<string | null>(null);
   const [isDownloading, setIsDownloading] = React.useState(false);
@@ -175,6 +176,7 @@ export default function OfficerDocumentReviewPage() {
         return fetchFileBlob(`/documents/${documentId}/file`);
       })
       .then((blob) => {
+        setFileBlob(blob);
         setFileBlobUrl(URL.createObjectURL(blob));
       })
       .catch((err) => {
@@ -268,10 +270,20 @@ export default function OfficerDocumentReviewPage() {
     }
   };
 
-  if (!isReady) return null;
-
-  const isPdf = doc?.type === "pdf";
   const displayTitle = doc?.original_filename ?? mockDoc?.title ?? `Document ${documentId.slice(0, 8)}`;
+  const fallbackStaticUrl = React.useMemo(() => {
+    const title = (doc?.original_filename ?? mockDoc?.title ?? "").toLowerCase();
+    const type = (doc?.type ?? mockDoc?.type ?? "").toLowerCase();
+    if (title.endsWith(".xlsx") || title.endsWith(".xls") || type.includes("xlsx") || type.includes("sheet") || type.includes("excel")) {
+      return "/documents/doc_011.xlsx";
+    }
+    if (title.endsWith(".docx") || title.endsWith(".doc") || type.includes("docx") || type.includes("word") || type.includes("letter")) {
+      return "/documents/doc_006.docx";
+    }
+    return "/documents/doc_001.pdf";
+  }, [doc, mockDoc]);
+
+  if (!isReady) return null;
   const displayAdvisor = mockDoc?.advisor_name ?? doc?.advisor_id ?? "Unknown";
   const displayStatus = doc?.status ?? "pending_review";
   const displayType = doc?.type?.toUpperCase() ?? mockDoc?.type?.toUpperCase() ?? "—";
@@ -404,40 +416,17 @@ export default function OfficerDocumentReviewPage() {
                   </div>
                 )}
 
-                {isPdf && fileBlobUrl ? (
-                  <iframe src={fileBlobUrl} className="flex-1 w-full h-full border-0" title="Document preview" />
-                ) : fileError ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
-                    <FileWarning className="h-8 w-8 text-slate-300" />
-                    <p className="text-xs text-slate-500">{fileError}</p>
-                    <button
-                      type="button"
-                      onClick={handleDownload}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1e4c77] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#163c60]"
-                    >
-                      <Download className="h-3.5 w-3.5" /> Download to view
-                    </button>
-                  </div>
-                ) : doc && !isPdf ? (
-                  /* DOCX/XLSX: clear download action instead of failing silently (TA-67) */
-                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
-                    <FileWarning className="h-8 w-8 text-slate-300" />
-                    <p className="text-xs text-slate-500">
-                      {doc.type.toUpperCase()} files can&apos;t be previewed inline. Download to view the original.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleDownload}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1e4c77] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#163c60]"
-                    >
-                      <Download className="h-3.5 w-3.5" /> Download
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-xs text-slate-400">
-                    Loading document...
-                  </div>
-                )}
+                <DocumentViewer
+                  fileBlob={fileBlob}
+                  fileBlobUrl={fileBlobUrl}
+                  fileUrl={fallbackStaticUrl}
+                  filename={displayTitle}
+                  docType={doc?.type}
+                  isLoading={isDocLoading}
+                  error={fileError}
+                  onDownload={handleDownload}
+                  className="flex-1 w-full h-full border-0"
+                />
               </div>
             ) : (
               /* SUBMISSION DETAILS & AUDIT LOG VIEW */

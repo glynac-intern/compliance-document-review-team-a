@@ -8,10 +8,12 @@ import {
   AlertTriangle,
   Inbox,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { reviewsApi, type QueueDocument } from "@/lib/reviews-api";
+import { reviewsApi } from "@/lib/reviews-api";
 import { ApiError } from "@/lib/api-client";
 import type { BackendDocumentStatus } from "@/lib/documents-api";
 import { OfficerSidebar, type OfficerView } from "@/components/officer/officer-sidebar";
@@ -27,22 +29,21 @@ import { OfficerAuditLogView } from "@/components/officer/officer-audit-log-view
 // Constants
 // ---------------------------------------------------------------------------
 
-
-
+// TA-94: these previously listed fictional mock-data categories
+// ("Presentation / Deck", "Market Commentary", ...) that never matched
+// a real document's actual type -- selecting any of them against real
+// backend data silently returned zero results. Real documents only
+// ever have type pdf/docx/xlsx (see DocumentType in the backend).
 const TYPE_FILTERS = [
   { value: "all", label: "All Document Types" },
-  { value: "Presentation / Deck", label: "Presentation / Deck" },
-  { value: "Market Commentary", label: "Market Commentary" },
-  { value: "Client Letter", label: "Client Letter" },
-  { value: "Performance Factsheet", label: "Performance Factsheet" },
-  { value: "Promotional Brochure", label: "Promotional Brochure" },
-  { value: "Social Media Post", label: "Social Media Post" },
+  { value: "pdf", label: "PDF" },
+  { value: "docx", label: "DOCX" },
+  { value: "xlsx", label: "XLSX" },
 ];
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "newest", label: "Newest First" },
   { value: "oldest", label: "Oldest First" },
-  { value: "risk", label: "Risk Priority" },
   { value: "advisor", label: "Advisor Name" },
 ];
 
@@ -68,20 +69,12 @@ function daysInQueue(iso: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
 }
 
-function getTotalFlags(doc: QueueDocument & { flags_count?: { high: number; medium: number; low: number } }): number {
-  if (!doc.flags_count) return 0;
-  return doc.flags_count.high + doc.flags_count.medium + doc.flags_count.low;
-}
-
-function getHighFlags(doc: QueueDocument & { flags_count?: { high: number; medium: number; low: number } }): number {
-  return doc.flags_count?.high ?? 0;
-}
-
 // Adapt mock ComplianceDocument to the shape the queue table expects
 interface QueueTableRow {
   id: string;
   title: string;
   advisor_name: string;
+  advisor_viewed_decision: boolean | null;
   status: BackendDocumentStatus;
   type: string;
   uploaded_at: string;
@@ -103,6 +96,7 @@ function adaptMockToQueueRow(doc: (typeof MOCK_QUEUE_DOCUMENTS)[0]): QueueTableR
     id: doc.id,
     title: doc.title,
     advisor_name: doc.advisor_name,
+    advisor_viewed_decision: null, // mock/offline fallback -- no real audit data to derive this from
     status: statusMap[doc.status] ?? "pending_review",
     type: doc.type,
     uploaded_at: doc.uploaded_at,
@@ -134,6 +128,7 @@ export default function OfficerDashboardPage() {
   // Filters
   const [searchQuery, setSearchQuery] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("all");
+  const [advisorFilter, setAdvisorFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("newest");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -182,6 +177,7 @@ export default function OfficerDashboardPage() {
         data.map((d) => ({
           ...d,
           title: d.original_filename ?? `Document ${d.id.slice(0, 8)}`,
+          advisor_viewed_decision: d.advisor_viewed_decision ?? null,
         }))
       );
       setError(null);
@@ -212,6 +208,7 @@ export default function OfficerDashboardPage() {
             data.map((d) => ({
               ...d,
               title: d.original_filename ?? `Document ${d.id.slice(0, 8)}`,
+              advisor_viewed_decision: d.advisor_viewed_decision ?? null,
             }))
           );
           setError(null);
@@ -250,6 +247,14 @@ export default function OfficerDashboardPage() {
   }, [loadQueue, showToast]);
 
   // Filter and sort documents strictly for pending review queue
+  // TA-94: populated from whatever advisors actually appear in the
+  // current queue, rather than a hardcoded list -- stays correct as
+  // advisors come and go, with no separate lookup needed.
+  const advisorOptions = React.useMemo(() => {
+    const names = Array.from(new Set(documents.map((d) => d.advisor_name))).sort();
+    return [{ value: "all", label: "All Advisors" }, ...names.map((name) => ({ value: name, label: name }))];
+  }, [documents]);
+
   const filteredDocuments = React.useMemo(() => {
     // All pending reviews appear in the review queue dashboard and nowhere else
     let result = documents.filter(
@@ -259,6 +264,11 @@ export default function OfficerDashboardPage() {
     // Document Type filter
     if (typeFilter !== "all") {
       result = result.filter((d) => d.type === typeFilter);
+    }
+
+    // Advisor filter (TA-94) -- combines with every other filter as AND
+    if (advisorFilter !== "all") {
+      result = result.filter((d) => d.advisor_name === advisorFilter);
     }
 
     // Search filter
@@ -277,8 +287,6 @@ export default function OfficerDashboardPage() {
       switch (sortBy) {
         case "oldest":
           return new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime();
-        case "risk":
-          return getHighFlags(b as never) - getHighFlags(a as never) || getTotalFlags(b as never) - getTotalFlags(a as never);
         case "advisor":
           return a.advisor_name.localeCompare(b.advisor_name);
         case "newest":
@@ -288,7 +296,7 @@ export default function OfficerDashboardPage() {
     });
 
     return result;
-  }, [documents, typeFilter, searchQuery, sortBy]);
+  }, [documents, typeFilter, advisorFilter, searchQuery, sortBy]);
 
   // Queue summary counts
   const queueCounts = React.useMemo(() => {
@@ -309,10 +317,7 @@ export default function OfficerDashboardPage() {
       audit_log: "Audit Log",
     };
     return [
-      {
-        label: "Workspace",
-        onClick: () => setActiveView("review_queue"),
-      },
+      { label: "Compliance Officer", href: "/officer" },
       { label: viewLabels[activeView] },
     ];
   }, [activeView]);
@@ -320,8 +325,31 @@ export default function OfficerDashboardPage() {
   if (!isReady) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-inter">
-      {/* Officer Sidebar */}
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-inter">
+      {/* Toast Notification Container */}
+      <div className="fixed top-5 right-5 z-50 pointer-events-none">
+        {toastMessage && (
+          <div
+            className={cn(
+              "flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 text-white text-xs shadow-xl border border-slate-700/50 backdrop-blur-md pointer-events-auto transition-all duration-300 transform",
+              isToastVisible
+                ? "opacity-100 translate-y-0 scale-100"
+                : "opacity-0 -translate-y-3 scale-95"
+            )}
+          >
+            <div className="h-2 w-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+            <span className="font-normal font-inter tracking-wide">{toastMessage}</span>
+            <button
+              onClick={() => setIsToastVisible(false)}
+              className="ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <Check className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Officer Navigation Sidebar */}
       <OfficerSidebar
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
@@ -333,7 +361,6 @@ export default function OfficerDashboardPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* TopBar */}
         <TopBar
           breadcrumbs={breadcrumbs}
           onToggleMobileSidebar={() => setMobileSidebarOpen(true)}
@@ -341,21 +368,28 @@ export default function OfficerDashboardPage() {
           isRefreshing={isRefreshing}
         />
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto">
           {activeView === "review_queue" && (
-            <div className="p-5 sm:p-8">
-              {/* Queue Summary Strip */}
-              <div className="flex items-baseline gap-6 mb-6">
-                <h1 className="text-[15px] font-medium text-slate-900 font-inter">
-                  Review Queue
-                </h1>
-                <div className="flex items-center gap-4 text-xs text-slate-400 font-inter">
-                  <span>
-                    <span className="font-numbers tabular-nums text-slate-600 font-medium">
+            <div className="p-5 sm:p-7 lg:p-8 max-w-[1400px] w-full mx-auto">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900 font-inter">
+                    Review Queue
+                  </h1>
+                  <p className="text-xs text-slate-500 font-inter mt-1">
+                    Pending compliance submissions awaiting review and determination
+                  </p>
+                </div>
+
+                {/* Queue pill indicators */}
+                <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 font-inter shadow-2xs self-start sm:self-auto">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[#1e4c77] animate-pulse" />
+                    <span className="font-numbers tabular-nums font-semibold text-slate-800">
                       {queueCounts.pending}
                     </span>{" "}
-                    awaiting review
+                    pending
                   </span>
                   {queueCounts.highRisk > 0 && (
                     <>
@@ -386,7 +420,6 @@ export default function OfficerDashboardPage() {
                   />
                 </div>
 
-
                 {/* Document Type Filter */}
                 <div className="relative">
                   <select
@@ -397,6 +430,22 @@ export default function OfficerDashboardPage() {
                     {TYPE_FILTERS.map((f) => (
                       <option key={f.value} value={f.value}>
                         {f.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Advisor Filter (TA-94) */}
+                <div className="relative">
+                  <select
+                    value={advisorFilter}
+                    onChange={(e) => setAdvisorFilter(e.target.value)}
+                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
+                  >
+                    {advisorOptions.map((a) => (
+                      <option key={a.value} value={a.value}>
+                        {a.label}
                       </option>
                     ))}
                   </select>
@@ -458,32 +507,31 @@ export default function OfficerDashboardPage() {
                     </div>
                     {documents.length === 0 ? (
                       <>
-                        <p className="text-sm font-medium text-slate-800 font-inter">
-                          Queue is empty
+                        <p className="text-sm font-semibold text-slate-700 font-inter">
+                          All caught up!
                         </p>
-                        <p className="text-xs text-slate-400 mt-1 font-inter">
-                          No documents have been submitted for review yet.
+                        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto font-inter">
+                          There are no pending submissions in the review queue.
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-medium text-slate-800 font-inter">
-                          No documents match
+                        <p className="text-sm font-semibold text-slate-700 font-inter">
+                          No matching submissions
                         </p>
                         <p className="text-xs text-slate-400 mt-1 font-inter">
-                          <span className="font-numbers tabular-nums">{documents.length}</span>{" "}
-                          document{documents.length !== 1 ? "s" : ""} in queue — try adjusting
-                          your filters.
+                          Try adjusting your search query or filters.
                         </p>
                       </>
                     )}
                   </div>
                 ) : (
-                  <table className="w-full text-xs font-inter">
+                  // Real Table
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-[#f8fafc]/90 border-b border-slate-100">
+                      <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider font-inter">
                         <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                          Document Name & ID
+                          Document
                         </th>
                         <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
                           Advisor
@@ -494,9 +542,6 @@ export default function OfficerDashboardPage() {
                         <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
                           Type
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                          Risk
-                        </th>
                         <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
                           Submitted
                         </th>
@@ -504,10 +549,6 @@ export default function OfficerDashboardPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredDocuments.map((doc) => {
-                        const highCount = doc.flags_count?.high ?? 0;
-                        const medCount = doc.flags_count?.medium ?? 0;
-                        const lowCount = doc.flags_count?.low ?? 0;
-                        const totalFlags = highCount + medCount + lowCount;
                         const days = daysInQueue(doc.uploaded_at);
 
                         return (
@@ -550,36 +591,31 @@ export default function OfficerDashboardPage() {
                             {/* Status (TA-66) */}
                             <td className="py-3.5 px-4 whitespace-nowrap">
                               <StatusBadge status={doc.status} />
+                              {doc.advisor_viewed_decision !== null && (
+                                <div
+                                  className={cn(
+                                    "flex items-center gap-1 mt-1 text-[10px] font-inter",
+                                    doc.advisor_viewed_decision ? "text-slate-400" : "text-[#1e4c77]"
+                                  )}
+                                >
+                                  {doc.advisor_viewed_decision ? (
+                                    <>
+                                      <Eye className="h-2.5 w-2.5" />
+                                      <span>Seen by advisor</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <EyeOff className="h-2.5 w-2.5" />
+                                      <span>Not seen yet</span>
+                                    </>
+                                  )}
+                                </div>
+                              )}
                             </td>
 
                             {/* Type */}
                             <td className="py-3.5 px-4 text-[13px] text-slate-500 font-inter font-normal">
                               {doc.type}
-                            </td>
-
-                            {/* Risk Flags */}
-                            <td className="py-3.5 px-4">
-                              {totalFlags > 0 ? (
-                                <div className="flex items-center gap-1.5">
-                                  {highCount > 0 && (
-                                    <span className="text-[11px] font-medium text-[#991b1b] font-numbers tabular-nums">
-                                      {highCount}H
-                                    </span>
-                                  )}
-                                  {medCount > 0 && (
-                                    <span className="text-[11px] font-medium text-[#92400e] font-numbers tabular-nums">
-                                      {medCount}M
-                                    </span>
-                                  )}
-                                  {lowCount > 0 && (
-                                    <span className="text-[11px] font-medium text-[#1e4c77] font-numbers tabular-nums">
-                                      {lowCount}L
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-[11px] text-slate-300 font-inter">—</span>
-                              )}
                             </td>
 
                             {/* Submitted */}
@@ -644,28 +680,6 @@ export default function OfficerDashboardPage() {
           )}
         </main>
       </div>
-
-      {/* Toast Notification Container — Elegant slide-in from right edge and slide-back exit */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-0 z-50 pointer-events-none px-6 overflow-hidden">
-          <div
-            className={cn(
-              "pointer-events-auto flex items-center gap-3 rounded-2xl bg-[#1e4c77] text-white px-5 py-3.5 shadow-[0_16px_36px_-6px_rgba(20,55,88,0.5)] border border-white/20 font-inter select-none",
-              "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-              isToastVisible
-                ? "translate-x-0 opacity-100"
-                : "translate-x-full opacity-0"
-            )}
-          >
-            <div className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/25">
-              <Check className="h-3 w-3 text-white stroke-[2.8]" />
-            </div>
-            <span className="font-inter text-xs sm:text-[13px] font-medium text-white tracking-normal whitespace-nowrap">
-              {toastMessage}
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
