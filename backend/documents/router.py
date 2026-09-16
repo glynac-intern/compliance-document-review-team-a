@@ -1,3 +1,4 @@
+import csv
 import io
 import os
 import uuid
@@ -6,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -458,6 +459,68 @@ def get_document_audit(
         }
         for e in events
     ]
+
+
+@router.get("/{document_id}/audit/export")
+def export_document_audit(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Exports the whole thread's audit trail (every actor, action, and
+    timestamp) plus each decision's status and comment, as a CSV --
+    same access boundary as the JSON /audit endpoint above, so a
+    cross-advisor probe against this is exactly as meaningful as
+    against any other document-scoped endpoint.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    thread_document_ids = [
+        d.id for d in db.query(Document.id).filter(Document.thread_id == document.thread_id).all()
+    ]
+
+    events = (
+        db.query(AuditEvent)
+        .filter(AuditEvent.document_id.in_(thread_document_ids))
+        .order_by(AuditEvent.timestamp)
+        .all()
+    )
+
+    actor_ids = {e.actor_id for e in events}
+    actors = {u.id: u for u in db.query(User).filter(User.id.in_(actor_ids)).all()}
+    reviews_by_document = {
+        r.document_id: r
+        for r in db.query(Review).filter(Review.document_id.in_(thread_document_ids)).all()
+    }
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "timestamp", "actor_name", "actor_role", "action",
+        "document_id", "decision_status", "decision_comment",
+    ])
+    for e in events:
+        actor = actors.get(e.actor_id)
+        # Only a 'decided' event has a matching Review to enrich with --
+        # every other action's decision columns are left blank.
+        review = reviews_by_document.get(e.document_id) if e.action == AuditAction.decided else None
+        writer.writerow([
+            e.timestamp.isoformat(),
+            actor.name if actor else "Unknown",
+            actor.role.value if actor else "",
+            e.action.value,
+            str(e.document_id),
+            review.status.value if review else "",
+            review.comment if review else "",
+        ])
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="audit-trail-{document.thread_id}.csv"'},
+    )
 
 
 @router.get("/{document_id}/reviews", response_model=list[ReviewResponse])

@@ -36,6 +36,7 @@ NO_SESSION_GET_ENDPOINTS = [
     f"/documents/{NIL_UUID}/file",
     f"/documents/{NIL_UUID}/analysis",
     f"/documents/{NIL_UUID}/audit",
+    f"/documents/{NIL_UUID}/audit/export",
     f"/documents/{NIL_UUID}/reviews",
     f"/documents/{NIL_UUID}/thread",
     "/review/queue",
@@ -136,6 +137,11 @@ def test_cross_advisor_cannot_retry_analysis(client, other_advisors_document, se
 
 def test_cross_advisor_cannot_get_audit(client, other_advisors_document, second_advisor_token):
     resp = client.get(f"/documents/{other_advisors_document}/audit", headers=_auth(second_advisor_token))
+    assert resp.status_code == 403
+
+
+def test_cross_advisor_cannot_export_audit(client, other_advisors_document, second_advisor_token):
+    resp = client.get(f"/documents/{other_advisors_document}/audit/export", headers=_auth(second_advisor_token))
     assert resp.status_code == 403
 
 
