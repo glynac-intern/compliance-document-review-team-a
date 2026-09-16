@@ -67,6 +67,14 @@ export function DocumentInspectorDrawer({
     setHistoryError(null);
     setDownloadError(null);
 
+    // Fire-and-forget: this is what actually records the advisor's
+    // 'viewed' audit event server-side (see documentsApi.get's comment).
+    // Neither the thread nor audit endpoints do this, so opening this
+    // drawer previously never recorded a view at all.
+    documentsApi.get(doc.id).catch(() => {
+      // Non-critical -- the drawer already has doc's data via props.
+    });
+
     Promise.all([documentsApi.getThread(doc.id), documentsApi.getAudit(doc.id)])
       .then(([threadData, auditData]) => {
         setThread(threadData);
