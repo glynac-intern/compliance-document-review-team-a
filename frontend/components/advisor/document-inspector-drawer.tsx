@@ -5,7 +5,9 @@ import {
   X,
   Clock,
   Download,
+  FileDown,
   Edit3,
+  BellRing,
   Loader2,
   Eye,
 } from "lucide-react";
@@ -19,6 +21,10 @@ import { DocumentViewer } from "@/components/documents/document-viewer";
 
 interface DocumentInspectorDrawerProps {
   document: ComplianceDocument | null;
+  // True if this document has already been superseded by its own
+  // revision -- its needs_revision status is a historical record at
+  // that point, not something still actionable.
+  isSuperseded?: boolean;
   onClose: () => void;
   onReviseClick: (doc: ComplianceDocument) => void;
 }
@@ -39,6 +45,7 @@ function formatDate(iso: string): string {
 
 export function DocumentInspectorDrawer({
   document: doc,
+  isSuperseded = false,
   onClose,
   onReviseClick,
 }: DocumentInspectorDrawerProps) {
@@ -50,7 +57,10 @@ export function DocumentInspectorDrawer({
   const [isRetryingAnalysis, setIsRetryingAnalysis] = React.useState(false);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
   const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isExportingAudit, setIsExportingAudit] = React.useState(false);
   const [downloadError, setDownloadError] = React.useState<string | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = React.useState(false);
+  const [reminderMessage, setReminderMessage] = React.useState<string | null>(null);
 
   // Tab & preview state
   const [drawerTab, setDrawerTab] = React.useState<"overview" | "preview">("overview");
@@ -70,6 +80,15 @@ export function DocumentInspectorDrawer({
     setIsLoadingAnalysis(true);
     setHistoryError(null);
     setDownloadError(null);
+    setReminderMessage(null);
+
+    // Fire-and-forget: this is what actually records the advisor's
+    // 'viewed' audit event server-side (see documentsApi.get's comment).
+    // Neither the thread nor audit endpoints do this, so opening this
+    // drawer previously never recorded a view at all.
+    documentsApi.get(doc.id).catch(() => {
+      // Non-critical -- the drawer already has doc's data via props.
+    });
 
     Promise.all([documentsApi.getThread(doc.id), documentsApi.getAudit(doc.id)])
       .then(([threadData, auditData]) => {
@@ -157,14 +176,55 @@ export function DocumentInspectorDrawer({
     if (!doc) return "/documents/doc_001.pdf";
     const title = doc.title.toLowerCase();
     const type = (doc.type || "").toLowerCase();
-    if (title.endsWith(".xlsx") || title.endsWith(".xls") || type.includes("xlsx") || type.includes("sheet")) {
+
+    if (
+      title.endsWith(".xlsx") ||
+      title.endsWith(".xls") ||
+      type.includes("xlsx") ||
+      type.includes("sheet")
+    ) {
       return "/documents/doc_011.xlsx";
     }
-    if (title.endsWith(".docx") || title.endsWith(".doc") || type.includes("docx") || type.includes("word") || type.includes("letter")) {
+
+    if (
+      title.endsWith(".docx") ||
+      title.endsWith(".doc") ||
+      type.includes("docx") ||
+      type.includes("word") ||
+      type.includes("letter")
+    ) {
       return "/documents/doc_006.docx";
     }
+
     return "/documents/doc_001.pdf";
   }, [doc]);
+
+  const handleExportAudit = async () => {
+    if (!doc) return;
+    setIsExportingAudit(true);
+    setDownloadError(null);
+    try {
+      await documentsApi.exportAuditTrail(doc.id);
+    } catch (err) {
+      setDownloadError(err instanceof ApiError ? err.message : "Failed to export audit trail.");
+    } finally {
+      setIsExportingAudit(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    if (!doc) return;
+    setIsSendingReminder(true);
+    setReminderMessage(null);
+    try {
+      const result = await documentsApi.sendReminder(doc.id);
+      setReminderMessage(result.detail);
+    } catch (err) {
+      setReminderMessage(err instanceof ApiError ? err.message : "Failed to send reminder.");
+    } finally {
+      setIsSendingReminder(false);
+    }
+  };
 
   const fallbackAiData = doc ? MOCK_AI_ANALYSIS[doc.id] : undefined;
   const currentEntry = thread?.find((t) => t.document_id === doc?.id);
@@ -533,6 +593,21 @@ export function DocumentInspectorDrawer({
         <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between gap-3 font-inter">
           <button
             type="button"
+            onClick={handleExportAudit}
+            disabled={isExportingAudit}
+            title="Export Audit Trail (CSV)"
+            aria-label="Export Audit Trail (CSV)"
+            className="h-10 w-10 shrink-0 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
+          >
+            {isExportingAudit ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+            ) : (
+              <FileDown className="h-3.5 w-3.5" />
+            )}
+          </button>
+
+          <button
+            type="button"
             onClick={handleDownload}
             disabled={isDownloading}
             className="flex-1 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
@@ -545,7 +620,7 @@ export function DocumentInspectorDrawer({
             <span>{isDownloading ? "Downloading..." : "Download File"}</span>
           </button>
 
-          {doc.status === "needs_revision" ? (
+          {doc.status === "needs_revision" && !isSuperseded ? (
             <button
               type="button"
               onClick={() => {
@@ -557,6 +632,20 @@ export function DocumentInspectorDrawer({
               <Edit3 className="h-3.5 w-3.5" />
               <span>Revise &amp; Resubmit</span>
             </button>
+          ) : doc.status === "pending" ? (
+            <button
+              type="button"
+              onClick={handleSendReminder}
+              disabled={isSendingReminder}
+              className="flex-1 h-10 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 font-inter"
+            >
+              {isSendingReminder ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <BellRing className="h-3.5 w-3.5" />
+              )}
+              <span>{isSendingReminder ? "Sending..." : "Send Reminder"}</span>
+            </button>
           ) : (
             <button
               type="button"
@@ -567,6 +656,11 @@ export function DocumentInspectorDrawer({
             </button>
           )}
         </div>
+        {reminderMessage && (
+          <div className="px-4 pb-3 -mt-1 text-[11px] text-slate-500 font-inter text-center">
+            {reminderMessage}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -48,6 +48,7 @@ class AuditAction(str, enum.Enum):
     viewed = "viewed"
     decided = "decided"
     resubmitted = "resubmitted"
+    reminder_sent = "reminder_sent"
 
 
 class AnalysisStatus(str, enum.Enum):
@@ -88,6 +89,21 @@ class Document(Base):
         must eager-load the advisor relationship (joinedload) or this
         triggers a separate query per row."""
         return self.advisor.name if self.advisor else "Unknown"
+
+    @property
+    def advisor_viewed_decision(self) -> bool | None:
+        """TA-92: None if not yet decided (nothing to have viewed
+        yet); otherwise whether the advisor has viewed the document
+        since the decision was recorded. Reads self.reviews and
+        self.audit_events -- the caller must eager-load both
+        (selectinload) or this triggers two extra queries per row."""
+        if not self.reviews:
+            return None
+        decided_at = self.reviews[0].decided_at
+        return any(
+            e.actor_id == self.advisor_id and e.action == AuditAction.viewed and e.timestamp > decided_at
+            for e in self.audit_events
+        )
     file_reference = Column(String, nullable=False)
     # Pure display metadata (TA-25) -- NEVER used to construct any
     # filesystem path (that stays fully server-derived, per TA-23).
@@ -100,6 +116,11 @@ class Document(Base):
     # document this one supersedes, forming the ordered chain.
     thread_id = Column(UUID(as_uuid=True), nullable=False)
     replaces_document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=True)
+    # The advisor's own note on what changed in this revision -- only
+    # ever set on a revision document (submit_revision), never on an
+    # original submission. Distinct from Review.comment, which is the
+    # OFFICER's note on their decision.
+    revision_notes = Column(Text, nullable=True)
 
     advisor = relationship("User", back_populates="documents")
     reviews = relationship("Review", back_populates="document")

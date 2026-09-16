@@ -75,7 +75,11 @@ done
 
 # --- Step 4: run migrations ---
 info "Running Alembic migrations..."
-docker compose run --rm backend alembic upgrade head || fail "Migrations failed"
+# TA-79: -c points at alembic.ini explicitly, repo-root-relative --
+# alembic.ini's script_location/prepend_sys_path are %(here)s-relative
+# (to the ini file itself), not CWD-relative, so this works regardless
+# of the image's default WORKDIR (the repo root -- see backend/Dockerfile).
+docker compose run --rm backend alembic -c backend/alembic.ini upgrade head || fail "Migrations failed"
 
 # --- Steps 5-7: seeding + verification, skipped in CI ---
 # CI's .env deliberately uses a dummy LLM_API_KEY (real embedding calls

@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+# TA-79: makes the suite resolve first-party imports the same way
+# outside Docker as the Dockerfile's ENV PYTHONPATH does inside it --
+# "." for ai.X / data_pipeline.X package imports, "backend" for
+# backend's own flat imports (database, models, auth.*, ...). No
+# sys.path manipulation in any test file needed either way.
+pythonpath = [".", "backend"]
+testpaths = ["backend/tests"]

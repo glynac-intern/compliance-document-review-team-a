@@ -24,26 +24,20 @@ Run inside the backend container:
 """
 
 import json
-import os
-import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, "/app")
 
 from database import SessionLocal
 from models import Rule
 
-sys.path.insert(0, "/app/data_pipeline/embeddings")
-sys.path.insert(0, "/app/data_pipeline/chunking")
 # Reuse the SAME chunking, embedding, and distance code as production --
 # not separate copies (TA-54). This is also what makes the PII guard
 # (TA-34) and batching (TA-52) apply here.
-from embed_client import embed_texts_batch, cosine_distance
-from chunker import chunk_paragraphs
+from data_pipeline.embeddings.embed_client import embed_texts_batch, cosine_distance
+from data_pipeline.chunking.chunker import chunk_paragraphs
 
-sys.path.insert(0, "/app/ai/masking")
-from masker import mask_pii
+from ai.masking.masker import mask_pii
 
 DOCUMENTS_DIR = Path("/app/seed/documents")
 

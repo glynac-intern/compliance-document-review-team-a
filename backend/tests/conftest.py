@@ -9,9 +9,7 @@ robust to get right than nested-transaction isolation, and sufficient for
 this project's scope.
 """
 import os
-import sys
-
-sys.path.insert(0, "/app")
+from pathlib import Path
 
 import psycopg2
 import pytest
@@ -60,7 +58,9 @@ def test_db_engine():
     original_db_url = os.environ.get("DATABASE_URL")
     os.environ["DATABASE_URL"] = TEST_DATABASE_URL
     try:
-        alembic_cfg = Config("/app/alembic.ini")
+        # TA-79: __file__-relative, not a hardcoded container path --
+        # alembic.ini is always backend/'s own sibling, in Docker or out.
+        alembic_cfg = Config(str(Path(__file__).parent.parent / "alembic.ini"))
         command.upgrade(alembic_cfg, "head")
     finally:
         if original_db_url is not None:
@@ -115,3 +115,10 @@ def advisor_token(client):
 @pytest.fixture()
 def officer_token(client):
     return _signup_and_login(client, "officer@rolefixture.io", "testpass123", "officer")
+
+
+@pytest.fixture()
+def second_advisor_token(client):
+    """A distinct advisor account, for TA-88: cross-advisor access probes
+    need two different advisors, not just advisor-vs-officer."""
+    return _signup_and_login(client, "second-advisor@rolefixture.io", "testpass123", "advisor")

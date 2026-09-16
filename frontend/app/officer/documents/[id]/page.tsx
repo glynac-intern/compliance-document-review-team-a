@@ -16,6 +16,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Download,
+  FileDown,
   Loader2,
   FileText,
   User,
@@ -99,6 +100,7 @@ export default function OfficerDocumentReviewPage() {
   const [fileBlobUrl, setFileBlobUrl] = React.useState<string | null>(null);
   const [fileError, setFileError] = React.useState<string | null>(null);
   const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isExportingAudit, setIsExportingAudit] = React.useState(false);
 
   // Tab state for left panel: "preview" vs "details"
   const [leftTab, setLeftTab] = React.useState<"preview" | "details">("preview");
@@ -248,6 +250,19 @@ export default function OfficerDocumentReviewPage() {
     }
   };
 
+  // Export audit trail handler (TA-93)
+  const handleExportAudit = async () => {
+    setIsExportingAudit(true);
+    try {
+      await documentsApi.exportAuditTrail(documentId);
+    } catch {
+      // Non-critical -- the export button just fails silently rather
+      // than blocking the review workflow.
+    } finally {
+      setIsExportingAudit(false);
+    }
+  };
+
   // Submit decision handler (TA-69)
   const handleDecision = async (status: DecisionStatus) => {
     setDecisionError(null);
@@ -314,19 +329,36 @@ export default function OfficerDocumentReviewPage() {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={isDownloading || !doc}
-          className="h-8 px-3 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 hover:text-[#1e4c77] hover:border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
-        >
-          {isDownloading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
-          ) : (
-            <Download className="h-3.5 w-3.5 text-[#1e4c77]" />
-          )}
-          <span className="hidden sm:inline">Download</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportAudit}
+            disabled={isExportingAudit}
+            title="Export Audit Trail (CSV)"
+            className="h-8 px-3 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 hover:text-[#1e4c77] hover:border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
+          >
+            {isExportingAudit ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+            ) : (
+              <FileDown className="h-3.5 w-3.5 text-[#1e4c77]" />
+            )}
+            <span className="hidden sm:inline">Export Audit</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={isDownloading || !doc}
+            className="h-8 px-3 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 hover:text-[#1e4c77] hover:border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
+          >
+            {isDownloading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+            ) : (
+              <Download className="h-3.5 w-3.5 text-[#1e4c77]" />
+            )}
+            <span className="hidden sm:inline">Download</span>
+          </button>
+        </div>
       </header>
 
       {/* Decision Success Banner */}

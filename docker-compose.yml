@@ -19,7 +19,12 @@ services:
 
   backend:
     build:
-      context: ./backend
+      # TA-79: repo root, not ./backend -- backend/, ai/, and
+      # data_pipeline/ need to land in the image/container as true
+      # siblings (matching the real repo layout), not with ai/
+      # data_pipeline reparented under backend's own root.
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: compliance_backend
     restart: unless-stopped
     env_file:
@@ -44,15 +49,23 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backend:/app
-      - ./data_pipeline:/app/data_pipeline
-      - ./seed:/app/seed
-      - ./ai:/app/ai
+      # TA-79: one mount of the repo root instead of four overlapping
+      # ones -- ai/, data_pipeline/, seed/, and backend/ all land at
+      # their real, sibling paths under /app, so nothing needs
+      # reparenting via sys.path hacks to find them.
+      - .:/app
       - uploads_data:/app/uploads
 
   frontend:
     build:
       context: ./frontend
+      # NEXT_PUBLIC_* vars are baked into the JS bundle at `next build`
+      # time, not read at container start -- passing it as a build arg
+      # (sourced from .env, same mechanism the backend's DATABASE_URL
+      # substitution above already relies on) is the only way it
+      # actually reaches the production bundle.
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
     container_name: compliance_frontend
     restart: unless-stopped
     env_file:
@@ -61,10 +74,36 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    # No source bind mount here (unlike backend) -- this service runs a
+    # real `next build` + `next start` baked into the image, not `next
+    # dev` against live-mounted source. A bind mount would shadow that
+    # build with whatever's on the host, and defeat the point of it.
+
+  # TA-89: sole public entry point. backend/frontend keep their `ports:`
+  # above for local dev convenience, but on a real deployment those
+  # ports must be closed at the firewall/NSG level -- only 80/443 should
+  # be reachable from the internet. Caddy gets automatic HTTPS for free
+  # for any real hostname in PUBLIC_HOST (a free one via sslip.io works
+  # fine -- Let's Encrypt just can't issue a cert for a bare IP).
+  caddy:
+    image: caddy:2-alpine
+    container_name: compliance_caddy
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
 
 volumes:
   db_data:
   uploads_data:
+  caddy_data:
+  caddy_config:

@@ -9,15 +9,9 @@ later, the thread's existing precedent entry is REPLACED, not
 duplicated -- matching the same replace-not-accumulate pattern already
 used for Flag/PIIMapping/DocumentChunk elsewhere in this codebase.
 """
-import sys
-
-sys.path.insert(0, "/app/ai/masking")
-sys.path.insert(0, "/app/data_pipeline/extraction")
-sys.path.insert(0, "/app/data_pipeline/embeddings")
-
-from masker import mask_pii
-from extract import extract_text
-from embed_client import embed_text
+from ai.masking.masker import mask_pii
+from data_pipeline.extraction.extract import extract_text
+from data_pipeline.embeddings.embed_client import embed_text
 
 from models import Document, Review, PrecedentIndex
 

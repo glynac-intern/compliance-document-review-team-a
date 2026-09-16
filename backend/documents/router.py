@@ -1,20 +1,20 @@
+import csv
 import io
 import os
-import sys
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import (
-    Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User,
+    Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, UserRole,
     AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
-    PrecedentIndex,
+    PrecedentIndex, Notification,
 )
 from audit_utils import record_view_if_new
 from auth.dependencies import get_current_user, require_role
@@ -22,12 +22,9 @@ from documents.schemas import DocumentResponse, ThreadEntryResponse
 from documents.analysis_schemas import AnalysisResponse
 from reviews.schemas import ReviewResponse
 
-sys.path.insert(0, "/app/data_pipeline/extraction")
-sys.path.insert(0, "/app/data_pipeline/retrieval")
-sys.path.insert(0, "/app/ai/compliance")
-from extract import extract_text
-from analyze_document import analyze_text
-from precedent_retrieval import retrieve_similar_precedents
+from data_pipeline.extraction.extract import extract_text
+from ai.compliance.analyze_document import analyze_text
+from data_pipeline.retrieval.precedent_retrieval import retrieve_similar_precedents
 
 router = APIRouter()
 
@@ -169,6 +166,13 @@ def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> 
     analysis.error_message = None
     db.flush()
 
+    # Replace any prior flags/mapping/chunks for this document only NOW
+    # that the new run has actually succeeded (TA-87) -- clearing them
+    # up front, before the pipeline runs, would destroy a previously
+    # cached successful analysis if THIS attempt then failed.
+    db.query(Flag).filter(Flag.analysis_id == analysis.id).delete()
+    db.query(PIIMapping).filter(PIIMapping.document_id == document.id).delete()
+
     for f in flags_data:
         db.add(Flag(
             analysis_id=analysis.id,
@@ -287,6 +291,7 @@ def download_document_file(
 def submit_revision(
     document_id: uuid.UUID,
     file: UploadFile = File(...),
+    comment: str | None = Form(None),
     current_user: User = Depends(require_role("advisor")),
     db: Session = Depends(get_db),
 ):
@@ -319,6 +324,7 @@ def submit_revision(
         type=doc_type,
         thread_id=original.thread_id,
         replaces_document_id=original.id,
+        revision_notes=comment.strip() if comment and comment.strip() else None,
     )
     db.add(revision)
     db.add(AuditEvent(actor_id=current_user.id, document_id=new_id, action=AuditAction.resubmitted))
@@ -326,6 +332,63 @@ def submit_revision(
     db.commit()
     db.refresh(revision)
     return revision
+
+
+REMINDER_COOLDOWN = timedelta(hours=24)
+
+
+@router.post("/{document_id}/reminder", status_code=status.HTTP_201_CREATED)
+def send_reminder(
+    document_id: uuid.UUID,
+    current_user: User = Depends(require_role("advisor")),
+    db: Session = Depends(get_db),
+):
+    """
+    TA-95: lets an advisor nudge officers about a document still sitting
+    in pending_review. The brief fixes "any officer can act on any
+    document; there is no per-officer routing" -- there's no single
+    officer to notify, so a reminder reaches every officer, not one.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if document.advisor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to send a reminder for this document")
+    if document.status != DocumentStatus.pending_review:
+        raise HTTPException(
+            status_code=400,
+            detail="Only documents pending review can be reminded about",
+        )
+
+    cooldown_cutoff = datetime.utcnow() - REMINDER_COOLDOWN
+    recent_reminder = (
+        db.query(AuditEvent)
+        .filter(
+            AuditEvent.document_id == document_id,
+            AuditEvent.action == AuditAction.reminder_sent,
+            AuditEvent.timestamp > cooldown_cutoff,
+        )
+        .first()
+    )
+    if recent_reminder is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="A reminder for this document was already sent in the last 24 hours",
+        )
+
+    db.add(AuditEvent(actor_id=current_user.id, document_id=document_id, action=AuditAction.reminder_sent))
+
+    officers = db.query(User).filter(User.role == UserRole.officer).all()
+    filename = document.original_filename or "a document"
+    for officer in officers:
+        db.add(Notification(
+            user_id=officer.id,
+            document_id=document_id,
+            message=f'{current_user.name} sent a reminder: "{filename}" is still awaiting review.',
+        ))
+
+    db.commit()
+    return {"detail": f"Reminder sent to {len(officers)} officer(s)."}
 
 
 def _average_embedding(embeddings: list[list[float]]) -> list[float]:
@@ -413,10 +476,10 @@ def retry_analysis(
         db.add(analysis)
         db.flush()
 
-    # Clear previous results -- retry moves the state forward, it never
-    # leaves stale flags/mapping from a prior attempt lying around.
-    db.query(Flag).filter(Flag.analysis_id == analysis.id).delete()
-    db.query(PIIMapping).filter(PIIMapping.document_id == document_id).delete()
+    # Stale flags/mapping from a prior attempt are only cleared once the
+    # new run actually succeeds -- see _execute_analysis (TA-87). A retry
+    # that fails again must leave any previously cached analysis intact,
+    # not wipe it up front and then fail.
     analysis.error_message = None
     db.commit()
 
@@ -453,6 +516,68 @@ def get_document_audit(
         }
         for e in events
     ]
+
+
+@router.get("/{document_id}/audit/export")
+def export_document_audit(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Exports the whole thread's audit trail (every actor, action, and
+    timestamp) plus each decision's status and comment, as a CSV --
+    same access boundary as the JSON /audit endpoint above, so a
+    cross-advisor probe against this is exactly as meaningful as
+    against any other document-scoped endpoint.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    _check_document_access(document, current_user)
+
+    thread_document_ids = [
+        d.id for d in db.query(Document.id).filter(Document.thread_id == document.thread_id).all()
+    ]
+
+    events = (
+        db.query(AuditEvent)
+        .filter(AuditEvent.document_id.in_(thread_document_ids))
+        .order_by(AuditEvent.timestamp)
+        .all()
+    )
+
+    actor_ids = {e.actor_id for e in events}
+    actors = {u.id: u for u in db.query(User).filter(User.id.in_(actor_ids)).all()}
+    reviews_by_document = {
+        r.document_id: r
+        for r in db.query(Review).filter(Review.document_id.in_(thread_document_ids)).all()
+    }
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "timestamp", "actor_name", "actor_role", "action",
+        "document_id", "decision_status", "decision_comment",
+    ])
+    for e in events:
+        actor = actors.get(e.actor_id)
+        # Only a 'decided' event has a matching Review to enrich with --
+        # every other action's decision columns are left blank.
+        review = reviews_by_document.get(e.document_id) if e.action == AuditAction.decided else None
+        writer.writerow([
+            e.timestamp.isoformat(),
+            actor.name if actor else "Unknown",
+            actor.role.value if actor else "",
+            e.action.value,
+            str(e.document_id),
+            review.status.value if review else "",
+            review.comment if review else "",
+        ])
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="audit-trail-{document.thread_id}.csv"'},
+    )
 
 
 @router.get("/{document_id}/reviews", response_model=list[ReviewResponse])
@@ -513,6 +638,7 @@ def get_document_thread(
             "type": doc.type,
             "uploaded_at": doc.uploaded_at,
             "replaces_document_id": doc.replaces_document_id,
+            "revision_notes": doc.revision_notes,
             "review": review,
         })
     return entries

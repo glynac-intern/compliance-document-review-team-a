@@ -103,6 +103,13 @@ export interface BackendAnalysis {
 export const documentsApi = {
   list: (): Promise<BackendDocument[]> => apiFetch<BackendDocument[]>("/documents"),
 
+  // Distinct from list() -- GET /documents/{id} is also what records a
+  // 'viewed' audit event server-side (audit_utils.record_view_if_new).
+  // Call this whenever the user actually opens a specific document, even
+  // if the response itself isn't needed for anything already in state.
+  get: (documentId: string): Promise<BackendDocument> =>
+    apiFetch<BackendDocument>(`/documents/${documentId}`),
+
   getThread: (documentId: string): Promise<ThreadEntry[]> =>
     apiFetch<ThreadEntry[]>(`/documents/${documentId}/thread`),
 
@@ -146,6 +153,50 @@ export const documentsApi = {
 
     const disposition = response.headers.get("content-disposition");
     let filename = fallbackFilename || "document";
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+    }
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
+  // TA-93: same blob-download pattern as downloadFile above, against
+  // the CSV export endpoint instead of the original uploaded file.
+  exportAuditTrail: async (documentId: string): Promise<void> => {
+    const token = getStoredToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_BASE_URL}/documents/${documentId}/audit/export`, {
+      headers,
+    });
+    if (!response.ok) {
+      let detail = `Export failed (${response.status})`;
+      try {
+        const body = await response.json();
+        if (body?.detail) {
+          detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+        }
+      } catch {
+        // non-JSON response body
+      }
+      throw new ApiError(response.status, detail);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const disposition = response.headers.get("content-disposition");
+    let filename = "audit-trail.csv";
     if (disposition && disposition.includes("filename=")) {
       const match = disposition.match(/filename=["']?([^"';]+)["']?/);
       if (match && match[1]) {
@@ -210,6 +261,13 @@ export const documentsApi = {
    * XHR-for-real-progress pattern as submit() above -- reused rather
    * than duplicated logic with a different endpoint path.
    */
+  // TA-95: nudges officers about a document still awaiting review.
+  // Backend rate-limits this to once per document per 24h (429) and
+  // rejects it outside pending_review (400) -- both surface via the
+  // real ApiError message from apiFetch, same as every other endpoint.
+  sendReminder: (documentId: string): Promise<{ detail: string }> =>
+    apiFetch<{ detail: string }>(`/documents/${documentId}/reminder`, { method: "POST" }),
+
   submitRevision: (
     originalDocumentId: string,
     file: File,

@@ -7,22 +7,14 @@ Operates on raw text and a DB session, independent of the Document model,
 so it can be tested standalone (see test_pipeline.py) before being wired
 into the FastAPI endpoint's persistence layer.
 """
-
-import sys
-sys.path.insert(0, "/app/ai/masking")
-sys.path.insert(0, "/app/data_pipeline/chunking")
-sys.path.insert(0, "/app/data_pipeline/retrieval")
-sys.path.insert(0, "/app/data_pipeline/embeddings")
-sys.path.insert(0, "/app/ai/summarisation")
-
-from masker import mask_pii, unmask_for_display
-from chunker import chunk_paragraphs
-from rule_retrieval import retrieve_candidate_rules
-from embed_client import embed_texts_batch, get_client
+from ai.masking.masker import mask_pii, unmask_for_display
+from data_pipeline.chunking.chunker import chunk_paragraphs
+from data_pipeline.retrieval.rule_retrieval import retrieve_candidate_rules
+from data_pipeline.embeddings.embed_client import embed_texts_batch, get_client
 
 from models import Rule
-from flagging import generate_flags_for_chunk
-from summarizer import generate_summary
+from ai.compliance.flagging import generate_flags_for_chunk
+from ai.summarisation.summarizer import generate_summary
 
 DISCLOSURE_ABSENCE_THRESHOLD = 0.20  # validated at 100% accuracy on the seed corpus
 

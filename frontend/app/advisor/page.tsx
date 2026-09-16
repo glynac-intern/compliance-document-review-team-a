@@ -149,6 +149,15 @@ export default function AdvisorDashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // A needs_revision document that's already been superseded by its own
+  // revision keeps that status forever as a historical record (the
+  // backend's replaces_document_id chain, not a mutation) -- it must not
+  // still count or act as something the advisor needs to act on.
+  const supersededDocumentIds = React.useMemo(
+    () => new Set(documents.filter((d) => d.replaces_document_id).map((d) => d.replaces_document_id as string)),
+    [documents]
+  );
+
   // Compute metric counts matching the user's sketch (Total: 6, Pending: 2, Approved: 2, Needs Revision: 1)
   const metricCounts = React.useMemo(() => {
     const total = documents.length;
@@ -156,10 +165,13 @@ export default function AdvisorDashboardPage() {
       (d) => d.status === "pending" || d.status === "in_review"
     ).length;
     const approved = documents.filter((d) => d.status === "approved").length;
-    const needsRevision = documents.filter((d) => d.status === "needs_revision").length;
+    const needsRevision = documents.filter(
+      (d) => d.status === "needs_revision" && !supersededDocumentIds.has(d.id)
+    ).length;
+    const rejected = documents.filter((d) => d.status === "rejected").length;
 
-    return { total, pending, approved, needsRevision };
-  }, [documents]);
+    return { total, pending, approved, needsRevision, rejected };
+  }, [documents, supersededDocumentIds]);
 
   // TA-63: real refresh -- re-fetches from the backend, not a fake delay.
   const handleRefresh = async () => {
@@ -279,13 +291,14 @@ export default function AdvisorDashboardPage() {
                 </h1>
               </div>
 
-              {/* 4 Summary Metric Cards (Clicking one opens My Submissions with that filter) */}
+              {/* 5 Summary Metric Cards (Clicking one opens My Submissions with that filter) */}
               <div id="metric-cards-section">
                 <MetricCards
                   total={metricCounts.total}
                   pending={metricCounts.pending}
                   approved={metricCounts.approved}
                   needsRevision={metricCounts.needsRevision}
+                  rejected={metricCounts.rejected}
                   activeFilter={statusFilter}
                   hasError={Boolean(loadError)}
                   onSelectFilter={(filterKey) => {
@@ -448,6 +461,7 @@ export default function AdvisorDashboardPage() {
       {/* Slide-over Inspector Drawer for Selected Document */}
       <DocumentInspectorDrawer
         document={selectedDocument}
+        isSuperseded={selectedDocument ? supersededDocumentIds.has(selectedDocument.id) : false}
         onClose={() => setSelectedDocument(null)}
         onReviseClick={(doc) => {
           setSelectedDocument(null);

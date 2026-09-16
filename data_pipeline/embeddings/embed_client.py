@@ -14,16 +14,14 @@ single-item wrapper around it, so there is exactly one real
 implementation, not two to keep in sync."""
 
 import os
-import sys
 import time
 
 from google import genai
 from google.genai import types
 
-from model_config import EMBEDDING_MODEL, EMBEDDING_DIM
+from data_pipeline.embeddings.model_config import EMBEDDING_MODEL, EMBEDDING_DIM
 
-sys.path.insert(0, "/app/ai/masking")
-from masker import mask_pii
+from ai.masking.masker import mask_pii
 
 _client = None
 
