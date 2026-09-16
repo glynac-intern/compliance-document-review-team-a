@@ -5,7 +5,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -290,6 +290,7 @@ def download_document_file(
 def submit_revision(
     document_id: uuid.UUID,
     file: UploadFile = File(...),
+    comment: str | None = Form(None),
     current_user: User = Depends(require_role("advisor")),
     db: Session = Depends(get_db),
 ):
@@ -322,6 +323,7 @@ def submit_revision(
         type=doc_type,
         thread_id=original.thread_id,
         replaces_document_id=original.id,
+        revision_notes=comment.strip() if comment and comment.strip() else None,
     )
     db.add(revision)
     db.add(AuditEvent(actor_id=current_user.id, document_id=new_id, action=AuditAction.resubmitted))
@@ -516,6 +518,7 @@ def get_document_thread(
             "type": doc.type,
             "uploaded_at": doc.uploaded_at,
             "replaces_document_id": doc.replaces_document_id,
+            "revision_notes": doc.revision_notes,
             "review": review,
         })
     return entries

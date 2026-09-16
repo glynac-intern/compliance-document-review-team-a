@@ -115,6 +115,11 @@ class Document(Base):
     # document this one supersedes, forming the ordered chain.
     thread_id = Column(UUID(as_uuid=True), nullable=False)
     replaces_document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=True)
+    # The advisor's own note on what changed in this revision -- only
+    # ever set on a revision document (submit_revision), never on an
+    # original submission. Distinct from Review.comment, which is the
+    # OFFICER's note on their decision.
+    revision_notes = Column(Text, nullable=True)
 
     advisor = relationship("User", back_populates="documents")
     reviews = relationship("Review", back_populates="document")
