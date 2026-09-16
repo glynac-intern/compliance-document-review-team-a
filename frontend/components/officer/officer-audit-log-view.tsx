@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Download,
   History,
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   XCircle,
@@ -25,17 +24,17 @@ interface OfficerAuditLogViewProps {
 }
 
 const ACTION_FILTERS: { value: string; label: string }[] = [
-  { value: "all", label: "All Audit Events" },
-  { value: "decisions", label: "Regulatory Decisions" },
-  { value: "submissions", label: "Document Submissions" },
-  { value: "ai_scans", label: "AI Screening Runs" },
-  { value: "access", label: "File Access & Downloads" },
+  { value: "all", label: "All Events" },
+  { value: "decisions", label: "Decisions" },
+  { value: "submissions", label: "Submissions" },
+  { value: "ai_scans", label: "AI Reviews" },
+  { value: "access", label: "File Access" },
 ];
 
 function formatAuditTimestamp(isoString: string): string {
   try {
     const d = new Date(isoString);
-    return d.toISOString().replace("T", " ").replace(/\.\d+Z$/, " UTC").slice(0, 19) + " UTC";
+    return d.toISOString().replace("T", " ").slice(0, 16);
   } catch {
     return isoString;
   }
@@ -84,15 +83,13 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
     const csvRows = [
       [
         "Event ID",
-        "Timestamp (UTC)",
-        "Actor Name",
-        "Actor Role",
-        "Action Type",
+        "Timestamp",
+        "User",
+        "Role",
+        "Action",
         "Document ID",
         "Document Title",
         "Details",
-        "IP Address",
-        "Ledger Signature",
       ],
       ...filteredEntries.map((e) => [
         e.id,
@@ -103,8 +100,6 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
         e.document_id,
         `"${e.document_title.replace(/"/g, '""')}"`,
         `"${e.details.replace(/"/g, '""')}"`,
-        e.ip_address,
-        e.hash_signature,
       ]),
     ];
 
@@ -113,12 +108,12 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `verity_compliance_audit_trail_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `audit_log_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    onShowToast?.("Compliance audit trail exported to CSV.");
+    onShowToast?.("Audit trail exported to CSV.");
   };
 
   const renderActionBadge = (action: AuditLogEntry["action_type"]) => {
@@ -134,7 +129,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-normal text-amber-800 bg-amber-50 border border-amber-200">
             <AlertTriangle className="h-3 w-3 stroke-[2]" />
-            Revision Required
+            Revision
           </span>
         );
       case "DECISION_REJECTED":
@@ -162,7 +157,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-normal text-purple-700 bg-purple-50 border border-purple-200">
             <Cpu className="h-3 w-3 stroke-[1.8]" />
-            AI Screening
+            AI Review
           </span>
         );
       case "FILE_DOWNLOADED":
@@ -190,7 +185,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
             Audit Log
           </h1>
           <p className="text-xs text-slate-400 font-normal font-inter mt-1">
-            Immutable cross-firm event ledger complying with SEC Rule 204-2 & FINRA Rule 4511 books and records mandates.
+            Track document submissions, review decisions, and system events.
           </p>
         </div>
 
@@ -202,7 +197,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
             className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer flex items-center gap-2 font-inter"
           >
             <Download className="h-3.5 w-3.5 text-slate-500 stroke-[1.8]" />
-            Export Audit Trail (CSV)
+            Export CSV
           </button>
         </div>
       </div>
@@ -216,7 +211,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by event, actor, document ID, or action..."
+            placeholder="Search audit log..."
             className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 font-inter transition-all focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#1e4c77] focus:bg-white"
           />
         </div>
@@ -236,11 +231,6 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
           </select>
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
         </div>
-
-        <div className="ml-auto hidden md:flex items-center gap-2 text-xs text-slate-400 font-inter">
-          <ShieldCheck className="h-4 w-4 text-emerald-600 stroke-[1.8]" />
-          <span>SHA-256 Ledger Verified</span>
-        </div>
       </div>
 
       {/* Audit Trail Table */}
@@ -248,32 +238,29 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
         {filteredEntries.length === 0 ? (
           <div className="p-12 text-center font-inter">
             <History className="h-8 w-8 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-slate-800">No audit events match</p>
+            <p className="text-sm font-medium text-slate-800">No events found</p>
             <p className="text-xs text-slate-400 mt-1">
-              Try modifying your search keywords or event category filter.
+              Try adjusting your search or filter.
             </p>
           </div>
         ) : (
           <table className="w-full text-xs font-inter">
             <thead>
               <tr className="bg-[#f8fafc]/90 border-b border-slate-100">
-                <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                  Timestamp (UTC)
+                <th className="text-left py-3.5 px-4 text-[12px] font-normal text-slate-400 tracking-normal w-[150px]">
+                  Timestamp
                 </th>
-                <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                  Action Event
+                <th className="text-left py-3.5 px-4 text-[12px] font-normal text-slate-400 tracking-normal w-[130px]">
+                  Action
                 </th>
-                <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                  Actor & Role
+                <th className="text-left py-3.5 px-4 text-[12px] font-normal text-slate-400 tracking-normal w-[170px]">
+                  User
                 </th>
-                <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                  Target Document
+                <th className="text-left py-3.5 px-4 text-[12px] font-normal text-slate-400 tracking-normal min-w-[220px] max-w-[320px]">
+                  Document
                 </th>
-                <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                  Regulatory Audit Details
-                </th>
-                <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                  Node / Signature
+                <th className="text-left py-3.5 px-4 text-[12px] font-normal text-slate-400 tracking-normal min-w-[280px]">
+                  Details
                 </th>
               </tr>
             </thead>
@@ -292,8 +279,8 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
                     {renderActionBadge(entry.action_type)}
                   </td>
 
-                  {/* Actor */}
-                  <td className="py-3.5 px-4">
+                  {/* User */}
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <p className="text-[12.5px] font-medium text-slate-800 font-inter">
                       {entry.actor_name}
                     </p>
@@ -302,9 +289,9 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
                     </p>
                   </td>
 
-                  {/* Target Document */}
-                  <td className="py-3.5 px-4 max-w-[220px]">
-                    <p className="text-[12.5px] font-normal text-slate-800 truncate font-inter" title={entry.document_title}>
+                  {/* Document */}
+                  <td className="py-3.5 px-4 min-w-[220px] max-w-[320px]">
+                    <p className="text-[12.5px] font-normal text-slate-800 font-inter leading-snug" title={entry.document_title}>
                       {entry.document_title}
                     </p>
                     <p className="text-[10.5px] text-slate-400 font-numbers tabular-nums mt-0.5">
@@ -313,19 +300,9 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
                   </td>
 
                   {/* Details */}
-                  <td className="py-3.5 px-4 max-w-[320px]">
+                  <td className="py-3.5 px-4">
                     <p className="text-[12px] text-slate-600 font-inter leading-relaxed" title={entry.details}>
                       {entry.details}
-                    </p>
-                  </td>
-
-                  {/* Node / Signature */}
-                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                    <p className="font-numbers tabular-nums text-[11px] text-slate-500">
-                      {entry.ip_address}
-                    </p>
-                    <p className="font-numbers tabular-nums text-[10px] text-slate-400 mt-0.5 tracking-tight font-mono">
-                      {entry.hash_signature}
                     </p>
                   </td>
                 </tr>
@@ -346,7 +323,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
           <span className="font-numbers tabular-nums font-medium text-slate-500">
             {MOCK_AUDIT_LOG_ENTRIES.length}
           </span>{" "}
-          regulatory events
+          events
         </p>
       )}
     </div>

@@ -27,13 +27,7 @@ import { OfficerAuditLogView } from "@/components/officer/officer-audit-log-view
 // Constants
 // ---------------------------------------------------------------------------
 
-const STATUS_FILTERS: { value: string; label: string }[] = [
-  { value: "all", label: "All Statuses" },
-  { value: "pending_review", label: "Pending Review" },
-  { value: "needs_revision", label: "Needs Revision" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-];
+
 
 const TYPE_FILTERS = [
   { value: "all", label: "All Document Types" },
@@ -139,7 +133,6 @@ export default function OfficerDashboardPage() {
 
   // Filters
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("all");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("newest");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -181,10 +174,10 @@ export default function OfficerDashboardPage() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // Load queue data
+  // Load queue data (strictly pending reviews for the review queue dashboard)
   const loadQueue = React.useCallback(async () => {
     try {
-      const data = await reviewsApi.getQueue();
+      const data = await reviewsApi.getQueue("pending_review");
       setDocuments(
         data.map((d) => ({
           ...d,
@@ -197,7 +190,11 @@ export default function OfficerDashboardPage() {
       if (err instanceof ApiError) {
         setError(err.message);
       }
-      setDocuments(MOCK_QUEUE_DOCUMENTS.map(adaptMockToQueueRow));
+      setDocuments(
+        MOCK_QUEUE_DOCUMENTS.filter(
+          (d) => d.status === "pending" || (d.status as string) === "pending_review"
+        ).map(adaptMockToQueueRow)
+      );
     } finally {
       setIsLoading(false);
     }
@@ -208,7 +205,7 @@ export default function OfficerDashboardPage() {
     let ignore = false;
 
     reviewsApi
-      .getQueue()
+      .getQueue("pending_review")
       .then((data) => {
         if (!ignore) {
           setDocuments(
@@ -225,7 +222,11 @@ export default function OfficerDashboardPage() {
           if (err instanceof ApiError) {
             setError(err.message);
           }
-          setDocuments(MOCK_QUEUE_DOCUMENTS.map(adaptMockToQueueRow));
+          setDocuments(
+            MOCK_QUEUE_DOCUMENTS.filter(
+              (d) => d.status === "pending" || (d.status as string) === "pending_review"
+            ).map(adaptMockToQueueRow)
+          );
         }
       })
       .finally(() => {
@@ -248,19 +249,12 @@ export default function OfficerDashboardPage() {
     showToast("Review operations data synchronized with repository.");
   }, [loadQueue, showToast]);
 
-  // Filter and sort documents strictly for pending review queue or selected status
+  // Filter and sort documents strictly for pending review queue
   const filteredDocuments = React.useMemo(() => {
-    let result = [...documents];
-
-    // Status filter (TA-66)
-    if (statusFilter !== "all") {
-      result = result.filter((d) => {
-        if (statusFilter === "pending_review") {
-          return d.status === "pending_review" || (d.status as string) === "pending";
-        }
-        return d.status === statusFilter;
-      });
-    }
+    // All pending reviews appear in the review queue dashboard and nowhere else
+    let result = documents.filter(
+      (d) => d.status === "pending_review" || (d.status as string) === "pending"
+    );
 
     // Document Type filter
     if (typeFilter !== "all") {
@@ -392,21 +386,6 @@ export default function OfficerDashboardPage() {
                   />
                 </div>
 
-                {/* Status Filter (TA-66) */}
-                <div className="relative">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
-                  >
-                    {STATUS_FILTERS.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                </div>
 
                 {/* Document Type Filter */}
                 <div className="relative">

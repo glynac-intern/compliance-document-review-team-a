@@ -44,7 +44,8 @@ import {
 import { reviewsApi, type DecisionStatus } from "@/lib/reviews-api";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
-import { MOCK_QUEUE_DOCUMENTS } from "@/lib/mock-officer-data";
+import { MOCK_QUEUE_DOCUMENTS, MOCK_COMPLETED_REVIEWS } from "@/lib/mock-officer-data";
+import { AiAssistPanel } from "@/components/officer/ai-assist-panel";
 
 interface MatchedRule {
   id: string;
@@ -117,8 +118,14 @@ export default function OfficerDocumentReviewPage() {
   const [justDecided, setJustDecided] = React.useState(false);
 
   const mockDoc = React.useMemo(
-    () => MOCK_QUEUE_DOCUMENTS.find((d) => d.id === documentId),
+    () =>
+      MOCK_QUEUE_DOCUMENTS.find((d) => d.id === documentId) ||
+      MOCK_COMPLETED_REVIEWS.find((d) => d.id === documentId),
     [documentId]
+  );
+  const mockQueueDoc = React.useMemo(
+    () => (mockDoc && "version" in mockDoc ? mockDoc : null),
+    [mockDoc]
   );
 
   // TA-70: load analysis with 503 degraded error handling
@@ -181,9 +188,9 @@ export default function OfficerDocumentReviewPage() {
             original_filename: mockDoc.title,
             type: (mockDoc.title.split(".").pop()?.toLowerCase() ?? "pdf") as BackendDocument["type"],
             uploaded_at: mockDoc.uploaded_at,
-            thread_id: mockDoc.thread_id,
-            replaces_document_id: mockDoc.replaces_document_id,
-            revision_notes: mockDoc.revision_notes,
+            thread_id: mockQueueDoc?.thread_id ?? `THR-${mockDoc.id.replace("DOC-2026-", "")}`,
+            replaces_document_id: mockQueueDoc?.replaces_document_id ?? null,
+            revision_notes: mockQueueDoc?.revision_notes ?? null,
           });
         } else {
           setDocError(err instanceof ApiError ? err.message : "Unable to load this document.");
@@ -269,7 +276,7 @@ export default function OfficerDocumentReviewPage() {
   const displayStatus = doc?.status ?? "pending_review";
   const displayType = doc?.type?.toUpperCase() ?? mockDoc?.type?.toUpperCase() ?? "—";
   const displaySize = mockDoc?.file_size_mb ? `${mockDoc.file_size_mb} MB` : "—";
-  const displayVersion = mockDoc?.version ?? (threadEntries.length > 0 ? threadEntries.length : 1);
+  const displayVersion = mockQueueDoc?.version ?? (threadEntries.length > 0 ? threadEntries.length : 1);
   const displayUploadedAt = doc?.uploaded_at ?? mockDoc?.uploaded_at ?? "";
 
   return (
@@ -382,7 +389,7 @@ export default function OfficerDocumentReviewPage() {
               /* REAL DOCUMENT PREVIEW (PDF in iframe, DOCX/XLSX download prompt) */
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Advisor Revision Note Callout */}
-                {(doc?.revision_notes || mockDoc?.revision_notes) && (
+                {(doc?.revision_notes || mockQueueDoc?.revision_notes) && (
                   <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-start gap-3 text-xs shrink-0">
                     <MessageSquare className="h-4 w-4 text-[#1e4c77] shrink-0 mt-0.5" />
                     <div className="min-w-0">
@@ -391,7 +398,7 @@ export default function OfficerDocumentReviewPage() {
                         <span className="text-[11px] text-slate-400 font-normal">· {displayAdvisor}</span>
                       </div>
                       <p className="text-slate-700 mt-0.5 leading-relaxed">
-                        {doc?.revision_notes ?? mockDoc?.revision_notes}
+                        {doc?.revision_notes ?? mockQueueDoc?.revision_notes}
                       </p>
                     </div>
                   </div>
@@ -493,14 +500,14 @@ export default function OfficerDocumentReviewPage() {
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase tracking-wider">Thread ID</p>
                       <p className="text-[13px] font-medium text-slate-800 tabular-nums">
-                        {doc?.thread_id ?? mockDoc?.thread_id ?? "—"}
+                        {doc?.thread_id ?? mockQueueDoc?.thread_id ?? "—"}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Advisor Revision Note in Details */}
-                {(doc?.revision_notes || mockDoc?.revision_notes) && (
+                {(doc?.revision_notes || mockQueueDoc?.revision_notes) && (
                   <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 font-inter">
                     <div className="flex items-center gap-2 mb-1.5">
                       <MessageSquare className="h-3.5 w-3.5 text-[#1e4c77]" />
@@ -509,7 +516,7 @@ export default function OfficerDocumentReviewPage() {
                       </h3>
                     </div>
                     <p className="text-xs text-slate-700 leading-relaxed">
-                      {doc?.revision_notes ?? mockDoc?.revision_notes}
+                      {doc?.revision_notes ?? mockQueueDoc?.revision_notes}
                     </p>
                   </div>
                 )}
@@ -576,120 +583,34 @@ export default function OfficerDocumentReviewPage() {
           </div>
         </div>
 
-        {/* ===== RIGHT PANEL: AI ASSIST + DECISION ACTION ===== */}
+        {/* ===== RIGHT PANEL: AI CHAT + DECISION ACTION ===== */}
         <div className="w-full lg:w-[42%] shrink-0 flex flex-col bg-white overflow-hidden min-h-0">
-          {/* Scrollable AI Assist Window (TA-68 & TA-70) */}
-          <div className="flex-1 p-5 overflow-y-auto space-y-4 font-inter">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">AI Assist</h2>
-
-            {!analysis ? (
-              /* TA-70: in-flight loading state */
-              <div className="flex items-center gap-2 text-xs text-slate-400 py-4">
-                <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 border-t-[#2575bc] animate-spin" />
-                <span>Analyzing document...</span>
-              </div>
-            ) : analysis.status === "failed" ? (
-              /* TA-70: distinct failed state with retry control */
-              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center">
-                <FileWarning className="h-6 w-6 text-rose-400 mx-auto mb-2" />
-                <p className="text-xs font-semibold text-rose-800 mb-1">
-                  AI assist is currently unavailable
-                </p>
-                <p className="text-[11px] text-rose-600 mb-3">
-                  {analysis.error_message ?? "The analysis could not be completed."}
-                </p>
-                <p className="text-[11px] text-slate-500 mb-3">
-                  You can still review and decide on this document normally -- the assist panel is supplementary, not required.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleRetryAnalysis}
-                  disabled={isRetrying}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
-                >
-                  {isRetrying ? "Retrying..." : "Retry Analysis"}
-                </button>
-              </div>
-            ) : (
-              /* TA-68: factual summary, rule-cited flags, clean-state, and precedents */
-              <div className="space-y-4">
-                {analysis.summary && (
-                  <div>
-                    <p className="text-[11px] font-semibold text-slate-500 mb-1">Summary</p>
-                    <p className="text-xs text-slate-700 leading-relaxed">{analysis.summary}</p>
-                  </div>
-                )}
-
-                <div>
-                  <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
-                    Flags ({analysis.flags.length})
-                  </p>
-                  {analysis.flags.length === 0 ? (
-                    <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
-                      No issues flagged -- this document read as clean.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {analysis.flags.map((flag, i) => (
-                        <div key={i} className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                flag.severity === "high"
-                                  ? "bg-rose-100 text-rose-800"
-                                  : flag.severity === "medium"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-slate-100 text-slate-600"
-                              }`}
-                            >
-                              {flag.severity}
-                            </span>
-                            {flag.matched_rule && (
-                              <span className="text-[10px] text-slate-400 font-medium">
-                                {flag.matched_rule.type.replace(/_/g, " ")}
-                              </span>
-                            )}
-                          </div>
-                          <p className="italic text-slate-700">&ldquo;{flag.passage_excerpt}&rdquo;</p>
-                          {flag.matched_rule && (
-                            <p className="text-slate-600 border-l-2 border-amber-300 pl-2">
-                              {flag.matched_rule.text}
-                            </p>
-                          )}
-                          <p className="text-slate-600">{flag.explanation}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
-                    Similar Precedents ({analysis.precedents.length})
-                  </p>
-                  {analysis.precedents.length === 0 ? (
-                    <p className="text-xs text-slate-400">No similar precedents found yet.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {analysis.precedents.map((p, i) => (
-                        <div key={i} className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-xs space-y-1">
-                          <span
-                            className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              p.decision === "approved"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {p.decision.replace(/_/g, " ")}
-                          </span>
-                          {p.comment && <p className="text-slate-600">{p.comment}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* Conversational AI Chat Window */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <AiAssistPanel
+              documentId={documentId}
+              analysis={analysis ? {
+                id: "",
+                document_id: documentId,
+                status: analysis.status,
+                error_message: analysis.error_message,
+                summary: analysis.summary,
+                generated_at: null,
+                flags: analysis.flags.map((f) => ({
+                  id: "",
+                  passage_excerpt: f.passage_excerpt,
+                  matched_rule: f.matched_rule,
+                  explanation: f.explanation,
+                  severity: f.severity,
+                })),
+                precedents: analysis.precedents,
+              } : undefined}
+              isLoading={!analysis}
+              errorMessage={analysis?.status === "failed" ? analysis.error_message : null}
+              onRetry={handleRetryAnalysis}
+              isRetrying={isRetrying}
+              onInsertComment={(text) => setComment(text)}
+            />
           </div>
 
           {/* ===== TA-69: DECISION WORKFLOW AREA ===== */}

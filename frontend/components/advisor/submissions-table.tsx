@@ -17,6 +17,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
 
+import { ErrorState } from "@/components/common/error-state";
+
 interface SubmissionsTableProps {
   documents: ComplianceDocument[];
   searchQuery: string;
@@ -30,6 +32,9 @@ interface SubmissionsTableProps {
   onResetFilters: () => void;
   variant?: "overview" | "full";
   onViewMore?: () => void;
+  isLoading?: boolean;
+  loadError?: string | null;
+  onRetry?: () => void;
 }
 
 export function SubmissionsTable({
@@ -45,6 +50,9 @@ export function SubmissionsTable({
   onResetFilters,
   variant = "full",
   onViewMore,
+  isLoading = false,
+  loadError = null,
+  onRetry,
 }: SubmissionsTableProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
@@ -279,7 +287,24 @@ export function SubmissionsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
-            {displayedDocuments.length === 0 ? (
+            {loadError ? (
+              <tr>
+                <td colSpan={variant === "full" ? 6 : 5} className="py-12 px-4 text-center">
+                  <div className="max-w-md mx-auto">
+                    <ErrorState message={loadError} onRetry={onRetry} />
+                  </div>
+                </td>
+              </tr>
+            ) : isLoading ? (
+              <tr>
+                <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center text-slate-400 font-inter">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-[#1e4c77] animate-spin" />
+                    <span>Loading submissions...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : displayedDocuments.length === 0 ? (
               <tr>
                 <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center">
                   <div className="max-w-xs mx-auto flex flex-col items-center">
@@ -287,16 +312,9 @@ export function SubmissionsTable({
                       <FileText className="h-5 w-5" strokeWidth={1.8} />
                     </div>
                     {documents.length === 0 ? (
-                      // TA-63: a genuinely empty account (no submissions
-                      // ever), distinct from "filtered to nothing" below.
-                      <>
-                        <p className="text-sm font-normal text-slate-800 font-inter">
-                          Nothing here yet
-                        </p>
-                        <p className="text-xs text-slate-400 mt-1 font-inter font-normal">
-                          Submit a document to begin.
-                        </p>
-                      </>
+                      <p className="text-sm font-normal text-slate-800 font-inter">
+                        No data available yet.
+                      </p>
                     ) : (
                       <>
                         <p className="text-sm font-normal text-slate-800 font-inter">

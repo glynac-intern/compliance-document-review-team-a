@@ -47,7 +47,8 @@ export interface ReviewsApiClient {
 
 export const reviewsApi: ReviewsApiClient = {
   getQueue: (statusFilter?: BackendDocumentStatus): Promise<QueueDocument[]> => {
-    const query = statusFilter ? `?status=${statusFilter}` : "";
+    const filter = statusFilter ?? "pending_review";
+    const query = `?status=${filter}`;
     return apiFetch<QueueDocument[]>(`/review/queue${query}`);
   },
 

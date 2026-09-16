@@ -1,14 +1,19 @@
 "use client";
 
 /**
- * Verity AI — Interactive Regulatory Compliance Review Conversation.
+ * Verity AI — Plain Conversational Compliance Chat Window.
+ *
+ * A clean, plain-text chat interface for the officer to interact with the AI
+ * compliance assistant. No card-based layouts, no heavy widget chrome — just
+ * a natural message thread like any other chat window.
  *
  * Features:
- * - Animated gradient outline with subtle ambient glow
- * - Realistic regulatory review dialogue (no generic static cards)
- * - Open to conversational input: officer can ask questions, request edits,
- *   or generate revision memos in real-time
+ * - Plain text message bubbles (AI left, officer right)
+ * - Live backend chat via POST /review/documents/{id}/chat
+ * - Intelligent local fallback when backend is unreachable
+ * - Quick prompt chips for common compliance workflows
  * - One-click "Use in Decision Notes" to populate the determination panel
+ * - Copy button on AI messages
  */
 
 import * as React from "react";
@@ -19,9 +24,11 @@ import {
   RefreshCw,
   ArrowDownToLine,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VerityMark } from "@/components/ui/verity-logo";
+import { apiFetch } from "@/lib/api-client";
 import type { BackendAnalysis } from "@/lib/documents-api";
 import type { AIAnalysis } from "@/types/compliance";
 
@@ -30,6 +37,7 @@ import type { AIAnalysis } from "@/types/compliance";
 // ---------------------------------------------------------------------------
 
 export interface AiAssistPanelProps {
+  documentId?: string;
   analysis?: BackendAnalysis | null;
   mockAnalysis?: AIAnalysis | null;
   mockPrecedents?: {
@@ -63,58 +71,107 @@ interface ChatMessage {
   suggestedActions?: SuggestedAction[];
 }
 
+interface ChatResponse {
+  reply: string;
+  suggested_decision_note?: string | null;
+}
+
 // ---------------------------------------------------------------------------
-// Concise Review Text Generator (No Italics, Reduced Text)
+// Build initial review briefing as readable plain text
 // ---------------------------------------------------------------------------
 function buildInitialReviewMessage(
   summary?: string | null,
   flags?: { passage: string; rule_id: string | null; explanation: string; severity: string }[],
   precedents?: { document_id: string; decision: string; comment?: string | null; masked_text?: string; title?: string }[]
 ): string {
-  if (summary || (flags && flags.length > 0)) {
-    let msg = "";
-    if (summary) {
-      msg += `**Executive Summary:**\n${summary}\n\n`;
-    }
-    if (flags && flags.length > 0) {
-      const findingsList = flags
-        .map(
-          (f, i) =>
-            `${i + 1}. **${f.rule_id ?? "Compliance Flag"}** [${f.severity.toUpperCase()}]:\n   "${f.passage}"\n   ${f.explanation}`
-        )
-        .join("\n\n");
-      msg += `**Potential Compliance Flags:**\n${findingsList}\n\n`;
-    } else {
-      msg += `**Potential Compliance Flags:**\nNo regulatory flags detected in this submission.\n\n`;
-    }
+  let msg = "";
 
-    if (precedents && precedents.length > 0) {
-      const precedentList = precedents
-        .slice(0, 3)
-        .map(
-          (p, i) =>
-            `${i + 1}. Precedent ${p.title ?? p.document_id.slice(0, 8)} (${p.decision.toUpperCase()}): ${p.comment || p.masked_text?.slice(0, 90) || "Recorded determination without additional commentary."}`
-        )
-        .join("\n");
-      msg += `**Similar Precedents (Top 3):**\n${precedentList}\n\n`;
-    }
+  if (summary) {
+    msg += `Summary:\n${summary}\n\n`;
+  }
 
+  if (flags && flags.length > 0) {
+    msg += `Compliance Flags (${flags.length}):\n`;
+    flags.forEach((f, i) => {
+      msg += `${i + 1}. [${f.severity.toUpperCase()}] ${f.rule_id ?? "Compliance Flag"}\n`;
+      msg += `   "${f.passage}"\n`;
+      msg += `   ${f.explanation}\n`;
+      if (i < flags.length - 1) msg += "\n";
+    });
+    msg += "\n";
+  } else if (summary) {
+    msg += "No regulatory flags detected in this submission.\n\n";
+  }
+
+  if (precedents && precedents.length > 0) {
+    msg += `Similar Precedents (${Math.min(precedents.length, 3)}):\n`;
+    precedents.slice(0, 3).forEach((p, i) => {
+      const title = p.title ?? p.document_id.slice(0, 8);
+      msg += `${i + 1}. ${title} — ${p.decision.toUpperCase()}: ${p.comment || p.masked_text?.slice(0, 90) || "No comment."}\n`;
+    });
+    msg += "\n";
+  }
+
+  if (msg.trim()) {
+    msg += "What would you like to know? I can draft revision notes, suggest compliant wording, or explain regulatory citations.";
     return msg.trim();
   }
 
-  return `**Preliminary Compliance Findings:**
+  // Fallback when no analysis data is available
+  return "I'm ready to help with your compliance review. You can ask me to:\n\n• Explain flagged issues and regulatory citations\n• Draft a revision note for the advisor\n• Suggest compliant alternative wording\n• Compare with historical precedents\n\nWhat would you like to do?";
+}
 
-1. **FINRA Rule 2210(d)(1)(B)** [HIGH] (Promissory Statements):
-   "guaranteed 14% annual returns"
-   Statements predicting or guaranteeing returns on market-linked securities are impermissible under FINRA regulations.
+// ---------------------------------------------------------------------------
+// Intelligent local fallback for chat
+// ---------------------------------------------------------------------------
+function generateLocalFallback(query: string, flags: { passage: string; rule_id: string | null; explanation: string; severity: string }[]): { reply: string; decisionText?: string } {
+  const q = query.toLowerCase();
 
-2. **SEC Rule 482 / FINRA 2210(d)(1)** [MEDIUM] (Performance Disclosures):
-   "10-year alpha attribution chart"
-   Lacks standardized disclosure stating past performance does not guarantee future results.
+  if (["revision", "draft", "note", "memo", "advisor"].some(k => q.includes(k))) {
+    if (flags.length > 0) {
+      const items = flags.slice(0, 3).map((f, i) =>
+        `${i + 1}. ${f.rule_id ?? "Compliance Flag"}: ${f.explanation}`
+      ).join("\n");
+      return {
+        reply: `Here is a revision memo for the advisor:\n\n"Before this document can be cleared for distribution, please address the following compliance items:\n\n${items}\n\nPlease update and resubmit through the portal."`,
+        decisionText: `Revision requested: Address ${flags.length} compliance citation(s).`,
+      };
+    }
+    return {
+      reply: "No compliance issues were flagged. You can approve this document or add specific notes for the advisor.",
+      decisionText: "Approved: Document meets regulatory compliance standards.",
+    };
+  }
 
-3. **Cayman Feeder Structure Disclosures** [LOW] (Tax Disclosures):
-   "perpetual tax shielding"
-   Claims regarding perpetual tax shielding require explicit qualification concerning domestic tax domicile.`;
+  if (["wording", "compliant", "phrase", "substitute", "rewrite"].some(k => q.includes(k))) {
+    return {
+      reply: "Recommended compliant phrasing:\n\n\"The strategy seeks to generate attractive risk-adjusted returns across diversified markets. Target returns are subject to market conditions, interest rate fluctuations, and credit risk. Past performance does not guarantee future results.\"\n\nThis satisfies FINRA Rule 2210(d)(1) by balancing objectives with explicit risk disclosure.",
+      decisionText: "Approved subject to updating phrasing with standard FINRA risk qualifiers.",
+    };
+  }
+
+  if (["precedent", "history", "similar", "past"].some(k => q.includes(k))) {
+    return {
+      reply: "I can compare this document against historical precedents in the compliance repository. The precedent search uses document similarity to find how comparable submissions were decided.\n\nWould you like me to look at specific regulatory areas or overall document similarity?",
+    };
+  }
+
+  if (["approve", "pass", "clear"].some(k => q.includes(k))) {
+    if (flags.length > 0) {
+      return {
+        reply: `Under FINRA Rule 2210, communications cannot be unconditionally approved while promissory statements or missing disclosures remain.\n\nThis document has ${flags.length} active flag(s). You may approve conditionally — record that approval is contingent on the advisor making the required corrections before client distribution.`,
+        decisionText: "Conditional approval: Advisor must resolve flagged items prior to distribution.",
+      };
+    }
+    return {
+      reply: "No compliance violations were detected. The document appears suitable for approval.",
+      decisionText: "Approved: Document meets firm compliance standards.",
+    };
+  }
+
+  return {
+    reply: `Regarding "${query}":\n\nUnder FINRA Rule 2210 and the SEC Marketing Rule, all client-facing materials must present a fair and balanced view of risks and rewards. I can help you draft specific audit commentary, suggest compliant phrasing, or explain applicable regulations.\n\nWhat would you like me to focus on?`,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -122,6 +179,7 @@ function buildInitialReviewMessage(
 // ---------------------------------------------------------------------------
 
 export function AiAssistPanel({
+  documentId,
   analysis,
   mockAnalysis,
   mockPrecedents,
@@ -152,10 +210,8 @@ export function AiAssistPanel({
     return mockPrecedents ?? [];
   }, [analysis, mockPrecedents]);
 
-  // Counter for pure unique IDs
   const msgCounter = React.useRef(1);
 
-  // Initialize conversation state with realistic initial review
   const [messages, setMessages] = React.useState<ChatMessage[]>(() => [
     {
       id: "init-1",
@@ -163,11 +219,13 @@ export function AiAssistPanel({
       content: buildInitialReviewMessage(summary, flags, precedents),
       timestamp: "Just now",
       decisionText:
-        "Revision requested. (1) Remove 14% guaranteed return language under FINRA Rule 2210(d)(1)(B). (2) Append SEC Rule 482 past-performance disclosures to alpha comparison charts.",
+        flags.length > 0
+          ? `Revision requested: Address ${flags.length} compliance citation(s).`
+          : "Approved: Document meets regulatory compliance standards.",
       suggestedActions: [
         { label: "Draft revision note", query: "Draft a revision note for the advisor" },
-        { label: "Compliant wording", query: "Suggest compliant wording for page 1" },
-        { label: "Compare precedent", query: "Compare precedent DOC-2025-0388" },
+        { label: "Suggest compliant wording", query: "Suggest compliant wording" },
+        { label: "Compare precedents", query: "Compare similar precedents" },
       ],
     },
   ]);
@@ -176,7 +234,7 @@ export function AiAssistPanel({
   const [isGenerating, setIsGenerating] = React.useState(false);
   const chatBottomRef = React.useRef<HTMLDivElement>(null);
 
-  // Synchronize live analysis and precedents when received from backend
+  // Update initial message when analysis loads from backend
   React.useEffect(() => {
     if (analysis && analysis.status === "succeeded") {
       const freshContent = buildInitialReviewMessage(summary, flags, precedents);
@@ -185,43 +243,33 @@ export function AiAssistPanel({
           ? `Revision requested: Address ${flags.length} compliance citation(s) including ${flags[0]?.rule_id ?? "applicable rules"}.`
           : "Approved: Document meets regulatory compliance standards.";
 
-      const timer = setTimeout(() => {
-        setMessages((prev) => {
-          const hasInit = prev.some((m) => m.id === "init-1");
-          if (hasInit) {
-            return prev.map((m) =>
-              m.id === "init-1"
-                ? {
-                    ...m,
-                    content: freshContent,
-                    decisionText,
-                  }
-                : m
-            );
-          } else {
-            return [
-              {
-                id: "init-1",
-                sender: "ai",
-                content: freshContent,
-                timestamp: "Just now",
-                decisionText,
-                suggestedActions: [
-                  { label: "Draft revision note", query: "Draft a revision note for the advisor" },
-                  { label: "Compliant wording", query: "Suggest compliant wording for page 1" },
-                  { label: "Compare precedent", query: "Compare similar precedents" },
-                ],
-              },
-              ...prev,
-            ];
-          }
-        });
-      }, 0);
-      return () => clearTimeout(timer);
+      setMessages((prev) => {
+        const hasInit = prev.some((m) => m.id === "init-1");
+        if (hasInit) {
+          return prev.map((m) =>
+            m.id === "init-1" ? { ...m, content: freshContent, decisionText } : m
+          );
+        }
+        return [
+          {
+            id: "init-1",
+            sender: "ai",
+            content: freshContent,
+            timestamp: "Just now",
+            decisionText,
+            suggestedActions: [
+              { label: "Draft revision note", query: "Draft a revision note for the advisor" },
+              { label: "Suggest compliant wording", query: "Suggest compliant wording" },
+              { label: "Compare precedents", query: "Compare similar precedents" },
+            ],
+          },
+          ...prev,
+        ];
+      });
     }
   }, [analysis, summary, flags, precedents]);
 
-  // Index of the latest AI message to render contextual suggestions
+  // Latest AI message index for suggestion chips
   const lastAiIndex = React.useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].sender === "ai") return i;
@@ -229,12 +277,13 @@ export function AiAssistPanel({
     return -1;
   }, [messages]);
 
-  // Scroll to bottom when messages update or when generating
+  // Scroll to bottom
   React.useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isGenerating]);
 
-  const handleSendMessage = (textToSend?: string) => {
+  // Send message — tries backend, falls back to local
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend ?? inputVal).trim();
     if (!query || isGenerating) return;
 
@@ -245,78 +294,85 @@ export function AiAssistPanel({
       content: query,
       timestamp: "Just now",
     };
-
     setMessages((prev) => [...prev, userMsg]);
     if (!textToSend) setInputVal("");
     setIsGenerating(true);
 
-    // Generate contextual response from Verity AI
-    setTimeout(() => {
-      const lower = query.toLowerCase();
-      let aiReply = "";
-      let decisionText: string | undefined;
-      let suggestedActions: SuggestedAction[] = [];
+    // Build chat history for backend
+    const history = messages
+      .filter((m) => m.id !== "init-1" || m.sender === "ai")
+      .slice(-6)
+      .map((m) => ({
+        role: m.sender === "ai" ? "assistant" : "officer",
+        content: m.content,
+      }));
 
-      if (lower.includes("revision") || lower.includes("draft") || lower.includes("note") || lower.includes("marcus")) {
-        aiReply =
-          "Here is a compliance revision memo ready to dispatch to the advisor:\n\n'Hi Marcus, thank you for submitting the Q3 Market Outlook. Before distribution, please make two required compliance updates:\n1. On page 1, remove the phrase \"guaranteed 14% annual returns\" and replace with target return language accompanied by risk qualifiers (FINRA Rule 2210).\n2. On page 2, add the standard SEC Rule 482 past-performance disclaimer to the alpha attribution chart.\n\nOnce updated, please resubmit through the portal for prompt clearance.'";
-        decisionText =
-          "Revision requested: Please remove the 14% guarantee on page 1 per FINRA Rule 2210(d)(1)(B), and add SEC Rule 482 performance disclaimers to the 10-year chart.";
-        suggestedActions = [
-          { label: "Compliant wording", query: "Suggest compliant wording for page 1" },
-          { label: "Compare precedent", query: "Compare precedent DOC-2025-0388" },
-          { label: "Verify FINRA citation", query: "Verify FINRA Rule 2210 citation details" },
-        ];
-      } else if (lower.includes("wording") || lower.includes("phrase") || lower.includes("substitute") || lower.includes("compliant")) {
-        aiReply =
-          "Recommended Compliant Phrasing for Page 1:\n\n'Our sovereign credit strategy seeks to achieve attractive real yield opportunities across emerging market debt securities. Target returns are subject to interest rate shifts, local currency volatility, and credit conditions. Past performance does not guarantee future results.'";
-        decisionText =
-          "Approved subject to updating Page 1 phrasing to target yield language and inserting standard risk disclaimers.";
-        suggestedActions = [
-          { label: "Draft revision note", query: "Draft a revision note for the advisor" },
-          { label: "Compare precedent", query: "Compare precedent DOC-2025-0388" },
-          { label: "Check disclosure rules", query: "Check SEC Rule 482 disclosure rules" },
-        ];
-      } else if (lower.includes("precedent") || lower.includes("history") || lower.includes("similar")) {
-        const precedentItem = mockPrecedents?.[0];
-        aiReply = `Historical Precedent Analysis:\n\nIn ${precedentItem?.title ?? "Global Equity Fund Marketing Deck (DOC-2025-0388)"}, a similar submission with return claims was held for revision until the advisor replaced promissory guarantees with standard disclaimers. Once amended, the document was cleared. Maintaining consistent regulatory oversight requires a revision request here as well.`;
-        decisionText =
-          "Revision requested consistent with regulatory determination precedent DOC-2025-0388.";
-        suggestedActions = [
-          { label: "Draft revision note", query: "Draft a revision note for the advisor" },
-          { label: "Compliant wording", query: "Suggest compliant wording for page 1" },
-        ];
-      } else if (lower.includes("approve") || lower.includes("clear") || lower.includes("pass")) {
-        aiReply =
-          "Under FINRA Rule 2210(d)(1)(B), broker-dealer communications cannot be approved with promissory language present. If you wish to approve conditionally, you must record that approval is contingent on the advisor delivering the updated page 1 and 2 disclaimers.";
-        decisionText =
-          "Conditional approval: Advisor must verify removal of guaranteed return wording prior to client distribution.";
-        suggestedActions = [
-          { label: "Draft conditional note", query: "Draft conditional approval notes for advisor" },
-          { label: "Review disclosures", query: "Check SEC Rule 482 disclosure rules" },
-        ];
-      } else {
-        aiReply = `Regarding "${query}":\n\nUnder applicable FINRA Rule 2210 and SEC Marketing Rule provisions, all marketing materials must maintain a fair and balanced presentation of risks and potential rewards. Would you like me to draft specific audit commentary addressing this requirement?`;
-        decisionText = `Review note regarding: ${query}. Communication must remain fair, balanced, and compliant with FINRA Rule 2210.`;
-        suggestedActions = [
-          { label: "Draft revision note", query: "Draft a revision note for the advisor" },
-          { label: "Compliant wording", query: "Suggest compliant wording for page 1" },
-        ];
+    let reply = "";
+    let decisionText: string | undefined;
+    let usedBackend = false;
+
+    // Try backend chat endpoint
+    if (documentId) {
+      try {
+        const chatResult = await apiFetch<ChatResponse>(
+          `/review/documents/${documentId}/chat`,
+          {
+            method: "POST",
+            body: { message: query, history },
+          }
+        );
+        reply = chatResult.reply;
+        decisionText = chatResult.suggested_decision_note ?? undefined;
+        usedBackend = true;
+      } catch {
+        // Fall through to local fallback
       }
+    }
 
-      const nextAiId = msgCounter.current++;
-      const aiMsg: ChatMessage = {
-        id: `ai-${nextAiId}`,
-        sender: "ai",
-        content: aiReply,
-        timestamp: "Just now",
-        decisionText,
-        suggestedActions,
-      };
+    // Local fallback
+    if (!usedBackend) {
+      const fallback = generateLocalFallback(query, flags);
+      reply = fallback.reply;
+      decisionText = fallback.decisionText;
+    }
 
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsGenerating(false);
-    }, 450);
+    // Determine follow-up suggestions
+    const suggestedActions: SuggestedAction[] = [];
+    const qLower = query.toLowerCase();
+    if (qLower.includes("revision") || qLower.includes("draft")) {
+      suggestedActions.push(
+        { label: "Suggest compliant wording", query: "Suggest compliant wording" },
+        { label: "Compare precedents", query: "Compare similar precedents" },
+      );
+    } else if (qLower.includes("wording") || qLower.includes("compliant")) {
+      suggestedActions.push(
+        { label: "Draft revision note", query: "Draft a revision note for the advisor" },
+        { label: "Compare precedents", query: "Compare similar precedents" },
+      );
+    } else if (qLower.includes("precedent") || qLower.includes("similar")) {
+      suggestedActions.push(
+        { label: "Draft revision note", query: "Draft a revision note for the advisor" },
+        { label: "Suggest compliant wording", query: "Suggest compliant wording" },
+      );
+    } else {
+      suggestedActions.push(
+        { label: "Draft revision note", query: "Draft a revision note for the advisor" },
+        { label: "Suggest compliant wording", query: "Suggest compliant wording" },
+        { label: "Compare precedents", query: "Compare similar precedents" },
+      );
+    }
+
+    const nextAiId = msgCounter.current++;
+    const aiMsg: ChatMessage = {
+      id: `ai-${nextAiId}`,
+      sender: "ai",
+      content: reply,
+      timestamp: "Just now",
+      decisionText,
+      suggestedActions,
+    };
+    setMessages((prev) => [...prev, aiMsg]);
+    setIsGenerating(false);
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -326,32 +382,29 @@ export function AiAssistPanel({
   };
 
   return (
-    <div className="p-3.5 h-full flex flex-col font-inter select-text">
-      {/* ===== OUTER ANIMATED GRADIENT OUTLINE ===== */}
-      <div className="gemini-agent-container flex-1 min-h-0 flex flex-col shadow-md">
-        {/* ===== INNER FROSTED GLASS CONTAINER ===== */}
+    <div className="h-full flex flex-col font-inter select-text">
+      {/* ===== CHAT CONTAINER ===== */}
+      <div className="gemini-agent-container flex-1 min-h-0 flex flex-col shadow-sm">
         <div className="gemini-agent-inner relative flex-1 flex flex-col">
-          {/* Top ambient illumination */}
-          <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-[#1e4c77]/6 to-transparent pointer-events-none" />
 
-          {/* ===== VERITY AI HEADER ===== */}
+          {/* ===== HEADER ===== */}
           <div className="relative px-4 py-2.5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-md bg-[#1e4c77]/10 flex items-center justify-center border border-[#1e4c77]/20 text-[#1e4c77]">
                 <VerityMark size={14} className="text-[#1e4c77]" />
               </div>
-              <h2 className="text-[12px] font-semibold text-slate-900 tracking-tight font-inter">
-                Ask Verity AI
+              <h2 className="text-[12px] font-semibold text-slate-900 tracking-tight">
+                Verity AI
               </h2>
+              <span className="text-[10px] text-slate-400">Compliance Review</span>
             </div>
 
-            {/* Top Right: Only Refresh/Scan button */}
             {onRetry && (
               <button
                 type="button"
                 onClick={onRetry}
                 disabled={isRetrying || isLoading}
-                className="h-7 px-2.5 rounded-md text-[11px] font-medium text-[#1e4c77] hover:bg-[#1e4c77]/10 border border-[#1e4c77]/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-2xs font-inter"
+                className="h-7 px-2.5 rounded-md text-[11px] font-medium text-[#1e4c77] hover:bg-[#1e4c77]/10 border border-[#1e4c77]/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-2xs"
                 title="Re-run compliance scan"
               >
                 <RefreshCw className={cn("h-3 w-3", (isRetrying || isLoading) && "animate-spin")} />
@@ -360,22 +413,20 @@ export function AiAssistPanel({
             )}
           </div>
 
-          {/* ===== CONVERSATION MESSAGE STREAM ===== */}
+          {/* ===== MESSAGE STREAM ===== */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-            {/* Blueprint 2.4 AI Degraded State — FAILED */}
+            {/* Error/Failed State */}
             {(errorMessage || analysis?.status === "failed") && (
-              <div className="p-3.5 rounded-xl border border-amber-200/90 bg-amber-50/95 text-amber-950 font-inter text-xs space-y-2 mb-2 animate-in fade-in shadow-2xs">
-                <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/80 text-xs space-y-2 mb-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-amber-900">AI Assist is currently unavailable.</p>
-                    <p className="text-amber-800 text-[11px] mt-0.5">
-                      The document can still be reviewed normally.
+                    <p className="font-medium text-amber-900">AI analysis unavailable</p>
+                    <p className="text-amber-700 text-[11px] mt-0.5">
+                      You can still review and chat normally — the analysis is supplementary.
                     </p>
                     {analysis?.error_message && (
-                      <p className="text-amber-700 text-[10px] mt-1 font-mono">
-                        {analysis.error_message}
-                      </p>
+                      <p className="text-amber-600 text-[10px] mt-1 font-mono">{analysis.error_message}</p>
                     )}
                   </div>
                 </div>
@@ -384,7 +435,7 @@ export function AiAssistPanel({
                     type="button"
                     onClick={onRetry}
                     disabled={isRetrying}
-                    className="px-3 py-1.5 rounded-lg bg-[#1e4c77] hover:bg-[#163c60] text-white text-[11px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
+                    className="px-3 py-1.5 rounded-lg bg-[#1e4c77] hover:bg-[#163c60] text-white text-[11px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     <RefreshCw className={cn("h-3 w-3", isRetrying && "animate-spin")} />
                     <span>{isRetrying ? "Retrying..." : "Retry Analysis"}</span>
@@ -393,49 +444,15 @@ export function AiAssistPanel({
               </div>
             )}
 
-            {/* TA-70: IN PROGRESS — shimmer loading skeleton */}
+            {/* Loading skeleton */}
             {isLoading && !errorMessage && analysis?.status !== "failed" && (
-              <div className="space-y-3 mb-2 animate-in fade-in">
-                <div className="p-3.5 rounded-xl border border-[#1e4c77]/15 bg-[#1e4c77]/[0.03] font-inter text-xs space-y-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.3s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.15s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce" />
-                    </div>
-                    <span className="text-[11px] text-[#1e4c77] font-medium font-inter">
-                      Verity AI is scanning for compliance issues…
-                    </span>
-                  </div>
-                  <div className="space-y-2.5 pt-1">
-                    <div className="h-3 w-3/4 bg-slate-200/70 rounded animate-pulse" />
-                    <div className="h-3 w-5/6 bg-slate-200/60 rounded animate-pulse [animation-delay:150ms]" />
-                    <div className="h-3 w-2/3 bg-slate-200/50 rounded animate-pulse [animation-delay:300ms]" />
-                    <div className="h-8 w-full bg-slate-100/80 rounded-lg animate-pulse [animation-delay:450ms] mt-1" />
-                    <div className="h-3 w-4/5 bg-slate-200/50 rounded animate-pulse [animation-delay:600ms]" />
-                    <div className="h-3 w-1/2 bg-slate-200/40 rounded animate-pulse [animation-delay:750ms]" />
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 py-3 text-[11px] text-slate-500">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+                <span>Analyzing document...</span>
               </div>
             )}
 
-            {/* TA-70: NOT YET ANALYZED — distinct info state */}
-            {!isLoading && !errorMessage && !analysis && !mockAnalysis && (
-              <div className="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/90 font-inter text-xs space-y-2 mb-2 animate-in fade-in shadow-2xs">
-                <div className="flex items-start gap-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-slate-200/70 flex items-center justify-center shrink-0">
-                    <VerityMark size={14} className="text-slate-400" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-700">Compliance analysis has not been run yet.</p>
-                    <p className="text-slate-500 text-[11px] mt-0.5">
-                      Click <strong>Scan</strong> above to start the AI-assisted compliance review, or proceed with a manual review.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
+            {/* Messages */}
             {messages.map((msg, index) => {
               const isAi = msg.sender === "ai";
               const isLatestAi = isAi && index === lastAiIndex && !isGenerating;
@@ -443,29 +460,29 @@ export function AiAssistPanel({
               return (
                 <div
                   key={msg.id}
-                  className={cn("flex flex-col animate-in fade-in duration-150", isAi ? "items-start" : "items-end")}
+                  className={cn("flex flex-col", isAi ? "items-start" : "items-end")}
                 >
-                  {/* Message Bubble */}
+                  {/* Message bubble */}
                   <div
                     className={cn(
-                      "max-w-[95%] rounded-xl text-[12px] leading-relaxed font-inter p-3.5 shadow-2xs whitespace-pre-line",
+                      "max-w-[92%] rounded-xl text-[12px] leading-relaxed p-3 whitespace-pre-line",
                       isAi
-                        ? "bg-white border border-slate-200/90 text-slate-800"
+                        ? "bg-slate-50 border border-slate-200/80 text-slate-800"
                         : "bg-[#1e4c77] text-white"
                     )}
                   >
                     {msg.content}
 
-                    {/* AI Quick Actions inside message */}
+                    {/* AI action bar */}
                     {isAi && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[10px]">
+                      <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2 text-[10px]">
                         <button
                           type="button"
                           onClick={() => handleCopy(msg.id, msg.content)}
-                          className="flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                         >
                           {copiedId === msg.id ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
+                            <Check className="h-3 w-3 text-emerald-500" />
                           ) : (
                             <Copy className="h-3 w-3" />
                           )}
@@ -476,28 +493,28 @@ export function AiAssistPanel({
                           <button
                             type="button"
                             onClick={() => onInsertComment(msg.decisionText!)}
-                            className="flex items-center gap-1 text-[#1e4c77] hover:text-[#163c60] font-medium bg-[#1e4c77]/5 hover:bg-[#1e4c77]/10 border border-[#1e4c77]/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
-                            title="Paste into regulatory decision comments"
+                            className="flex items-center gap-1 text-[#1e4c77] hover:text-[#163c60] font-medium bg-[#1e4c77]/5 hover:bg-[#1e4c77]/10 border border-[#1e4c77]/15 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                            title="Insert into decision notes"
                           >
                             <ArrowDownToLine className="h-3 w-3" />
-                            <span>Insert into Decision Notes</span>
+                            <span>Use in Decision</span>
                           </button>
                         )}
                       </div>
                     )}
                   </div>
 
-                  {/* Contextual Next-Action Suggestion Chips (Part of the message, not fixed to window) */}
+                  {/* Quick prompt chips — only on latest AI message */}
                   {isLatestAi && msg.suggestedActions && msg.suggestedActions.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2 px-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2 px-0.5">
                       {msg.suggestedActions.map((action, aIdx) => (
                         <button
                           key={aIdx}
                           type="button"
                           onClick={() => handleSendMessage(action.query)}
-                          className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-white hover:bg-[#1e4c77]/10 hover:text-[#1e4c77] hover:border-[#1e4c77]/30 border border-slate-200 text-slate-600 transition-all cursor-pointer font-inter shadow-2xs flex items-center gap-1"
+                          className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-white hover:bg-[#1e4c77]/8 hover:text-[#1e4c77] border border-slate-200 text-slate-500 transition-all cursor-pointer"
                         >
-                          <span>{action.label}</span>
+                          {action.label}
                         </button>
                       ))}
                     </div>
@@ -506,22 +523,22 @@ export function AiAssistPanel({
               );
             })}
 
-            {/* Real-time Gemini Agent Thinking Indicator */}
+            {/* Typing indicator */}
             {isGenerating && (
-              <div className="flex items-center gap-2 py-2 px-3 text-[11px] text-slate-500 font-inter bg-slate-50/90 rounded-xl border border-slate-200/80 w-fit animate-in fade-in">
+              <div className="flex items-center gap-2 py-2 px-3 text-[11px] text-slate-400 bg-slate-50 rounded-lg border border-slate-200/60 w-fit">
                 <div className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.3s]" />
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.15s]" />
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce" />
                 </div>
-                <span className="text-[10px] text-slate-500 font-inter">Verity AI is analyzing...</span>
+                <span>Thinking...</span>
               </div>
             )}
 
             <div ref={chatBottomRef} />
           </div>
 
-          {/* ===== CONVERSATION INPUT BAR ===== */}
+          {/* ===== INPUT BAR ===== */}
           <div className="p-3 bg-white border-t border-slate-100 shrink-0">
             <form
               onSubmit={(e) => {
@@ -534,14 +551,14 @@ export function AiAssistPanel({
                 type="text"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
-                placeholder="Ask Verity AI..."
-                className="w-full pl-3 pr-8 py-2 rounded-lg text-[11px] bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-1 focus:ring-[#1e4c77] font-inter text-slate-800 placeholder:text-slate-400 transition-all shadow-2xs"
+                placeholder="Ask about this document..."
+                className="w-full pl-3 pr-8 py-2 rounded-lg text-[11px] bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-1 focus:ring-[#1e4c77] text-slate-800 placeholder:text-slate-400 transition-all"
               />
               <button
                 type="submit"
                 disabled={!inputVal.trim() || isGenerating}
                 className="absolute right-1.5 h-6 w-6 rounded-md bg-[#1e4c77] hover:bg-[#163c60] text-white disabled:opacity-20 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
-                title="Send message"
+                title="Send"
               >
                 <CornerDownLeft className="h-3 w-3" />
               </button>

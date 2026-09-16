@@ -29,6 +29,9 @@ interface RecentActivityProps {
   isFullHistory?: boolean;
   onViewAllClick?: () => void;
   onItemClick?: (docId: string) => void;
+  isLoading?: boolean;
+  loadError?: string | null;
+  onRetry?: () => void;
 }
 
 function formatRelativeTime(isoString?: string | null): string {
@@ -106,7 +109,7 @@ const FALLBACK_ACTIVITIES: ActivityItem[] = [
     id: "act-3",
     documentTitle: "Alpha Growth Fund Presentation.pdf",
     documentId: "DOC-2026-0891",
-    action: "Pre-Screen Completed",
+    action: "AI Review Completed",
     time: "Today, 9:25 AM",
     type: "screening",
   },
@@ -126,6 +129,9 @@ export function RecentActivity({
   isFullHistory = false,
   onViewAllClick,
   onItemClick,
+  isLoading = false,
+  loadError = null,
+  onRetry,
 }: RecentActivityProps) {
   const [filterType, setFilterType] = React.useState<string>("all");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
@@ -304,7 +310,25 @@ export function RecentActivity({
       </div>
 
       {/* Activities List */}
-      {displayActivities.length === 0 ? (
+      {loadError ? (
+        <div className="py-10 text-center space-y-2 font-inter px-4">
+          <p className="text-xs font-medium text-rose-600">{loadError}</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="text-xs text-[#1e4c77] hover:underline font-medium cursor-pointer"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      ) : isLoading ? (
+        <div className="py-10 text-center text-slate-400 text-xs font-inter flex items-center justify-center gap-2">
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-[#1e4c77] animate-spin" />
+          <span>Loading activity...</span>
+        </div>
+      ) : displayActivities.length === 0 ? (
         <div className="py-10 text-center space-y-2 font-inter">
           <p className="text-xs font-medium text-slate-600">No activity records found</p>
           <p className="text-[11px] text-slate-400">

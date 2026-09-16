@@ -10,6 +10,7 @@ interface MetricCardsProps {
   needsRevision: number;
   activeFilter: string;
   onSelectFilter: (filterKey: string) => void;
+  hasError?: boolean;
 }
 
 export function MetricCards({
@@ -19,34 +20,35 @@ export function MetricCards({
   needsRevision,
   activeFilter,
   onSelectFilter,
+  hasError = false,
 }: MetricCardsProps) {
   // Simple, clean cards with existing background gradients, CamelCase top text, and small-case minimal bottom text
   const cards = [
     {
       id: "all",
       label: "Total Submissions",
-      value: String(total).padStart(2, "0"),
+      value: hasError ? "—" : String(total).padStart(2, "0"),
       gradient: "from-[#1b4a74] via-[#215e96] to-[#163f64]",
       hoverGradient: "hover:from-[#20588a] hover:via-[#276eaf] hover:to-[#1a4975]",
     },
     {
       id: "pending",
       label: "Pending Review",
-      value: String(pending).padStart(2, "0"),
+      value: hasError ? "—" : String(pending).padStart(2, "0"),
       gradient: "from-[#1a4872] via-[#205b92] to-[#153e63]",
       hoverGradient: "hover:from-[#1f5688] hover:via-[#256aab] hover:to-[#194772]",
     },
     {
       id: "approved",
       label: "Approved",
-      value: String(approved).padStart(2, "0"),
+      value: hasError ? "—" : String(approved).padStart(2, "0"),
       gradient: "from-[#18456e] via-[#1e578c] to-[#143a5d]",
       hoverGradient: "hover:from-[#1d5283] hover:via-[#2365a3] hover:to-[#17436b]",
     },
     {
       id: "needs_revision",
       label: "Needs Revision",
-      value: String(needsRevision).padStart(2, "0"),
+      value: hasError ? "—" : String(needsRevision).padStart(2, "0"),
       gradient: "from-[#1e4c77] via-[#24619a] to-[#18446c]",
       hoverGradient: "hover:from-[#225a8c] hover:via-[#2871b3] hover:to-[#1b4b77]",
     },

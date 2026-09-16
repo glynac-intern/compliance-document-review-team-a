@@ -260,12 +260,12 @@ export function DocumentInspectorDrawer({
           {isLoadingAnalysis ? (
             <div className="py-3 flex items-center gap-2 text-xs text-slate-500 font-inter">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
-              <span>Checking compliance pre-screening...</span>
+              <span>Checking AI review...</span>
             </div>
           ) : analysis?.status === "failed" ? (
             <div className="space-y-1.5 font-inter">
               <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Pre-Screen Status
+                Review Status
               </h3>
               <div className="border border-slate-200 rounded-lg p-3 text-xs text-[#991b1b] flex items-center justify-between gap-3">
                 <span>Analysis failed: {analysis.error_message || "An unexpected error occurred."}</span>

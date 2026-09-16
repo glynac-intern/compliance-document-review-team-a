@@ -10,27 +10,29 @@ interface ErrorStateProps {
   isRetrying?: boolean;
   className?: string;
   compact?: boolean;
+  retryLabel?: string;
 }
 
 export function ErrorState({
-  title = "Analysis Error",
+  title,
   message,
   onRetry,
   isRetrying = false,
   className,
   compact = false,
+  retryLabel = "Retry",
 }: ErrorStateProps) {
   if (compact) {
     return (
       <div
         className={cn(
-          "flex items-center justify-between rounded-md border border-rose-200 bg-rose-50/70 px-3 py-2 text-xs text-rose-900",
+          "flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs text-slate-700 font-inter shadow-2xs",
           className
         )}
       >
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-          <span className="font-medium">{message}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <AlertCircle className="h-4 w-4 text-[#1e4c77] shrink-0" />
+          <span className="font-normal truncate">{message}</span>
         </div>
         {onRetry && (
           <Button
@@ -38,10 +40,10 @@ export function ErrorState({
             variant="outline"
             onClick={onRetry}
             disabled={isRetrying}
-            className="border-rose-300 text-rose-800 hover:bg-rose-100 h-6 px-2"
+            className="border-slate-200 bg-white text-[#1e4c77] hover:bg-slate-50 h-6 px-2.5 text-[11px] font-normal shrink-0 ml-2"
           >
             <RefreshCw className={cn("mr-1 h-3 w-3", isRetrying && "animate-spin")} />
-            Retry
+            {retryLabel}
           </Button>
         )}
       </div>
@@ -51,25 +53,25 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-rose-200 bg-rose-50/40 p-6 text-center",
+        "flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-8 text-center font-inter shadow-2xs",
         className
       )}
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-rose-600 mb-2.5">
-        <AlertCircle className="h-4 w-4" />
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#1e4c77] mb-3 border border-slate-200/80">
+        <AlertCircle className="h-5 w-5" />
       </div>
-      <h4 className="text-xs font-semibold text-rose-950 mb-1">{title}</h4>
-      <p className="max-w-sm text-xs text-rose-700/90 mb-3">{message}</p>
+      {title && <h4 className="text-sm font-medium text-slate-900 mb-1">{title}</h4>}
+      <p className="max-w-sm text-xs text-slate-600 mb-4">{message}</p>
       {onRetry && (
         <Button
           size="sm"
           variant="outline"
           onClick={onRetry}
           disabled={isRetrying}
-          className="border-rose-300 text-rose-900 hover:bg-rose-100"
+          className="border-slate-200 bg-white text-[#1e4c77] hover:bg-slate-50 text-xs font-normal"
         >
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", isRetrying && "animate-spin")} />
-          {isRetrying ? "Retrying..." : "Retry Analysis"}
+          {isRetrying ? "Retrying..." : retryLabel}
         </Button>
       )}
     </div>
