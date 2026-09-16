@@ -3,7 +3,7 @@ import io
 import os
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import (
-    Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User,
+    Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, UserRole,
     AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
-    PrecedentIndex,
+    PrecedentIndex, Notification,
 )
 from audit_utils import record_view_if_new
 from auth.dependencies import get_current_user, require_role
@@ -332,6 +332,63 @@ def submit_revision(
     db.commit()
     db.refresh(revision)
     return revision
+
+
+REMINDER_COOLDOWN = timedelta(hours=24)
+
+
+@router.post("/{document_id}/reminder", status_code=status.HTTP_201_CREATED)
+def send_reminder(
+    document_id: uuid.UUID,
+    current_user: User = Depends(require_role("advisor")),
+    db: Session = Depends(get_db),
+):
+    """
+    TA-95: lets an advisor nudge officers about a document still sitting
+    in pending_review. The brief fixes "any officer can act on any
+    document; there is no per-officer routing" -- there's no single
+    officer to notify, so a reminder reaches every officer, not one.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if document.advisor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to send a reminder for this document")
+    if document.status != DocumentStatus.pending_review:
+        raise HTTPException(
+            status_code=400,
+            detail="Only documents pending review can be reminded about",
+        )
+
+    cooldown_cutoff = datetime.utcnow() - REMINDER_COOLDOWN
+    recent_reminder = (
+        db.query(AuditEvent)
+        .filter(
+            AuditEvent.document_id == document_id,
+            AuditEvent.action == AuditAction.reminder_sent,
+            AuditEvent.timestamp > cooldown_cutoff,
+        )
+        .first()
+    )
+    if recent_reminder is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="A reminder for this document was already sent in the last 24 hours",
+        )
+
+    db.add(AuditEvent(actor_id=current_user.id, document_id=document_id, action=AuditAction.reminder_sent))
+
+    officers = db.query(User).filter(User.role == UserRole.officer).all()
+    filename = document.original_filename or "a document"
+    for officer in officers:
+        db.add(Notification(
+            user_id=officer.id,
+            document_id=document_id,
+            message=f'{current_user.name} sent a reminder: "{filename}" is still awaiting review.',
+        ))
+
+    db.commit()
+    return {"detail": f"Reminder sent to {len(officers)} officer(s)."}
 
 
 def _average_embedding(embeddings: list[list[float]]) -> list[float]:

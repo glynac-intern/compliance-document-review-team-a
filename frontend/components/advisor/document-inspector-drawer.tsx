@@ -7,6 +7,7 @@ import {
   Download,
   FileDown,
   Edit3,
+  BellRing,
   Loader2,
 } from "lucide-react";
 import { ComplianceDocument } from "@/types/compliance";
@@ -56,6 +57,8 @@ export function DocumentInspectorDrawer({
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [isExportingAudit, setIsExportingAudit] = React.useState(false);
   const [downloadError, setDownloadError] = React.useState<string | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = React.useState(false);
+  const [reminderMessage, setReminderMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!doc) {
@@ -68,6 +71,7 @@ export function DocumentInspectorDrawer({
     setIsLoadingAnalysis(true);
     setHistoryError(null);
     setDownloadError(null);
+    setReminderMessage(null);
 
     // Fire-and-forget: this is what actually records the advisor's
     // 'viewed' audit event server-side (see documentsApi.get's comment).
@@ -132,6 +136,20 @@ export function DocumentInspectorDrawer({
       setDownloadError(err instanceof ApiError ? err.message : "Failed to export audit trail.");
     } finally {
       setIsExportingAudit(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    if (!doc) return;
+    setIsSendingReminder(true);
+    setReminderMessage(null);
+    try {
+      const result = await documentsApi.sendReminder(doc.id);
+      setReminderMessage(result.detail);
+    } catch (err) {
+      setReminderMessage(err instanceof ApiError ? err.message : "Failed to send reminder.");
+    } finally {
+      setIsSendingReminder(false);
     }
   };
 
@@ -489,6 +507,20 @@ export function DocumentInspectorDrawer({
               <Edit3 className="h-3.5 w-3.5" />
               <span>Revise &amp; Resubmit</span>
             </button>
+          ) : doc.status === "pending" ? (
+            <button
+              type="button"
+              onClick={handleSendReminder}
+              disabled={isSendingReminder}
+              className="flex-1 h-10 rounded-xl bg-[#1e4c77] hover:bg-[#163e63] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 font-inter"
+            >
+              {isSendingReminder ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <BellRing className="h-3.5 w-3.5" />
+              )}
+              <span>{isSendingReminder ? "Sending..." : "Send Reminder"}</span>
+            </button>
           ) : (
             <button
               type="button"
@@ -499,6 +531,11 @@ export function DocumentInspectorDrawer({
             </button>
           )}
         </div>
+        {reminderMessage && (
+          <div className="px-4 pb-3 -mt-1 text-[11px] text-slate-500 font-inter text-center">
+            {reminderMessage}
+          </div>
+        )}
       </div>
     </div>
   );
