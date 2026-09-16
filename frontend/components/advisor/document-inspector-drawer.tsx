@@ -9,13 +9,15 @@ import {
   Edit3,
   BellRing,
   Loader2,
+  Eye,
 } from "lucide-react";
 import { ComplianceDocument } from "@/types/compliance";
 import { MOCK_AI_ANALYSIS } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 import { documentsApi, type ThreadEntry, type AuditEvent, type BackendAnalysis } from "@/lib/documents-api";
-import { ApiError } from "@/lib/api-client";
+import { fetchFileBlob, ApiError } from "@/lib/api-client";
+import { DocumentViewer } from "@/components/documents/document-viewer";
 
 interface DocumentInspectorDrawerProps {
   document: ComplianceDocument | null;
@@ -59,6 +61,13 @@ export function DocumentInspectorDrawer({
   const [downloadError, setDownloadError] = React.useState<string | null>(null);
   const [isSendingReminder, setIsSendingReminder] = React.useState(false);
   const [reminderMessage, setReminderMessage] = React.useState<string | null>(null);
+
+  // Tab & preview state
+  const [drawerTab, setDrawerTab] = React.useState<"overview" | "preview">("overview");
+  const [previewBlob, setPreviewBlob] = React.useState<Blob | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = React.useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
+  const [previewError, setPreviewError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!doc) {
@@ -126,6 +135,70 @@ export function DocumentInspectorDrawer({
     }
   };
 
+  // Load preview file on demand when tab selected
+  React.useEffect(() => {
+    if (!doc || drawerTab !== "preview") return;
+    if (previewBlob) return;
+
+    setIsLoadingPreview(true);
+    setPreviewError(null);
+
+    fetchFileBlob(`/documents/${doc.id}/file`)
+      .then((blob) => {
+        setPreviewBlob(blob);
+        setPreviewBlobUrl(URL.createObjectURL(blob));
+      })
+      .catch((err) => {
+        setPreviewError(err instanceof ApiError ? err.message : "Unable to load document file.");
+      })
+      .finally(() => setIsLoadingPreview(false));
+  }, [doc, drawerTab, previewBlob]);
+
+  // Reset tab & preview state when doc changes
+  React.useEffect(() => {
+    setDrawerTab("overview");
+    setPreviewBlob(null);
+    setPreviewBlobUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setPreviewError(null);
+  }, [doc?.id]);
+
+  // Clean up blob URL on unmount
+  React.useEffect(() => {
+    return () => {
+      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
+    };
+  }, [previewBlobUrl]);
+
+  const fallbackStaticUrl = React.useMemo(() => {
+    if (!doc) return "/documents/doc_001.pdf";
+    const title = doc.title.toLowerCase();
+    const type = (doc.type || "").toLowerCase();
+
+    if (
+      title.endsWith(".xlsx") ||
+      title.endsWith(".xls") ||
+      type.includes("xlsx") ||
+      type.includes("sheet")
+    ) {
+      return "/documents/doc_011.xlsx";
+    }
+
+    if (
+      title.endsWith(".docx") ||
+      title.endsWith(".doc") ||
+      type.includes("docx") ||
+      type.includes("word") ||
+      type.includes("letter")
+    ) {
+      return "/documents/doc_006.docx";
+    }
+
+    return "/documents/doc_001.pdf";
+  }, [doc]);
+
   const handleExportAudit = async () => {
     if (!doc) return;
     setIsExportingAudit(true);
@@ -184,33 +257,84 @@ export function DocumentInspectorDrawer({
       <div className="flex-1" onClick={onClose} />
 
       {/* Drawer Body */}
-      <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300">
+      <div
+        className={cn(
+          "w-full bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300 transition-all",
+          drawerTab === "preview" ? "max-w-3xl lg:max-w-4xl" : "max-w-lg"
+        )}
+      >
         {/* Drawer Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 flex items-start justify-between bg-white font-inter">
-          <div className="min-w-0 flex-1 pr-4">
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <StatusBadge status={doc.status} />
-              <span className="text-xs text-slate-400 font-numbers font-normal">
-                {doc.id} · v{doc.version}
-              </span>
+        <div className="p-4 sm:p-5 border-b border-slate-200 bg-white font-inter shrink-0">
+          <div className="flex items-start justify-between">
+            <div className="min-w-0 flex-1 pr-4">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <StatusBadge status={doc.status} />
+                <span className="text-xs text-slate-400 font-numbers font-normal">
+                  {doc.id} · v{doc.version}
+                </span>
+              </div>
+              <h2 className="text-base font-medium text-slate-900 leading-snug break-words font-inter">
+                {doc.title}
+              </h2>
             </div>
-            <h2 className="text-base font-medium text-slate-900 leading-snug break-words font-inter">
-              {doc.title}
-            </h2>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close inspector"
+              className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close inspector"
-            className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {/* Segmented View Tabs */}
+          <div className="flex items-center gap-1 mt-3.5 p-0.5 bg-slate-100 rounded-lg w-fit border border-slate-200/70">
+            <button
+              type="button"
+              onClick={() => setDrawerTab("overview")}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                drawerTab === "overview"
+                  ? "bg-white text-[#1e4c77] shadow-2xs font-semibold"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              Overview &amp; Findings
+            </button>
+            <button
+              type="button"
+              onClick={() => setDrawerTab("preview")}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                drawerTab === "preview"
+                  ? "bg-white text-[#1e4c77] shadow-2xs font-semibold"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>Document Preview</span>
+            </button>
+          </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 font-inter">
+        {drawerTab === "preview" ? (
+          <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            <DocumentViewer
+              fileBlob={previewBlob}
+              fileBlobUrl={previewBlobUrl}
+              fileUrl={fallbackStaticUrl}
+              filename={doc.title}
+              docType={doc.type}
+              isLoading={isLoadingPreview}
+              error={previewError}
+              onDownload={handleDownload}
+              className="flex-1 w-full h-full border-0"
+            />
+          </div>
+        ) : (
+          /* Scrollable Content (Overview & Findings) */
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 font-inter">
           {historyError && (
             <div className="border border-rose-200 bg-rose-50/50 p-2.5 rounded text-xs text-rose-700 font-inter">
               {historyError}
@@ -306,12 +430,12 @@ export function DocumentInspectorDrawer({
           {isLoadingAnalysis ? (
             <div className="py-3 flex items-center gap-2 text-xs text-slate-500 font-inter">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
-              <span>Checking compliance pre-screening...</span>
+              <span>Checking AI review...</span>
             </div>
           ) : analysis?.status === "failed" ? (
             <div className="space-y-1.5 font-inter">
               <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Pre-Screen Status
+                Review Status
               </h3>
               <div className="border border-slate-200 rounded-lg p-3 text-xs text-[#991b1b] flex items-center justify-between gap-3">
                 <span>Analysis failed: {analysis.error_message || "An unexpected error occurred."}</span>
@@ -457,7 +581,8 @@ export function DocumentInspectorDrawer({
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Action Footer */}
         {downloadError && (

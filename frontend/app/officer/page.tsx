@@ -29,14 +29,6 @@ import { OfficerAuditLogView } from "@/components/officer/officer-audit-log-view
 // Constants
 // ---------------------------------------------------------------------------
 
-const STATUS_FILTERS: { value: string; label: string }[] = [
-  { value: "all", label: "All Statuses" },
-  { value: "pending_review", label: "Pending Review" },
-  { value: "needs_revision", label: "Needs Revision" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-];
-
 // TA-94: these previously listed fictional mock-data categories
 // ("Presentation / Deck", "Market Commentary", ...) that never matched
 // a real document's actual type -- selecting any of them against real
@@ -135,7 +127,6 @@ export default function OfficerDashboardPage() {
 
   // Filters
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("all");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [advisorFilter, setAdvisorFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("newest");
@@ -178,14 +169,15 @@ export default function OfficerDashboardPage() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // Load queue data
+  // Load queue data (strictly pending reviews for the review queue dashboard)
   const loadQueue = React.useCallback(async () => {
     try {
-      const data = await reviewsApi.getQueue();
+      const data = await reviewsApi.getQueue("pending_review");
       setDocuments(
         data.map((d) => ({
           ...d,
           title: d.original_filename ?? `Document ${d.id.slice(0, 8)}`,
+          advisor_viewed_decision: d.advisor_viewed_decision ?? null,
         }))
       );
       setError(null);
@@ -194,7 +186,11 @@ export default function OfficerDashboardPage() {
       if (err instanceof ApiError) {
         setError(err.message);
       }
-      setDocuments(MOCK_QUEUE_DOCUMENTS.map(adaptMockToQueueRow));
+      setDocuments(
+        MOCK_QUEUE_DOCUMENTS.filter(
+          (d) => d.status === "pending" || (d.status as string) === "pending_review"
+        ).map(adaptMockToQueueRow)
+      );
     } finally {
       setIsLoading(false);
     }
@@ -205,13 +201,14 @@ export default function OfficerDashboardPage() {
     let ignore = false;
 
     reviewsApi
-      .getQueue()
+      .getQueue("pending_review")
       .then((data) => {
         if (!ignore) {
           setDocuments(
             data.map((d) => ({
               ...d,
               title: d.original_filename ?? `Document ${d.id.slice(0, 8)}`,
+              advisor_viewed_decision: d.advisor_viewed_decision ?? null,
             }))
           );
           setError(null);
@@ -222,7 +219,11 @@ export default function OfficerDashboardPage() {
           if (err instanceof ApiError) {
             setError(err.message);
           }
-          setDocuments(MOCK_QUEUE_DOCUMENTS.map(adaptMockToQueueRow));
+          setDocuments(
+            MOCK_QUEUE_DOCUMENTS.filter(
+              (d) => d.status === "pending" || (d.status as string) === "pending_review"
+            ).map(adaptMockToQueueRow)
+          );
         }
       })
       .finally(() => {
@@ -245,7 +246,7 @@ export default function OfficerDashboardPage() {
     showToast("Review operations data synchronized with repository.");
   }, [loadQueue, showToast]);
 
-  // Filter and sort documents strictly for pending review queue or selected status
+  // Filter and sort documents strictly for pending review queue
   // TA-94: populated from whatever advisors actually appear in the
   // current queue, rather than a hardcoded list -- stays correct as
   // advisors come and go, with no separate lookup needed.
@@ -255,17 +256,10 @@ export default function OfficerDashboardPage() {
   }, [documents]);
 
   const filteredDocuments = React.useMemo(() => {
-    let result = [...documents];
-
-    // Status filter (TA-66)
-    if (statusFilter !== "all") {
-      result = result.filter((d) => {
-        if (statusFilter === "pending_review") {
-          return d.status === "pending_review" || (d.status as string) === "pending";
-        }
-        return d.status === statusFilter;
-      });
-    }
+    // All pending reviews appear in the review queue dashboard and nowhere else
+    let result = documents.filter(
+      (d) => d.status === "pending_review" || (d.status as string) === "pending"
+    );
 
     // Document Type filter
     if (typeFilter !== "all") {
@@ -302,7 +296,7 @@ export default function OfficerDashboardPage() {
     });
 
     return result;
-  }, [documents, statusFilter, typeFilter, advisorFilter, searchQuery, sortBy]);
+  }, [documents, typeFilter, advisorFilter, searchQuery, sortBy]);
 
   // Queue summary counts
   const queueCounts = React.useMemo(() => {
@@ -323,10 +317,7 @@ export default function OfficerDashboardPage() {
       audit_log: "Audit Log",
     };
     return [
-      {
-        label: "Workspace",
-        onClick: () => setActiveView("review_queue"),
-      },
+      { label: "Compliance Officer", href: "/officer" },
       { label: viewLabels[activeView] },
     ];
   }, [activeView]);
@@ -334,8 +325,31 @@ export default function OfficerDashboardPage() {
   if (!isReady) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-inter">
-      {/* Officer Sidebar */}
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-inter">
+      {/* Toast Notification Container */}
+      <div className="fixed top-5 right-5 z-50 pointer-events-none">
+        {toastMessage && (
+          <div
+            className={cn(
+              "flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 text-white text-xs shadow-xl border border-slate-700/50 backdrop-blur-md pointer-events-auto transition-all duration-300 transform",
+              isToastVisible
+                ? "opacity-100 translate-y-0 scale-100"
+                : "opacity-0 -translate-y-3 scale-95"
+            )}
+          >
+            <div className="h-2 w-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+            <span className="font-normal font-inter tracking-wide">{toastMessage}</span>
+            <button
+              onClick={() => setIsToastVisible(false)}
+              className="ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <Check className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Officer Navigation Sidebar */}
       <OfficerSidebar
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
@@ -347,7 +361,6 @@ export default function OfficerDashboardPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* TopBar */}
         <TopBar
           breadcrumbs={breadcrumbs}
           onToggleMobileSidebar={() => setMobileSidebarOpen(true)}
@@ -355,21 +368,28 @@ export default function OfficerDashboardPage() {
           isRefreshing={isRefreshing}
         />
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto">
           {activeView === "review_queue" && (
-            <div className="p-5 sm:p-8">
-              {/* Queue Summary Strip */}
-              <div className="flex items-baseline gap-6 mb-6">
-                <h1 className="text-[15px] font-medium text-slate-900 font-inter">
-                  Review Queue
-                </h1>
-                <div className="flex items-center gap-4 text-xs text-slate-400 font-inter">
-                  <span>
-                    <span className="font-numbers tabular-nums text-slate-600 font-medium">
+            <div className="p-5 sm:p-7 lg:p-8 max-w-[1400px] w-full mx-auto">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900 font-inter">
+                    Review Queue
+                  </h1>
+                  <p className="text-xs text-slate-500 font-inter mt-1">
+                    Pending compliance submissions awaiting review and determination
+                  </p>
+                </div>
+
+                {/* Queue pill indicators */}
+                <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 font-inter shadow-2xs self-start sm:self-auto">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[#1e4c77] animate-pulse" />
+                    <span className="font-numbers tabular-nums font-semibold text-slate-800">
                       {queueCounts.pending}
                     </span>{" "}
-                    awaiting review
+                    pending
                   </span>
                   {queueCounts.highRisk > 0 && (
                     <>
@@ -398,22 +418,6 @@ export default function OfficerDashboardPage() {
                     placeholder="Search pending documents, advisors, or IDs..."
                     className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 font-inter transition-all focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#1e4c77] focus:bg-white"
                   />
-                </div>
-
-                {/* Status Filter (TA-66) */}
-                <div className="relative">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
-                  >
-                    {STATUS_FILTERS.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                 </div>
 
                 {/* Document Type Filter */}
@@ -503,32 +507,31 @@ export default function OfficerDashboardPage() {
                     </div>
                     {documents.length === 0 ? (
                       <>
-                        <p className="text-sm font-medium text-slate-800 font-inter">
-                          Queue is empty
+                        <p className="text-sm font-semibold text-slate-700 font-inter">
+                          All caught up!
                         </p>
-                        <p className="text-xs text-slate-400 mt-1 font-inter">
-                          No documents have been submitted for review yet.
+                        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto font-inter">
+                          There are no pending submissions in the review queue.
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-medium text-slate-800 font-inter">
-                          No documents match
+                        <p className="text-sm font-semibold text-slate-700 font-inter">
+                          No matching submissions
                         </p>
                         <p className="text-xs text-slate-400 mt-1 font-inter">
-                          <span className="font-numbers tabular-nums">{documents.length}</span>{" "}
-                          document{documents.length !== 1 ? "s" : ""} in queue — try adjusting
-                          your filters.
+                          Try adjusting your search query or filters.
                         </p>
                       </>
                     )}
                   </div>
                 ) : (
-                  <table className="w-full text-xs font-inter">
+                  // Real Table
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-[#f8fafc]/90 border-b border-slate-100">
+                      <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider font-inter">
                         <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
-                          Document Name & ID
+                          Document
                         </th>
                         <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
                           Advisor
@@ -677,28 +680,6 @@ export default function OfficerDashboardPage() {
           )}
         </main>
       </div>
-
-      {/* Toast Notification Container — Elegant slide-in from right edge and slide-back exit */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-0 z-50 pointer-events-none px-6 overflow-hidden">
-          <div
-            className={cn(
-              "pointer-events-auto flex items-center gap-3 rounded-2xl bg-[#1e4c77] text-white px-5 py-3.5 shadow-[0_16px_36px_-6px_rgba(20,55,88,0.5)] border border-white/20 font-inter select-none",
-              "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-              isToastVisible
-                ? "translate-x-0 opacity-100"
-                : "translate-x-full opacity-0"
-            )}
-          >
-            <div className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/25">
-              <Check className="h-3 w-3 text-white stroke-[2.8]" />
-            </div>
-            <span className="font-inter text-xs sm:text-[13px] font-medium text-white tracking-normal whitespace-nowrap">
-              {toastMessage}
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

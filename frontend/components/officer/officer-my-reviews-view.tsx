@@ -11,19 +11,17 @@ import {
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { MOCK_COMPLETED_REVIEWS } from "@/lib/mock-officer-data";
-import { MOCK_QUEUE_DOCUMENTS } from "@/lib/mock-officer-data";
 
 interface OfficerMyReviewsViewProps {
   onShowToast?: (msg: string) => void;
 }
 
-type ReviewStatus = "all" | "pending_review" | "approved" | "needs_revision" | "rejected";
+type ReviewStatus = "all" | "approved" | "needs_revision" | "rejected";
 
 const OUTCOME_FILTERS: { value: ReviewStatus; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "pending_review", label: "Pending" },
+  { value: "all", label: "All Decisions" },
   { value: "approved", label: "Approved" },
-  { value: "needs_revision", label: "Revision" },
+  { value: "needs_revision", label: "Needs Revision" },
   { value: "rejected", label: "Rejected" },
 ];
 
@@ -38,7 +36,7 @@ interface UnifiedReview {
   id: string;
   title: string;
   advisor_name: string;
-  status: "pending_review" | "approved" | "needs_revision" | "rejected";
+  status: "approved" | "needs_revision" | "rejected";
   type: string;
   uploaded_at: string;
   reviewed_at: string | null;
@@ -59,35 +57,20 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
-// Merge completed reviews + queue documents into a single flat list
+// Previous reviews that are rejected, approved, and needs revision
 function buildAllReviews(): UnifiedReview[] {
-  const completed: UnifiedReview[] = MOCK_COMPLETED_REVIEWS.map((r) => ({
-    id: r.id,
-    title: r.title,
-    advisor_name: r.advisor_name,
-    status: r.status,
-    type: r.type,
-    uploaded_at: r.uploaded_at,
-    reviewed_at: r.reviewed_at,
-    officer_feedback: r.officer_feedback,
-  }));
-
-  const completedIds = new Set(completed.map((r) => r.id));
-
-  const pending: UnifiedReview[] = MOCK_QUEUE_DOCUMENTS
-    .filter((d) => !completedIds.has(d.id))
-    .map((d) => ({
-      id: d.id,
-      title: d.title,
-      advisor_name: d.advisor_name,
-      status: "pending_review" as const,
-      type: d.type,
-      uploaded_at: d.uploaded_at,
-      reviewed_at: null,
-      officer_feedback: d.ai_summary ?? "",
+  return MOCK_COMPLETED_REVIEWS
+    .filter((r) => r.status === "approved" || r.status === "needs_revision" || r.status === "rejected")
+    .map((r) => ({
+      id: r.id,
+      title: r.title,
+      advisor_name: r.advisor_name,
+      status: r.status as "approved" | "needs_revision" | "rejected",
+      type: r.type,
+      uploaded_at: r.uploaded_at,
+      reviewed_at: r.reviewed_at,
+      officer_feedback: r.officer_feedback,
     }));
-
-  return [...pending, ...completed];
 }
 
 const ALL_REVIEWS = buildAllReviews();
@@ -102,7 +85,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
     let result = [...ALL_REVIEWS];
 
     if (outcomeFilter !== "all") {
-      result = result.filter((r) => r.status === outcomeFilter);
+      result = result.filter((r) => (r.status as string) === outcomeFilter);
     }
 
     if (searchQuery.trim()) {
@@ -159,27 +142,30 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
 
   const counts = React.useMemo(() => {
     const total = ALL_REVIEWS.length;
-    const pending = ALL_REVIEWS.filter((r) => r.status === "pending_review").length;
     const approved = ALL_REVIEWS.filter((r) => r.status === "approved").length;
     const revision = ALL_REVIEWS.filter((r) => r.status === "needs_revision").length;
     const rejected = ALL_REVIEWS.filter((r) => r.status === "rejected").length;
-    return { total, pending, approved, revision, rejected };
+    return { total, approved, revision, rejected };
   }, []);
 
   return (
     <div className="space-y-5 font-inter select-none">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl font-medium text-[#1e4c77] tracking-tight font-inter">
-          My Reviews
-        </h1>
+        <div>
+          <h1 className="text-xl font-medium text-[#1e4c77] tracking-tight font-inter">
+            My Reviews
+          </h1>
+          <p className="text-xs text-[#1e4c77]/60 mt-0.5 font-inter">
+            Previous reviews — rejected, approved, and needs revision
+          </p>
+        </div>
 
         <div className="flex items-center gap-3">
           {/* Compact counts */}
           <div className="hidden md:flex items-center gap-2.5 text-[11px] font-inter text-[#1e4c77]/60">
             <span className="font-numbers tabular-nums font-medium text-[#1e4c77]">{counts.total}</span>
-            <span className="h-3 w-px bg-[#1e4c77]/15" />
-            <span className="font-numbers tabular-nums text-[#1e4c77]/70">{counts.pending} pending</span>
+            <span className="text-[#1e4c77]/50">total</span>
             <span className="h-3 w-px bg-[#1e4c77]/15" />
             <span className="font-numbers tabular-nums text-[#1e4c77]/70">{counts.approved} approved</span>
             <span className="h-3 w-px bg-[#1e4c77]/15" />

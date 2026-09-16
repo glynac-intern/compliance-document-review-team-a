@@ -19,7 +19,7 @@ import { useAuth } from "@/lib/auth-context";
 import { documentsApi, type BackendDocument } from "@/lib/documents-api";
 import { adaptBackendDocument } from "@/lib/document-adapter";
 import { ApiError } from "@/lib/api-client";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
+import { classifyError, logDiagnosticError } from "@/lib/error-utils";
 
 /**
  * Returns a time-of-day greeting that updates every minute so the
@@ -76,9 +76,10 @@ export default function AdvisorDashboardPage() {
       const backendDocs = await documentsApi.list();
       const adapted = backendDocs.map((d) => adaptBackendDocument(d, "You", ""));
       setDocuments(adapted);
-    } catch {
-      // If backend is offline / unreachable, fallback to sample documents
-      setDocuments(MOCK_DOCUMENTS);
+    } catch (err) {
+      logDiagnosticError("AdvisorDashboardPage.loadDocuments", err);
+      setDocuments([]);
+      setLoadError(classifyError(err));
     } finally {
       setIsLoadingDocuments(false);
     }
@@ -183,28 +184,10 @@ export default function AdvisorDashboardPage() {
   // TA-63: receives the REAL backend response from a real upload
   // (NewSubmissionModal's onSubmit), or client-side submission data
   const handleNewSubmission = (uploaded: BackendDocument | Partial<ComplianceDocument>) => {
-    if ("original_filename" in uploaded) {
-      const newDoc = adaptBackendDocument(uploaded, "You", "");
+    if ("original_filename" in uploaded && uploaded.id) {
+      const newDoc = adaptBackendDocument(uploaded as BackendDocument, "You", "");
       setDocuments((prev) => [newDoc, ...prev]);
-      showToast(`"${newDoc.title}" submitted for compliance pre-screening.`);
-    } else {
-      const newDoc: ComplianceDocument = {
-        id: uploaded.id || `DOC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        title: uploaded.title || "Untitled Marketing Document.pdf",
-        advisor_id: "adv-101",
-        advisor_name: "James A",
-        advisor_email: "j.adams@apexadvisory.com",
-        status: "pending",
-        file_reference: uploaded.file_reference || "s3://compliance-vault/docs/sample.pdf",
-        type: uploaded.type || "Presentation / Deck",
-        uploaded_at: new Date().toISOString(),
-        thread_id: uploaded.thread_id || `THR-${Math.floor(1000 + Math.random() * 9000)}`,
-        replaces_document_id: null,
-        version: 1,
-        file_size_mb: uploaded.file_size_mb || 2.4,
-      };
-      setDocuments((prev) => [newDoc, ...prev]);
-      showToast(`"${newDoc.title}" submitted for compliance pre-screening.`);
+      showToast(`"${newDoc.title}" submitted for compliance review.`);
     }
   };
 
@@ -317,6 +300,7 @@ export default function AdvisorDashboardPage() {
                   needsRevision={metricCounts.needsRevision}
                   rejected={metricCounts.rejected}
                   activeFilter={statusFilter}
+                  hasError={Boolean(loadError)}
                   onSelectFilter={(filterKey) => {
                     setStatusFilter(filterKey);
                     setActiveView("my_submissions");
@@ -338,6 +322,9 @@ export default function AdvisorDashboardPage() {
                   onSortByChange={setSortBy}
                   onSelectDocument={(doc) => setSelectedDocument(doc)}
                   onReviseClick={(doc) => setRevisionDoc(doc)}
+                  isLoading={isLoadingDocuments}
+                  loadError={loadError}
+                  onRetry={loadDocuments}
                   onResetFilters={() => {
                     setSearchQuery("");
                     setStatusFilter("all");
@@ -349,6 +336,9 @@ export default function AdvisorDashboardPage() {
               <div id="recent-activity-section">
                 <RecentActivity
                   documents={documents}
+                  loadError={loadError}
+                  isLoading={isLoadingDocuments}
+                  onRetry={loadDocuments}
                   onViewAllClick={() => {
                     setActiveView("history");
                   }}
@@ -395,6 +385,9 @@ export default function AdvisorDashboardPage() {
                   onSortByChange={setSortBy}
                   onSelectDocument={(doc) => setSelectedDocument(doc)}
                   onReviseClick={(doc) => setRevisionDoc(doc)}
+                  isLoading={isLoadingDocuments}
+                  loadError={loadError}
+                  onRetry={loadDocuments}
                   onResetFilters={() => {
                     setSearchQuery("");
                     setStatusFilter("all");
@@ -428,6 +421,9 @@ export default function AdvisorDashboardPage() {
               <RecentActivity
                 documents={documents}
                 isFullHistory={true}
+                loadError={loadError}
+                isLoading={isLoadingDocuments}
+                onRetry={loadDocuments}
                 onItemClick={(docId) => {
                   const target = documents.find((d) => d.id === docId);
                   if (target) setSelectedDocument(target);

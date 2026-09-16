@@ -103,9 +103,7 @@ export function KpiSummaryStrip({ kpis, labels }: KpiSummaryStripProps) {
                 <span className="text-blue-200/80 font-numbers tabular-nums">
                   {card.subtext}
                 </span>
-              ) : (
-                <span className="text-blue-200/50 text-[10px]">Real repository telemetry</span>
-              )}
+              ) : null}
             </div>
           </div>
         );

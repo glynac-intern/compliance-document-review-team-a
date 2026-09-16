@@ -20,7 +20,7 @@ const PROJECT_CARDS = [
   {
     title: "Intelligent Compliance Review",
     description:
-      "Automating preliminary screening across marketing decks and client letters against SEC and FINRA disclosure rules in real time.",
+      "Automating preliminary compliance reviews across marketing decks and client letters against SEC and FINRA disclosure rules in real time.",
   },
   {
     title: "Precise Regulatory Citations",
