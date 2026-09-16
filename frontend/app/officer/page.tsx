@@ -37,14 +37,16 @@ const STATUS_FILTERS: { value: string; label: string }[] = [
   { value: "rejected", label: "Rejected" },
 ];
 
+// TA-94: these previously listed fictional mock-data categories
+// ("Presentation / Deck", "Market Commentary", ...) that never matched
+// a real document's actual type -- selecting any of them against real
+// backend data silently returned zero results. Real documents only
+// ever have type pdf/docx/xlsx (see DocumentType in the backend).
 const TYPE_FILTERS = [
   { value: "all", label: "All Document Types" },
-  { value: "Presentation / Deck", label: "Presentation / Deck" },
-  { value: "Market Commentary", label: "Market Commentary" },
-  { value: "Client Letter", label: "Client Letter" },
-  { value: "Performance Factsheet", label: "Performance Factsheet" },
-  { value: "Promotional Brochure", label: "Promotional Brochure" },
-  { value: "Social Media Post", label: "Social Media Post" },
+  { value: "pdf", label: "PDF" },
+  { value: "docx", label: "DOCX" },
+  { value: "xlsx", label: "XLSX" },
 ];
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
@@ -145,6 +147,7 @@ export default function OfficerDashboardPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [typeFilter, setTypeFilter] = React.useState("all");
+  const [advisorFilter, setAdvisorFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("newest");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -253,6 +256,14 @@ export default function OfficerDashboardPage() {
   }, [loadQueue, showToast]);
 
   // Filter and sort documents strictly for pending review queue or selected status
+  // TA-94: populated from whatever advisors actually appear in the
+  // current queue, rather than a hardcoded list -- stays correct as
+  // advisors come and go, with no separate lookup needed.
+  const advisorOptions = React.useMemo(() => {
+    const names = Array.from(new Set(documents.map((d) => d.advisor_name))).sort();
+    return [{ value: "all", label: "All Advisors" }, ...names.map((name) => ({ value: name, label: name }))];
+  }, [documents]);
+
   const filteredDocuments = React.useMemo(() => {
     let result = [...documents];
 
@@ -269,6 +280,11 @@ export default function OfficerDashboardPage() {
     // Document Type filter
     if (typeFilter !== "all") {
       result = result.filter((d) => d.type === typeFilter);
+    }
+
+    // Advisor filter (TA-94) -- combines with every other filter as AND
+    if (advisorFilter !== "all") {
+      result = result.filter((d) => d.advisor_name === advisorFilter);
     }
 
     // Search filter
@@ -298,7 +314,7 @@ export default function OfficerDashboardPage() {
     });
 
     return result;
-  }, [documents, typeFilter, searchQuery, sortBy]);
+  }, [documents, statusFilter, typeFilter, advisorFilter, searchQuery, sortBy]);
 
   // Queue summary counts
   const queueCounts = React.useMemo(() => {
@@ -422,6 +438,22 @@ export default function OfficerDashboardPage() {
                     {TYPE_FILTERS.map((f) => (
                       <option key={f.value} value={f.value}>
                         {f.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Advisor Filter (TA-94) */}
+                <div className="relative">
+                  <select
+                    value={advisorFilter}
+                    onChange={(e) => setAdvisorFilter(e.target.value)}
+                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
+                  >
+                    {advisorOptions.map((a) => (
+                      <option key={a.value} value={a.value}>
+                        {a.label}
                       </option>
                     ))}
                   </select>

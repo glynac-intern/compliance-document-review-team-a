@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from database import get_db
-from models import Document, DocumentStatus, Review, AuditEvent, AuditAction, User, Notification
+from models import Document, DocumentStatus, DocumentType, Review, AuditEvent, AuditAction, User, Notification
 from audit_utils import record_view_if_new
 
 from ai.compliance.precedent_indexer import index_document_as_precedent
@@ -19,6 +19,11 @@ router = APIRouter()
 @router.get("/queue", response_model=list[DocumentResponse])
 def get_queue(
     status_filter: Optional[DocumentStatus] = Query(default=None, alias="status"),
+    # TA-94: narrow the queue by advisor and/or document type, on top of
+    # the existing status filter. All three combine as AND, not OR --
+    # each is an independent, optional .filter() clause.
+    advisor_id: Optional[uuid.UUID] = Query(default=None),
+    type_filter: Optional[DocumentType] = Query(default=None, alias="type"),
     current_user: User = Depends(require_role("officer")),
     db: Session = Depends(get_db),
 ):
@@ -33,6 +38,10 @@ def get_queue(
     )
     if status_filter is not None:
         query = query.filter(Document.status == status_filter)
+    if advisor_id is not None:
+        query = query.filter(Document.advisor_id == advisor_id)
+    if type_filter is not None:
+        query = query.filter(Document.type == type_filter)
     return query.order_by(Document.uploaded_at).all()
 
 
