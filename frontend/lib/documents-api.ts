@@ -166,6 +166,50 @@ export const documentsApi = {
     window.URL.revokeObjectURL(url);
   },
 
+  // TA-93: same blob-download pattern as downloadFile above, against
+  // the CSV export endpoint instead of the original uploaded file.
+  exportAuditTrail: async (documentId: string): Promise<void> => {
+    const token = getStoredToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_BASE_URL}/documents/${documentId}/audit/export`, {
+      headers,
+    });
+    if (!response.ok) {
+      let detail = `Export failed (${response.status})`;
+      try {
+        const body = await response.json();
+        if (body?.detail) {
+          detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+        }
+      } catch {
+        // non-JSON response body
+      }
+      throw new ApiError(response.status, detail);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const disposition = response.headers.get("content-disposition");
+    let filename = "audit-trail.csv";
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+    }
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
   /**
    * Uses XMLHttpRequest rather than fetch() specifically because fetch
    * has no upload-progress event -- real progress reporting (not just

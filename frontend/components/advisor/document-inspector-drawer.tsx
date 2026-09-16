@@ -5,6 +5,7 @@ import {
   X,
   Clock,
   Download,
+  FileDown,
   Edit3,
   Loader2,
 } from "lucide-react";
@@ -53,6 +54,7 @@ export function DocumentInspectorDrawer({
   const [isRetryingAnalysis, setIsRetryingAnalysis] = React.useState(false);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
   const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isExportingAudit, setIsExportingAudit] = React.useState(false);
   const [downloadError, setDownloadError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -117,6 +119,19 @@ export function DocumentInspectorDrawer({
       setDownloadError(err instanceof ApiError ? err.message : "Failed to download file.");
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleExportAudit = async () => {
+    if (!doc) return;
+    setIsExportingAudit(true);
+    setDownloadError(null);
+    try {
+      await documentsApi.exportAuditTrail(doc.id);
+    } catch (err) {
+      setDownloadError(err instanceof ApiError ? err.message : "Failed to export audit trail.");
+    } finally {
+      setIsExportingAudit(false);
     }
   };
 
@@ -433,6 +448,21 @@ export function DocumentInspectorDrawer({
           </div>
         )}
         <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between gap-3 font-inter">
+          <button
+            type="button"
+            onClick={handleExportAudit}
+            disabled={isExportingAudit}
+            title="Export Audit Trail (CSV)"
+            aria-label="Export Audit Trail (CSV)"
+            className="h-10 w-10 shrink-0 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
+          >
+            {isExportingAudit ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+            ) : (
+              <FileDown className="h-3.5 w-3.5" />
+            )}
+          </button>
+
           <button
             type="button"
             onClick={handleDownload}
