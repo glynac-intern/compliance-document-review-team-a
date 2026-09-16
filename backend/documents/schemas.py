@@ -18,6 +18,7 @@ class DocumentResponse(BaseModel):
     uploaded_at: datetime
     thread_id: uuid.UUID
     replaces_document_id: Optional[uuid.UUID]
+    revision_notes: Optional[str]
 
     class Config:
         from_attributes = True
@@ -38,6 +39,7 @@ class ThreadEntryResponse(BaseModel):
     type: DocumentType
     uploaded_at: datetime
     replaces_document_id: Optional[uuid.UUID]
+    revision_notes: Optional[str]
     review: Optional[ThreadReviewResponse]
 
     class Config:
