@@ -103,6 +103,13 @@ export interface BackendAnalysis {
 export const documentsApi = {
   list: (): Promise<BackendDocument[]> => apiFetch<BackendDocument[]>("/documents"),
 
+  // Distinct from list() -- GET /documents/{id} is also what records a
+  // 'viewed' audit event server-side (audit_utils.record_view_if_new).
+  // Call this whenever the user actually opens a specific document, even
+  // if the response itself isn't needed for anything already in state.
+  get: (documentId: string): Promise<BackendDocument> =>
+    apiFetch<BackendDocument>(`/documents/${documentId}`),
+
   getThread: (documentId: string): Promise<ThreadEntry[]> =>
     apiFetch<ThreadEntry[]>(`/documents/${documentId}/thread`),
 
