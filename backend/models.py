@@ -48,6 +48,7 @@ class AuditAction(str, enum.Enum):
     viewed = "viewed"
     decided = "decided"
     resubmitted = "resubmitted"
+    reminder_sent = "reminder_sent"
 
 
 class AnalysisStatus(str, enum.Enum):

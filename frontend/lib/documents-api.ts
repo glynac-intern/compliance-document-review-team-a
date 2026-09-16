@@ -261,6 +261,13 @@ export const documentsApi = {
    * XHR-for-real-progress pattern as submit() above -- reused rather
    * than duplicated logic with a different endpoint path.
    */
+  // TA-95: nudges officers about a document still awaiting review.
+  // Backend rate-limits this to once per document per 24h (429) and
+  // rejects it outside pending_review (400) -- both surface via the
+  // real ApiError message from apiFetch, same as every other endpoint.
+  sendReminder: (documentId: string): Promise<{ detail: string }> =>
+    apiFetch<{ detail: string }>(`/documents/${documentId}/reminder`, { method: "POST" }),
+
   submitRevision: (
     originalDocumentId: string,
     file: File,

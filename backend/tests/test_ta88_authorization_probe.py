@@ -71,6 +71,11 @@ def test_no_session_rejected_on_retry_analysis(client):
     assert resp.status_code in (401, 403)
 
 
+def test_no_session_rejected_on_send_reminder(client):
+    resp = client.post(f"/documents/{NIL_UUID}/reminder")
+    assert resp.status_code in (401, 403)
+
+
 def test_no_session_rejected_on_submit_decision(client):
     resp = client.post(f"/review/documents/{NIL_UUID}/decision", json={"status": "approved"})
     assert resp.status_code in (401, 403)
@@ -161,6 +166,11 @@ def test_cross_advisor_cannot_submit_revision(client, other_advisors_document, s
         headers=_auth(second_advisor_token),
         files={"file": FAKE_PDF},
     )
+    assert resp.status_code == 403
+
+
+def test_cross_advisor_cannot_send_reminder(client, other_advisors_document, second_advisor_token):
+    resp = client.post(f"/documents/{other_advisors_document}/reminder", headers=_auth(second_advisor_token))
     assert resp.status_code == 403
 
 
