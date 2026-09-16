@@ -8,6 +8,7 @@ interface MetricCardsProps {
   pending: number;
   approved: number;
   needsRevision: number;
+  rejected: number;
   activeFilter: string;
   onSelectFilter: (filterKey: string) => void;
 }
@@ -17,6 +18,7 @@ export function MetricCards({
   pending,
   approved,
   needsRevision,
+  rejected,
   activeFilter,
   onSelectFilter,
 }: MetricCardsProps) {
@@ -50,10 +52,17 @@ export function MetricCards({
       gradient: "from-[#1e4c77] via-[#24619a] to-[#18446c]",
       hoverGradient: "hover:from-[#225a8c] hover:via-[#2871b3] hover:to-[#1b4b77]",
     },
+    {
+      id: "rejected",
+      label: "Rejected",
+      value: String(rejected).padStart(2, "0"),
+      gradient: "from-[#7a2530] via-[#96313d] to-[#601d26]",
+      hoverGradient: "hover:from-[#8f2c39] hover:via-[#ab3947] hover:to-[#70222c]",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 select-none font-inter">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 select-none font-inter">
       {cards.map((card) => {
         const isActive = activeFilter === card.id;
 

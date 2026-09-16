@@ -167,8 +167,9 @@ export default function AdvisorDashboardPage() {
     const needsRevision = documents.filter(
       (d) => d.status === "needs_revision" && !supersededDocumentIds.has(d.id)
     ).length;
+    const rejected = documents.filter((d) => d.status === "rejected").length;
 
-    return { total, pending, approved, needsRevision };
+    return { total, pending, approved, needsRevision, rejected };
   }, [documents, supersededDocumentIds]);
 
   // TA-63: real refresh -- re-fetches from the backend, not a fake delay.
@@ -307,13 +308,14 @@ export default function AdvisorDashboardPage() {
                 </h1>
               </div>
 
-              {/* 4 Summary Metric Cards (Clicking one opens My Submissions with that filter) */}
+              {/* 5 Summary Metric Cards (Clicking one opens My Submissions with that filter) */}
               <div id="metric-cards-section">
                 <MetricCards
                   total={metricCounts.total}
                   pending={metricCounts.pending}
                   approved={metricCounts.approved}
                   needsRevision={metricCounts.needsRevision}
+                  rejected={metricCounts.rejected}
                   activeFilter={statusFilter}
                   onSelectFilter={(filterKey) => {
                     setStatusFilter(filterKey);
