@@ -22,6 +22,7 @@ interface OfficerSidebarProps {
   onCloseMobile: () => void;
   activeView?: OfficerView;
   onSelectView?: (view: OfficerView) => void;
+  userName?: string | null;
 }
 
 export function OfficerSidebar({
@@ -31,6 +32,7 @@ export function OfficerSidebar({
   onCloseMobile,
   activeView = "review_queue",
   onSelectView,
+  userName,
 }: OfficerSidebarProps) {
   const navItems: {
     id: OfficerView;
@@ -174,22 +176,33 @@ export function OfficerSidebar({
             isCollapsed && "justify-center p-1.5 bg-transparent border-transparent"
           )}
         >
-          {/* Avatar and Name */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-7 w-7 rounded-full bg-[#1e4c77] text-white font-medium text-[11px] flex items-center justify-center shrink-0 shadow-xs font-inter">
-              SJ
-            </div>
-            {!isCollapsed && (
-              <div className="min-w-0">
-                <span className="text-[13px] font-normal text-slate-800 truncate block font-inter">
-                  Sarah J
-                </span>
-                <span className="text-[10px] font-normal text-slate-400 truncate block font-inter">
-                  Compliance Officer
-                </span>
+          {/* Avatar and Name — derived from authenticated user */}
+          {(() => {
+            const displayName = userName || "Officer";
+            const parts = displayName.trim().split(/\s+/);
+            const initials =
+              parts.length >= 2
+                ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+                : parts[0].slice(0, 2).toUpperCase();
+
+            return (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-7 w-7 rounded-full bg-[#1e4c77] text-white font-medium text-[11px] flex items-center justify-center shrink-0 shadow-xs font-inter">
+                  {initials}
+                </div>
+                {!isCollapsed && (
+                  <div className="min-w-0">
+                    <span className="text-[13px] font-normal text-slate-800 truncate block font-inter">
+                      {displayName}
+                    </span>
+                    <span className="text-[10px] font-normal text-slate-400 truncate block font-inter">
+                      Compliance Officer
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Settings icon */}
           <button
