@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FileTypeIcon } from "@/components/ui/file-type-icon";
+import { reviewsApi } from "@/lib/reviews-api";
+import { documentsApi, type BackendDocumentType } from "@/lib/documents-api";
+import { ApiError } from "@/lib/api-client";
 import { MOCK_COMPLETED_REVIEWS } from "@/lib/mock-officer-data";
 
 interface OfficerMyReviewsViewProps {
@@ -17,6 +20,10 @@ interface OfficerMyReviewsViewProps {
 }
 
 type ReviewStatus = "all" | "approved" | "needs_revision" | "rejected";
+
+// TA-101: reviewed documents only ever land in one of these three
+// terminal statuses -- pending_review belongs to the Review Queue, not here.
+const TERMINAL_STATUSES = ["approved", "needs_revision", "rejected"] as const;
 
 const OUTCOME_FILTERS: { value: ReviewStatus; label: string }[] = [
   { value: "all", label: "All Decisions" },
@@ -37,7 +44,7 @@ interface UnifiedReview {
   title: string;
   advisor_name: string;
   status: "approved" | "needs_revision" | "rejected";
-  type: string;
+  type: BackendDocumentType;
   uploaded_at: string;
   reviewed_at: string | null;
   officer_feedback: string;
@@ -57,32 +64,126 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
-// Previous reviews that are rejected, approved, and needs revision
-function buildAllReviews(): UnifiedReview[] {
-  return MOCK_COMPLETED_REVIEWS
-    .filter((r) => r.status === "approved" || r.status === "needs_revision" || r.status === "rejected")
-    .map((r) => ({
-      id: r.id,
-      title: r.title,
-      advisor_name: r.advisor_name,
-      status: r.status as "approved" | "needs_revision" | "rejected",
-      type: r.type,
-      uploaded_at: r.uploaded_at,
-      reviewed_at: r.reviewed_at,
-      officer_feedback: r.officer_feedback,
-    }));
+// Offline/mock fallback only -- the mock item's free-text "type" category
+// (e.g. "Promotional Brochure") doesn't map to a real BackendDocumentType,
+// so it's inferred here purely for the fallback's own icon rendering.
+function adaptMockToUnifiedReview(r: (typeof MOCK_COMPLETED_REVIEWS)[0]): UnifiedReview {
+  const inferredType: BackendDocumentType = r.type.includes("Brochure")
+    ? "pdf"
+    : r.type.includes("Factsheet")
+      ? "xlsx"
+      : "docx";
+  return {
+    id: r.id,
+    title: r.title,
+    advisor_name: r.advisor_name,
+    status: r.status as "approved" | "needs_revision" | "rejected",
+    type: inferredType,
+    uploaded_at: r.uploaded_at,
+    reviewed_at: r.reviewed_at,
+    officer_feedback: r.officer_feedback,
+  };
 }
 
-const ALL_REVIEWS = buildAllReviews();
+async function fetchAllReviews(): Promise<UnifiedReview[]> {
+  const lists = await Promise.all(
+    TERMINAL_STATUSES.map((status) => reviewsApi.getQueue(status))
+  );
+  const docs = lists.flat();
+
+  return Promise.all(
+    docs.map(async (doc): Promise<UnifiedReview> => {
+      let comment = "";
+      let decidedAt: string | null = null;
+      try {
+        const reviews = await documentsApi.getReviews(doc.id);
+        const ownReview = reviews.find((r) => r.document_id === doc.id);
+        comment = ownReview?.comment ?? "";
+        decidedAt = ownReview?.decided_at ?? null;
+      } catch {
+        // Leave feedback/date blank if the lookup fails -- the row
+        // itself is still a real, correctly-identified document.
+      }
+      return {
+        id: doc.id,
+        title: doc.original_filename ?? `Document ${doc.id.slice(0, 8)}`,
+        advisor_name: doc.advisor_name,
+        status: doc.status as "approved" | "needs_revision" | "rejected",
+        type: doc.type,
+        uploaded_at: doc.uploaded_at,
+        reviewed_at: decidedAt,
+        officer_feedback: comment,
+      };
+    })
+  );
+}
 
 export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps) {
   const router = useRouter();
+  const [allReviews, setAllReviews] = React.useState<UnifiedReview[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [outcomeFilter, setOutcomeFilter] = React.useState<ReviewStatus>("all");
   const [sortBy, setSortBy] = React.useState("newest");
 
+  // TA-101: real, persisted review records -- one queue fetch per
+  // terminal status, then each document's own decision (comment +
+  // decided_at) looked up via its thread's review history.
+  const handleRetry = React.useCallback(() => {
+    setIsLoading(true);
+    fetchAllReviews()
+      .then((reviews) => {
+        setAllReviews(reviews);
+        setError(null);
+      })
+      .catch((err) => {
+        if (err instanceof ApiError) {
+          setError(err.message);
+        }
+        setAllReviews(
+          MOCK_COMPLETED_REVIEWS.filter(
+            (r) => r.status === "approved" || r.status === "needs_revision" || r.status === "rejected"
+          ).map(adaptMockToUnifiedReview)
+        );
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    fetchAllReviews()
+      .then((reviews) => {
+        if (!ignore) {
+          setAllReviews(reviews);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          // Fallback to mock data when backend is offline
+          if (err instanceof ApiError) {
+            setError(err.message);
+          }
+          setAllReviews(
+            MOCK_COMPLETED_REVIEWS.filter(
+              (r) => r.status === "approved" || r.status === "needs_revision" || r.status === "rejected"
+            ).map(adaptMockToUnifiedReview)
+          );
+        }
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const filteredReviews = React.useMemo(() => {
-    let result = [...ALL_REVIEWS];
+    let result = [...allReviews];
 
     if (outcomeFilter !== "all") {
       result = result.filter((r) => (r.status as string) === outcomeFilter);
@@ -114,7 +215,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
     });
 
     return result;
-  }, [outcomeFilter, searchQuery, sortBy]);
+  }, [allReviews, outcomeFilter, searchQuery, sortBy]);
 
   const handleExport = React.useCallback(() => {
     const csvRows = [
@@ -141,12 +242,12 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
   }, [filteredReviews, onShowToast]);
 
   const counts = React.useMemo(() => {
-    const total = ALL_REVIEWS.length;
-    const approved = ALL_REVIEWS.filter((r) => r.status === "approved").length;
-    const revision = ALL_REVIEWS.filter((r) => r.status === "needs_revision").length;
-    const rejected = ALL_REVIEWS.filter((r) => r.status === "rejected").length;
+    const total = allReviews.length;
+    const approved = allReviews.filter((r) => r.status === "approved").length;
+    const revision = allReviews.filter((r) => r.status === "needs_revision").length;
+    const rejected = allReviews.filter((r) => r.status === "rejected").length;
     return { total, approved, revision, rejected };
-  }, []);
+  }, [allReviews]);
 
   return (
     <div className="space-y-5 font-inter select-none">
@@ -229,9 +330,37 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
         </div>
       </div>
 
+      {/* Error banner */}
+      {error && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-inter">
+          {error}{" "}
+          <button
+            onClick={handleRetry}
+            className="underline text-rose-900 hover:text-rose-700 font-medium cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="rounded-xl border border-[#1e4c77]/10 bg-white overflow-hidden">
-        {filteredReviews.length === 0 ? (
+        {isLoading ? (
+          // Loading skeleton
+          <div className="divide-y divide-[#1e4c77]/[0.06]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-4">
+                <div className="h-8 w-8 rounded-lg bg-[#1e4c77]/5 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-48 bg-[#1e4c77]/5 animate-pulse rounded" />
+                  <div className="h-2.5 w-32 bg-[#1e4c77]/[0.04] animate-pulse rounded" />
+                </div>
+                <div className="h-3 w-20 bg-[#1e4c77]/5 animate-pulse rounded" />
+                <div className="h-3 w-16 bg-[#1e4c77]/[0.04] animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+        ) : filteredReviews.length === 0 ? (
           <div className="p-12 text-center font-inter">
             <FileCheck2 className="h-7 w-7 text-[#1e4c77]/25 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-700">No reviews found</p>
@@ -276,7 +405,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
                     <div className="flex items-center gap-2.5 min-w-0">
                       <FileTypeIcon
                         filename={review.title}
-                        type={review.type.includes("Brochure") ? "pdf" : review.type.includes("Factsheet") ? "xlsx" : "docx"}
+                        type={review.type}
                         size="sm"
                       />
                       <div className="min-w-0">
@@ -294,7 +423,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
                     {review.advisor_name}
                   </td>
 
-                  <td className="py-3 px-4 text-[12px] text-[#1e4c77]/50 font-inter">
+                  <td className="py-3 px-4 text-[12px] text-[#1e4c77]/50 font-inter uppercase">
                     {review.type}
                   </td>
 
@@ -321,7 +450,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
       </div>
 
       {/* Footer count */}
-      {filteredReviews.length > 0 && (
+      {!isLoading && filteredReviews.length > 0 && (
         <p className="text-[11px] text-[#1e4c77]/40 font-inter">
           Showing{" "}
           <span className="font-numbers tabular-nums font-medium text-[#1e4c77]/60">
@@ -329,7 +458,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
           </span>{" "}
           of{" "}
           <span className="font-numbers tabular-nums font-medium text-[#1e4c77]/60">
-            {ALL_REVIEWS.length}
+            {allReviews.length}
           </span>{" "}
           reviews
         </p>

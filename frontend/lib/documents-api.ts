@@ -58,6 +58,15 @@ export interface ThreadEntry {
   review: ThreadReview | null;
 }
 
+export interface DocumentReview {
+  id: string;
+  document_id: string;
+  officer_id: string;
+  status: BackendDocumentStatus;
+  comment: string | null;
+  decided_at: string;
+}
+
 export interface AuditEvent {
   id: string;
   actor_id: string;
@@ -112,6 +121,13 @@ export const documentsApi = {
 
   getThread: (documentId: string): Promise<ThreadEntry[]> =>
     apiFetch<ThreadEntry[]>(`/documents/${documentId}/thread`),
+
+  // TA-101: the officer's recorded decision (comment + decided_at) for
+  // one document -- a document only ever gets one review in its
+  // lifetime (a new decision requires status back to pending_review,
+  // which only happens via a resubmitted revision, a new document row).
+  getReviews: (documentId: string): Promise<DocumentReview[]> =>
+    apiFetch<DocumentReview[]>(`/documents/${documentId}/reviews`),
 
   getAudit: (documentId: string): Promise<AuditEvent[]> =>
     apiFetch<AuditEvent[]>(`/documents/${documentId}/audit`),
