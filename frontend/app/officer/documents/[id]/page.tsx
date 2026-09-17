@@ -131,18 +131,28 @@ export default function OfficerDocumentReviewPage() {
     [mockDoc]
   );
 
-// Mock/demo document IDs (e.g. DOC-2026-0872) are not backend UUIDs.
-// Do not send them to UUID-based document/AI endpoints.
-const isMockDocument = Boolean(mockDoc);
+  // Mock/demo document IDs (e.g. DOC-2026-0872) are not backend UUIDs.
+  // Do not send them to UUID-based document/AI endpoints.
+  const isMockDocument = Boolean(mockDoc);
 
   // TA-70: load analysis with 503 degraded error handling
   const loadAnalysis = React.useCallback(() => {
-  if (isMockDocument) {
-    setAnalysis(null);
-    return;
-  }
+    if (isMockDocument) {
+      // TA-100: legacy/mock documents have no real backend analysis.
+      // Leaving `analysis` as null forever left the AI panel stuck on
+      // "Analyzing document..." indefinitely, since isLoading={!analysis}
+      // never became false. Give it a terminal degraded state instead.
+      setAnalysis({
+        status: "failed",
+        error_message: "AI analysis isn't available for this legacy/demo document.",
+        summary: null,
+        flags: [],
+        precedents: [],
+      });
+      return;
+    }
 
-  apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis`)
+    apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis`)
       .then(setAnalysis)
       .catch((err) => {
         setAnalysis({
@@ -157,11 +167,11 @@ const isMockDocument = Boolean(mockDoc);
 
   const handleRetryAnalysis = async () => {
     if (isMockDocument) {
-     return;
-  }
+      return;
+    }
 
-  setIsRetrying(true);
-  try {
+    setIsRetrying(true);
+    try {
       const result = await apiFetch<AnalysisResponse>(`/documents/${documentId}/analysis/retry`, {
         method: "POST",
       });
@@ -641,7 +651,7 @@ const isMockDocument = Boolean(mockDoc);
               } : undefined}
               isLoading={!analysis}
               errorMessage={analysis?.status === "failed" ? analysis.error_message : null}
-              onRetry={handleRetryAnalysis}
+              onRetry={isMockDocument ? undefined : handleRetryAnalysis}
               isRetrying={isRetrying}
               onInsertComment={(text) => setComment(text)}
             />
