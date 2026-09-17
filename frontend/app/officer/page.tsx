@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { useAuth } from "@/lib/auth-context";
 import { reviewsApi } from "@/lib/reviews-api";
 import { ApiError } from "@/lib/api-client";
 import type { BackendDocumentStatus } from "@/lib/documents-api";
@@ -113,6 +114,7 @@ function adaptMockToQueueRow(doc: (typeof MOCK_QUEUE_DOCUMENTS)[0]): QueueTableR
 
 export default function OfficerDashboardPage() {
   const { isReady } = useRequireAuth("officer");
+  const { user } = useAuth();
   const router = useRouter();
 
   // Shell state
@@ -357,6 +359,7 @@ export default function OfficerDashboardPage() {
         onCloseMobile={() => setMobileSidebarOpen(false)}
         activeView={activeView}
         onSelectView={setActiveView}
+        userName={user?.name}
       />
 
       {/* Main Content Area */}
