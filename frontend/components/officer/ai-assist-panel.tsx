@@ -195,7 +195,7 @@ export function AiAssistPanel({
       analysis?.flags
         ? analysis.flags.map((f) => ({
             passage: f.passage_excerpt,
-            rule_id: f.matched_rule?.id ?? null,
+            rule_id: f.matched_rule?.text || f.matched_rule?.type || null,
             explanation: f.explanation,
             severity: f.severity,
           }))
