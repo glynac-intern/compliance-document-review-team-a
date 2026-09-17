@@ -22,3 +22,18 @@ class ReviewResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = []
+
+
+class ChatResponse(BaseModel):
+    reply: str
+    suggested_decision_note: Optional[str] = None

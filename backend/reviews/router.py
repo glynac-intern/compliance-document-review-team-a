@@ -5,13 +5,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from database import get_db
-from models import Document, DocumentStatus, DocumentType, Review, AuditEvent, AuditAction, User, Notification
+from models import (
+    Document, DocumentStatus, DocumentType, Review, AuditEvent, AuditAction, User, Notification,
+    AIAnalysis, DocumentChunk, PIIMapping,
+)
 from audit_utils import record_view_if_new
 
 from ai.compliance.precedent_indexer import index_document_as_precedent
+from ai.compliance.chat import generate_chat_reply
+from ai.masking.masker import unmask_for_display
 from auth.dependencies import require_role
+from data_pipeline.embeddings.embed_client import get_client
 from documents.schemas import DocumentResponse
-from reviews.schemas import DecisionRequest, ReviewResponse
+from reviews.schemas import DecisionRequest, ReviewResponse, ChatRequest, ChatResponse
 
 router = APIRouter()
 
@@ -115,3 +121,70 @@ def submit_decision(
         print(f"WARNING: precedent indexing failed for document {document_id}: {type(e).__name__}: {e}")
 
     return review
+
+
+@router.post("/documents/{document_id}/chat", response_model=ChatResponse)
+def chat_with_document(
+    document_id: uuid.UUID,
+    payload: ChatRequest,
+    current_user: User = Depends(require_role("officer")),
+    db: Session = Depends(get_db),
+):
+    """
+    TA-103: answers the officer's actual question, grounded in the
+    document's own (masked) text plus its existing summary/flags --
+    this route previously didn't exist at all, so the frontend always
+    fell through to a fixed, keyword-matched local fallback.
+    """
+    document = db.query(Document).filter(Document.id == document_id).first()
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    chunks = (
+        db.query(DocumentChunk)
+        .filter(DocumentChunk.document_id == document_id)
+        .order_by(DocumentChunk.chunk_index)
+        .all()
+    )
+    document_text = "\n\n".join(c.masked_text for c in chunks)
+
+    analysis = db.query(AIAnalysis).filter(AIAnalysis.document_id == document_id).first()
+    flags = [
+        {
+            "rule_id": f.matched_rule.text if f.matched_rule else None,
+            "explanation": f.explanation,
+            "severity": f.severity,
+        }
+        for f in (analysis.flags if analysis else [])
+    ]
+
+    mapping = {
+        m.placeholder: m.original_value
+        for m in db.query(PIIMapping).filter(PIIMapping.document_id == document_id).all()
+    }
+
+    try:
+        client = get_client()
+        result = generate_chat_reply(
+            client,
+            query=payload.message,
+            history=[h.model_dump() for h in payload.history],
+            document_text=document_text,
+            title=document.original_filename,
+            summary=analysis.summary if analysis else None,
+            flags=flags,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"AI assist is unavailable: {type(e).__name__}: {e}",
+        )
+
+    return ChatResponse(
+        reply=unmask_for_display(result["reply"], mapping),
+        suggested_decision_note=(
+            unmask_for_display(result["suggested_decision_note"], mapping)
+            if result["suggested_decision_note"]
+            else None
+        ),
+    )
