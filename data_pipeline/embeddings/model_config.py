@@ -14,7 +14,8 @@ import os
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "gemini-embedding-001")
 EMBEDDING_DIM = int(os.environ.get("EMBEDDING_DIM", "768"))
 
-# --- Generation (flagging + summarization) ---
+# --- Generation (flagging + summarization + chat) ---
 GENERATION_MODEL = os.environ.get("GENERATION_MODEL", "gemini-3.5-flash-lite")
 FLAG_GENERATION_TEMPERATURE = float(os.environ.get("FLAG_GENERATION_TEMPERATURE", "0.1"))
 SUMMARY_GENERATION_TEMPERATURE = float(os.environ.get("SUMMARY_GENERATION_TEMPERATURE", "0.2"))
+CHAT_GENERATION_TEMPERATURE = float(os.environ.get("CHAT_GENERATION_TEMPERATURE", "0.3"))
