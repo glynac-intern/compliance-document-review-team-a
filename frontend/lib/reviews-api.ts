@@ -47,9 +47,13 @@ export interface ReviewsApiClient {
 }
 
 export const reviewsApi: ReviewsApiClient = {
+  // TA-105: no status arg means "all documents" (matches the backend's
+  // own optional filter -- GET /review/queue with no `status` param
+  // returns everything) -- must NOT silently default to pending_review,
+  // or any caller wanting the full history (e.g. officer metrics) ends
+  // up scoped to the pending queue instead.
   getQueue: (statusFilter?: BackendDocumentStatus): Promise<QueueDocument[]> => {
-    const filter = statusFilter ?? "pending_review";
-    const query = `?status=${filter}`;
+    const query = statusFilter ? `?status=${statusFilter}` : "";
     return apiFetch<QueueDocument[]>(`/review/queue${query}`);
   },
 

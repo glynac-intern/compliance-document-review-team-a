@@ -239,7 +239,17 @@ export function OfficerMetricsView({
         <div className="space-y-6">
           {/* 1. Executive Performance Strip with Officer Labels */}
           <KpiSummaryStrip
-            kpis={data.kpis}
+            kpis={{
+              // TA-105: this card is explicitly labeled "Reviews
+              // Completed" -- it must show the count of DECIDED
+              // documents (outcomeDistribution.totalReviewed), not
+              // kpis.totalSubmissions (every document in the horizon,
+              // pending ones included). data.kpis.totalSubmissions is
+              // left as-is for any other consumer that wants the raw
+              // submission count.
+              ...data.kpis,
+              totalSubmissions: data.outcomeDistribution.totalReviewed,
+            }}
             labels={{
               total: "Reviews Completed",
               approved: "Clearance Rate",
