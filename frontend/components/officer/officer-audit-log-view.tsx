@@ -10,25 +10,28 @@ import {
   AlertTriangle,
   XCircle,
   FileText,
-  Cpu,
-  ArrowDownToLine,
+  Eye,
+  Bell,
   RefreshCw,
+  AlertCircle,
 } from "lucide-react";
-import {
-  MOCK_AUDIT_LOG_ENTRIES,
-  type AuditLogEntry,
-} from "@/lib/mock-officer-data";
+import { auditApi, type AuditLogEntry } from "@/lib/audit-api";
+import { cn } from "@/lib/utils";
 
 interface OfficerAuditLogViewProps {
   onShowToast?: (msg: string) => void;
 }
 
+// TA-106: matches the action types GET /audit can actually produce
+// (see backend/audit/router.py) -- there is no tracked "AI scan
+// completed" or "file downloaded" AuditEvent today, so those categories
+// were dropped rather than left as filters that can never match anything.
 const ACTION_FILTERS: { value: string; label: string }[] = [
   { value: "all", label: "All Events" },
   { value: "decisions", label: "Decisions" },
   { value: "submissions", label: "Submissions" },
-  { value: "ai_scans", label: "AI Reviews" },
-  { value: "access", label: "File Access" },
+  { value: "views", label: "Views" },
+  { value: "reminders", label: "Reminders" },
 ];
 
 function formatAuditTimestamp(isoString: string): string {
@@ -43,9 +46,30 @@ function formatAuditTimestamp(isoString: string): string {
 export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("all");
+  const [entries, setEntries] = React.useState<AuditLogEntry[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [hasError, setHasError] = React.useState(false);
+
+  const fetchAuditLog = React.useCallback(async () => {
+    setIsLoading(true);
+    setHasError(false);
+    try {
+      const data = await auditApi.getAuditLog();
+      setEntries(data);
+    } catch (err) {
+      console.error("Failed to load audit log:", err);
+      setHasError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchAuditLog();
+  }, [fetchAuditLog]);
 
   const filteredEntries = React.useMemo(() => {
-    let result = [...MOCK_AUDIT_LOG_ENTRIES];
+    let result = [...entries];
 
     // Category filter
     if (categoryFilter === "decisions") {
@@ -56,10 +80,10 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
       result = result.filter((e) =>
         ["DOCUMENT_SUBMITTED", "REVISION_UPLOADED"].includes(e.action_type)
       );
-    } else if (categoryFilter === "ai_scans") {
-      result = result.filter((e) => e.action_type === "AI_SCAN_COMPLETED");
-    } else if (categoryFilter === "access") {
-      result = result.filter((e) => e.action_type === "FILE_DOWNLOADED");
+    } else if (categoryFilter === "views") {
+      result = result.filter((e) => e.action_type === "DOCUMENT_VIEWED");
+    } else if (categoryFilter === "reminders") {
+      result = result.filter((e) => e.action_type === "REMINDER_SENT");
     }
 
     // Search filter
@@ -77,7 +101,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
     }
 
     return result;
-  }, [categoryFilter, searchQuery]);
+  }, [entries, categoryFilter, searchQuery]);
 
   const handleExport = () => {
     const csvRows = [
@@ -153,18 +177,18 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
             Resubmission
           </span>
         );
-      case "AI_SCAN_COMPLETED":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-normal text-purple-700 bg-purple-50 border border-purple-200">
-            <Cpu className="h-3 w-3 stroke-[1.8]" />
-            AI Review
-          </span>
-        );
-      case "FILE_DOWNLOADED":
+      case "DOCUMENT_VIEWED":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-normal text-slate-700 bg-slate-100 border border-slate-200">
-            <ArrowDownToLine className="h-3 w-3 stroke-[1.8]" />
-            File Access
+            <Eye className="h-3 w-3 stroke-[1.8]" />
+            Viewed
+          </span>
+        );
+      case "REMINDER_SENT":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-normal text-purple-700 bg-purple-50 border border-purple-200">
+            <Bell className="h-3 w-3 stroke-[1.8]" />
+            Reminder
           </span>
         );
       default:
@@ -193,8 +217,18 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
         <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             type="button"
+            onClick={fetchAuditLog}
+            disabled={isLoading}
+            title="Refresh audit log"
+            className="h-9 w-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer flex items-center justify-center disabled:opacity-50"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5 stroke-[1.8]", isLoading && "animate-spin")} />
+          </button>
+          <button
+            type="button"
             onClick={handleExport}
-            className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer flex items-center gap-2 font-inter"
+            disabled={isLoading || filteredEntries.length === 0}
+            className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer flex items-center gap-2 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="h-3.5 w-3.5 text-slate-500 stroke-[1.8]" />
             Export CSV
@@ -235,12 +269,32 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
 
       {/* Audit Trail Table */}
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
-        {filteredEntries.length === 0 ? (
+        {hasError ? (
+          <div className="p-12 text-center font-inter">
+            <AlertCircle className="h-8 w-8 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-slate-800">Unable to load audit log</p>
+            <p className="text-xs text-slate-400 mt-1 mb-4">
+              The audit service encountered an error.
+            </p>
+            <button
+              type="button"
+              onClick={fetchAuditLog}
+              className="h-8 px-4 rounded-lg bg-[#1e4c77] text-white text-xs font-medium transition-all hover:bg-[#163c60] cursor-pointer shadow-xs"
+            >
+              Retry
+            </button>
+          </div>
+        ) : isLoading ? (
+          <div className="p-12 text-center font-inter">
+            <RefreshCw className="h-8 w-8 text-slate-300 mx-auto mb-3 animate-spin" />
+            <p className="text-sm font-medium text-slate-800">Loading audit log...</p>
+          </div>
+        ) : filteredEntries.length === 0 ? (
           <div className="p-12 text-center font-inter">
             <History className="h-8 w-8 text-slate-300 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-800">No events found</p>
             <p className="text-xs text-slate-400 mt-1">
-              Try adjusting your search or filter.
+              {entries.length === 0 ? "No audit events have been recorded yet." : "Try adjusting your search or filter."}
             </p>
           </div>
         ) : (
@@ -313,7 +367,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
       </div>
 
       {/* Results Count */}
-      {filteredEntries.length > 0 && (
+      {!isLoading && !hasError && filteredEntries.length > 0 && (
         <p className="text-[11px] text-slate-400 font-inter">
           Showing{" "}
           <span className="font-numbers tabular-nums font-medium text-slate-500">
@@ -321,7 +375,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
           </span>{" "}
           of{" "}
           <span className="font-numbers tabular-nums font-medium text-slate-500">
-            {MOCK_AUDIT_LOG_ENTRIES.length}
+            {entries.length}
           </span>{" "}
           events
         </p>
