@@ -41,6 +41,7 @@ NO_SESSION_GET_ENDPOINTS = [
     f"/documents/{NIL_UUID}/thread",
     "/review/queue",
     f"/review/documents/{NIL_UUID}",
+    "/audit",
     "/notifications",
     "/notifications/unread-count",
     "/auth/me",
