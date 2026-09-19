@@ -28,6 +28,24 @@ from data_pipeline.retrieval.precedent_retrieval import retrieve_similar_precede
 
 router = APIRouter()
 
+# Excel/Sheets/LibreOffice treat a cell opening with any of these as a
+# formula, not text (TA-107). Both actor.name (free text at signup, no
+# character restriction) and review.comment (free text from an officer)
+# reach the audit CSV export unvalidated, so either is a live formula-
+# injection vector in a file this app itself frames as SEC/FINRA
+# regulatory recordkeeping data -- exactly what a regulator is likely to
+# open in a spreadsheet app.
+_CSV_FORMULA_TRIGGERS = ("=", "+", "-", "@")
+
+
+def _csv_safe(value: str) -> str:
+    """Prefix with a leading `'` if the value would otherwise open as a
+    formula -- forces spreadsheet apps to render it as plain text, while
+    leaving the underlying content (and every other value) untouched."""
+    if value.startswith(_CSV_FORMULA_TRIGGERS):
+        return f"'{value}"
+    return value
+
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "/app/uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -565,12 +583,12 @@ def export_document_audit(
         review = reviews_by_document.get(e.document_id) if e.action == AuditAction.decided else None
         writer.writerow([
             e.timestamp.isoformat(),
-            actor.name if actor else "Unknown",
+            _csv_safe(actor.name) if actor else "Unknown",
             actor.role.value if actor else "",
             e.action.value,
             str(e.document_id),
             review.status.value if review else "",
-            review.comment if review else "",
+            _csv_safe(review.comment) if review and review.comment else "",
         ])
 
     return Response(
