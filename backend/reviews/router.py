@@ -75,7 +75,23 @@ def submit_decision(
     document = db.query(Document).filter(Document.id == document_id).first()
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
-    if document.status != DocumentStatus.pending_review:
+
+    # Atomic guard against a race between two concurrent decisions on
+    # the same document (TA-109): a plain "read status, then write" has
+    # a gap between the check and the commit where two concurrent
+    # requests can both see pending_review and both proceed, producing
+    # two Review rows for one document. Folding the check into the
+    # UPDATE's WHERE clause makes Postgres the arbiter instead -- only
+    # one concurrent UPDATE against this row can ever match the WHERE
+    # clause, whatever the interleaving; the loser affects 0 rows and
+    # is rejected here, deterministically, with no explicit row lock.
+    updated_rows = (
+        db.query(Document)
+        .filter(Document.id == document_id, Document.status == DocumentStatus.pending_review)
+        .update({"status": payload.status.value}, synchronize_session="fetch")
+    )
+    if updated_rows == 0:
+        db.rollback()
         raise HTTPException(
             status_code=400,
             detail=f"Document is '{document.status.value}', not pending review",
@@ -88,8 +104,6 @@ def submit_decision(
         comment=payload.comment,
     )
     db.add(review)
-
-    document.status = DocumentStatus(payload.status.value)
 
     db.add(AuditEvent(actor_id=current_user.id, document_id=document_id, action=AuditAction.decided))
 
