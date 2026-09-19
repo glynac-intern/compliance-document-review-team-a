@@ -3,6 +3,12 @@ Indexes a decided document's MASKED text as a precedent (TA-49), along
 with its decision and comment. Only masked text is ever embedded or
 stored -- raw text never reaches this far.
 
+The officer's `comment` is masked too (TA-108): it's free-typed by a
+human, not the document itself, but it's stored here specifically to
+be shown to a DIFFERENT advisor as "precedent" -- so a comment that
+happens to name a client must not carry that name across the
+advisor boundary any more than the document text would.
+
 Keyed to the document's THREAD, not just the one document row: if a
 document is re-decided, or a revision in the same thread gets decided
 later, the thread's existing precedent entry is REPLACED, not
@@ -40,11 +46,15 @@ def index_document_as_precedent(db, document: Document) -> None:
 
     embedding = embed_text(masked_text)
 
+    masked_comment = None
+    if latest_review.comment:
+        masked_comment, _comment_mapping = mask_pii(latest_review.comment)
+
     db.add(PrecedentIndex(
         document_id=document.id,
         masked_text=masked_text,
         decision=latest_review.status,
-        comment=latest_review.comment,
+        comment=masked_comment,
         embedding=embedding,
     ))
     db.commit()
