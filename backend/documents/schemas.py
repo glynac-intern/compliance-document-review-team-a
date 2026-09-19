@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from models import DocumentStatus, DocumentType
 
@@ -20,8 +20,7 @@ class DocumentResponse(BaseModel):
     replaces_document_id: Optional[uuid.UUID]
     revision_notes: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ThreadReviewResponse(BaseModel):
@@ -29,8 +28,7 @@ class ThreadReviewResponse(BaseModel):
     comment: Optional[str]
     decided_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ThreadEntryResponse(BaseModel):
@@ -42,5 +40,4 @@ class ThreadEntryResponse(BaseModel):
     revision_notes: Optional[str]
     review: Optional[ThreadReviewResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

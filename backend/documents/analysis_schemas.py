@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from models import AnalysisStatus
 
@@ -12,8 +12,7 @@ class MatchedRuleResponse(BaseModel):
     text: str
     type: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FlagResponse(BaseModel):
@@ -23,8 +22,7 @@ class FlagResponse(BaseModel):
     explanation: str
     severity: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PrecedentResponse(BaseModel):
@@ -33,8 +31,7 @@ class PrecedentResponse(BaseModel):
     decision: str
     comment: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AnalysisResponse(BaseModel):
@@ -47,5 +44,4 @@ class AnalysisResponse(BaseModel):
     flags: list[FlagResponse]
     precedents: list[PrecedentResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
