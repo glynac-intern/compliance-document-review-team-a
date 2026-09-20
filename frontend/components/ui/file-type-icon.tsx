@@ -78,8 +78,8 @@ export function FileTypeIcon({
   // Format theme tokens: Harmonious with Verity's corporate palette
   const themeConfig = {
     pdf: {
-      plateBg: "bg-rose-50/80",
-      plateBorder: "border-rose-200/70",
+      plateBg: "bg-rose-50/80 dark:bg-rose-950/40",
+      plateBorder: "border-rose-200/70 dark:border-rose-800/50",
       sheetStroke: "#f43f5e",
       sheetFill: "#ffffff",
       foldStroke: "#f43f5e",
@@ -88,8 +88,8 @@ export function FileTypeIcon({
       decorLine: "#fca5a5",
     },
     doc: {
-      plateBg: "bg-[#ebf4fb]",
-      plateBorder: "border-[#2575bc]/25",
+      plateBg: "bg-[#ebf4fb] dark:bg-[#1e4c77]/20",
+      plateBorder: "border-[#2575bc]/25 dark:border-[#2575bc]/40",
       sheetStroke: "#2575bc",
       sheetFill: "#ffffff",
       foldStroke: "#2575bc",
@@ -98,8 +98,8 @@ export function FileTypeIcon({
       decorLine: "#93c5fd",
     },
     xls: {
-      plateBg: "bg-emerald-50/80",
-      plateBorder: "border-emerald-200/70",
+      plateBg: "bg-emerald-50/80 dark:bg-emerald-950/40",
+      plateBorder: "border-emerald-200/70 dark:border-emerald-800/50",
       sheetStroke: "#10b981",
       sheetFill: "#ffffff",
       foldStroke: "#10b981",
@@ -108,8 +108,8 @@ export function FileTypeIcon({
       decorLine: "#6ee7b7",
     },
     ppt: {
-      plateBg: "bg-amber-50/80",
-      plateBorder: "border-amber-200/70",
+      plateBg: "bg-amber-50/80 dark:bg-amber-950/40",
+      plateBorder: "border-amber-200/70 dark:border-amber-800/50",
       sheetStroke: "#f59e0b",
       sheetFill: "#ffffff",
       foldStroke: "#f59e0b",
@@ -118,8 +118,8 @@ export function FileTypeIcon({
       decorLine: "#fcd34d",
     },
     default: {
-      plateBg: "bg-slate-100",
-      plateBorder: "border-slate-200",
+      plateBg: "bg-slate-100 dark:bg-slate-800",
+      plateBorder: "border-slate-200 dark:border-slate-700",
       sheetStroke: "#64748b",
       sheetFill: "#ffffff",
       foldStroke: "#64748b",

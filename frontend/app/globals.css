@@ -28,6 +28,15 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+
+  /* TA-121: these --status-*-text vars already had correct light AND
+     dark values defined below (unlike the generic slate palette) --
+     they were just never wired into @theme, so StatusBadge hardcoded
+     the light-mode hex directly instead of consuming them. */
+  --color-status-approved-text: var(--status-approved-text);
+  --color-status-revision-text: var(--status-revision-text);
+  --color-status-rejected-text: var(--status-rejected-text);
+  --color-status-pending-text: var(--status-pending-text);
 }
 
 @layer base {

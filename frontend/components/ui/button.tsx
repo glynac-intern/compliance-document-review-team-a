@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50 select-none",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 dark:focus-visible:ring-slate-300 disabled:pointer-events-none disabled:opacity-50 select-none",
   {
     variants: {
       variant: {
@@ -13,11 +13,11 @@ const buttonVariants = cva(
         destructive:
           "bg-rose-700 text-slate-50 shadow-xs hover:bg-rose-700/90 active:bg-rose-800",
         outline:
-          "border border-slate-200 bg-white shadow-xs hover:bg-slate-100 hover:text-slate-900",
+          "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white dark:text-slate-200",
         secondary:
-          "bg-slate-100 text-slate-900 shadow-xs hover:bg-slate-200/80 active:bg-slate-200",
-        ghost: "hover:bg-slate-100 hover:text-slate-900",
-        link: "text-slate-900 underline-offset-4 hover:underline",
+          "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-xs hover:bg-slate-200/80 dark:hover:bg-slate-700/80 active:bg-slate-200 dark:active:bg-slate-700",
+        ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white dark:text-slate-300",
+        link: "text-slate-900 dark:text-slate-100 underline-offset-4 hover:underline",
         success:
           "bg-emerald-700 text-white shadow-xs hover:bg-emerald-700/90 active:bg-emerald-800",
         warning:
