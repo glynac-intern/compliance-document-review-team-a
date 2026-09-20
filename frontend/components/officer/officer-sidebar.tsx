@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { VerityLogo, VerityMark } from "@/components/ui/verity-logo";
 
-export type OfficerView = "review_queue" | "my_reviews" | "metrics" | "audit_log";
+export type OfficerView = "review_queue" | "my_reviews" | "metrics" | "audit_log" | "settings";
 
 interface OfficerSidebarProps {
   isCollapsed: boolean;
@@ -66,13 +66,13 @@ export function OfficerSidebar({
       {/* Top Header Section */}
       <div>
         {/* Brand Bar */}
-        <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           {!isCollapsed ? (
             <div className="min-w-0 flex-1 pr-2 flex items-center">
               <VerityLogo
                 size={36}
                 markClassName="text-[#1e4c77]"
-                wordmarkClassName="text-slate-900 text-[21px] font-extrabold tracking-[0.16em] leading-none font-inter"
+                wordmarkClassName="text-slate-900 dark:text-white text-[21px] font-extrabold tracking-[0.16em] leading-none font-inter"
               />
             </div>
           ) : (
@@ -88,7 +88,7 @@ export function OfficerSidebar({
               onClick={onToggleCollapse}
               title="Collapse sidebar (Ctrl+B)"
               aria-label="Collapse sidebar"
-              className="h-9 w-9 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5"
+              className="h-9 w-9 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5"
             >
               <PanelLeft className="h-5 w-5 stroke-[1.8]" />
             </button>
@@ -98,7 +98,7 @@ export function OfficerSidebar({
           <button
             type="button"
             onClick={onCloseMobile}
-            className="lg:hidden h-8 w-8 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center"
+            className="lg:hidden h-8 w-8 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
           >
             <X className="h-4 w-4" />
           </button>
@@ -106,13 +106,13 @@ export function OfficerSidebar({
 
         {/* Collapsed expand button */}
         {isCollapsed && (
-          <div className="pt-2 pb-2 flex justify-center border-b border-slate-100">
+          <div className="pt-2 pb-2 flex justify-center border-b border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={onToggleCollapse}
               title="Expand sidebar (Ctrl+B)"
               aria-label="Expand sidebar"
-              className="h-9 w-9 rounded-xl text-slate-500 hover:text-[#1e4c77] hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center transition-all cursor-pointer"
+              className="h-9 w-9 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#1e4c77] hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 flex items-center justify-center transition-all cursor-pointer"
             >
               <PanelLeft className="h-5 w-5 stroke-[1.8]" />
             </button>
@@ -122,7 +122,7 @@ export function OfficerSidebar({
         {/* Workspace Navigation Group */}
         <div className="mt-5">
           {!isCollapsed && (
-            <p className="px-2.5 text-xs text-slate-400 font-normal font-inter mb-1.5 tracking-normal">
+            <p className="px-2.5 text-xs text-slate-400 dark:text-slate-500 font-normal font-inter mb-1.5 tracking-normal">
               Workspace
             </p>
           )}
@@ -145,7 +145,7 @@ export function OfficerSidebar({
                     "group w-full flex items-center gap-3 rounded-xl px-2.5 py-2 text-[13.5px] transition-all duration-150 cursor-pointer text-left font-inter",
                     isActive
                       ? "bg-[#1e4c77] text-white shadow-xs font-medium"
-                      : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-900 font-normal",
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/90 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white font-normal",
                     isCollapsed && "justify-center px-0 py-2.5"
                   )}
                 >
@@ -169,10 +169,10 @@ export function OfficerSidebar({
       </div>
 
       {/* Bottom Footer — Officer Profile */}
-      <div className="border-t border-slate-100 pt-3">
+      <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
         <div
           className={cn(
-            "flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100/90",
+            "flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100/90 dark:border-slate-800",
             isCollapsed && "justify-center p-1.5 bg-transparent border-transparent"
           )}
         >
@@ -192,10 +192,10 @@ export function OfficerSidebar({
                 </div>
                 {!isCollapsed && (
                   <div className="min-w-0">
-                    <span className="text-[13px] font-normal text-slate-800 truncate block font-inter">
+                    <span className="text-[13px] font-normal text-slate-800 dark:text-slate-200 truncate block font-inter">
                       {displayName}
                     </span>
-                    <span className="text-[10px] font-normal text-slate-400 truncate block font-inter">
+                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 truncate block font-inter">
                       Compliance Officer
                     </span>
                   </div>
@@ -204,14 +204,18 @@ export function OfficerSidebar({
             );
           })()}
 
-          {/* Settings icon */}
+          {/* Settings icon — opens Settings view */}
           <button
             type="button"
-            onClick={() => {}}
+            onClick={() => {
+              onSelectView?.("settings");
+              onCloseMobile();
+            }}
             title="Settings"
             aria-label="Settings"
             className={cn(
-              "h-7 w-7 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer shrink-0",
+              "h-7 w-7 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 flex items-center justify-center transition-colors cursor-pointer shrink-0",
+              activeView === "settings" && "text-[#1e4c77] dark:text-[#7fb2e3] bg-slate-200/60 dark:bg-slate-700/60",
               isCollapsed && "mt-1"
             )}
           >
@@ -227,7 +231,7 @@ export function OfficerSidebar({
       {/* Desktop Persistent Sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out shrink-0 h-screen sticky top-0 z-20",
+          "hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out shrink-0 h-screen sticky top-0 z-20",
           isCollapsed ? "w-[68px]" : "w-[260px]"
         )}
       >
@@ -241,7 +245,7 @@ export function OfficerSidebar({
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
-          <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl border-r border-slate-200 z-10 flex flex-col">
+          <div className="relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full shadow-2xl border-r border-slate-200 dark:border-slate-800 z-10 flex flex-col">
             {sidebarContent}
           </div>
         </div>
