@@ -20,6 +20,7 @@ import { documentsApi, type BackendDocument } from "@/lib/documents-api";
 import { adaptBackendDocument } from "@/lib/document-adapter";
 import { ApiError } from "@/lib/api-client";
 import { classifyError, logDiagnosticError } from "@/lib/error-utils";
+import { loadSettings } from "@/lib/user-settings";
 
 /**
  * Returns a time-of-day greeting that updates every minute so the
@@ -61,6 +62,16 @@ export default function AdvisorDashboardPage() {
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
+
+  // TA-118: Settings > Display > "Collapse sidebar by default" -- read
+  // after mount (not as the useState initializer) so server-rendered
+  // and first-client-render markup match; the sidebar then snaps to the
+  // saved preference a frame later, same tradeoff the dark-mode toggle
+  // itself accepts everywhere except the flash-prevention <script> in
+  // layout.tsx.
+  React.useEffect(() => {
+    if (loadSettings().sidebarCollapsed) setIsSidebarCollapsed(true);
+  }, []);
   const [activeView, setActiveView] = React.useState<
     "overview" | "my_submissions" | "new_submission" | "history" | "metrics" | "settings"
   >("overview");

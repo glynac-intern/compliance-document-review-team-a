@@ -18,6 +18,7 @@ import { FileTypeIcon } from "@/components/ui/file-type-icon";
 import { cn } from "@/lib/utils";
 
 import { ErrorState } from "@/components/common/error-state";
+import { loadSettings } from "@/lib/user-settings";
 
 interface SubmissionsTableProps {
   documents: ComplianceDocument[];
@@ -56,6 +57,13 @@ export function SubmissionsTable({
 }: SubmissionsTableProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
+
+  // TA-118: Settings > Display > "Compact rows" -- read after mount (not
+  // as the useState initializer) to avoid a hydration mismatch.
+  const [compact, setCompact] = React.useState(false);
+  React.useEffect(() => {
+    if (loadSettings().compactRows) setCompact(true);
+  }, []);
 
   // Filter & sort logic
   const filteredDocuments = React.useMemo(() => {
@@ -358,7 +366,7 @@ export function SubmissionsTable({
                     className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                   >
                     {/* Document Title & Distinguishable Format Icon */}
-                    <td className="py-3.5 px-5 sm:px-6">
+                    <td className={cn("px-5 sm:px-6", compact ? "py-1.5" : "py-3.5")}>
                       <div className="flex items-center gap-3">
                         <FileTypeIcon filename={doc.title} type={doc.type} size="md" />
                         <div className="min-w-0 max-w-[260px] sm:max-w-xs md:max-w-md">
@@ -379,22 +387,22 @@ export function SubmissionsTable({
                     </td>
 
                     {/* Document Type */}
-                    <td className="py-3.5 px-3 whitespace-nowrap text-slate-600 font-normal font-inter text-[12.5px]">
+                    <td className={cn("px-3 whitespace-nowrap text-slate-600 font-normal font-inter text-[12.5px]", compact ? "py-1.5" : "py-3.5")}>
                       {doc.type}
                     </td>
 
                     {/* Submitted Date */}
-                    <td className="py-3.5 px-3 whitespace-nowrap text-slate-500 font-numbers text-[12px] tabular-nums font-normal">
+                    <td className={cn("px-3 whitespace-nowrap text-slate-500 font-numbers text-[12px] tabular-nums font-normal", compact ? "py-1.5" : "py-3.5")}>
                       {formatDate(doc.uploaded_at)}
                     </td>
 
                     {/* Status Text Indicator */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className={cn("px-3 whitespace-nowrap", compact ? "py-1.5" : "py-3.5")}>
                       <StatusBadge status={doc.status} />
                     </td>
 
                     {/* Reviewer */}
-                    <td className={cn("py-3.5 px-3 whitespace-nowrap", variant === "overview" && "pr-5 sm:pr-6")}>
+                    <td className={cn("px-3 whitespace-nowrap", compact ? "py-1.5" : "py-3.5", variant === "overview" && "pr-5 sm:pr-6")}>
                       {doc.officer_name ? (
                         <span className="text-[12px] font-normal font-inter text-slate-600">
                           {doc.officer_name}
@@ -409,7 +417,7 @@ export function SubmissionsTable({
                     {/* Action Buttons: Only in dedicated My Submissions dashboard view */}
                     {variant === "full" && (
                       <td
-                        className="py-3.5 px-5 sm:px-6 text-right whitespace-nowrap"
+                        className={cn("px-5 sm:px-6 text-right whitespace-nowrap", compact ? "py-1.5" : "py-3.5")}
                         onClick={(e) => e.stopPropagation()}
                       >
                         {isNeedsRevision ? (
