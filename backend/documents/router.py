@@ -3,7 +3,7 @@ import io
 import os
 import uuid
 import zipfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
@@ -180,7 +180,7 @@ def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> 
 
     analysis.status = AnalysisStatus.succeeded
     analysis.summary = summary
-    analysis.generated_at = datetime.utcnow()
+    analysis.generated_at = datetime.now(timezone.utc)
     analysis.error_message = None
     db.flush()
 
@@ -378,7 +378,7 @@ def send_reminder(
             detail="Only documents pending review can be reminded about",
         )
 
-    cooldown_cutoff = datetime.utcnow() - REMINDER_COOLDOWN
+    cooldown_cutoff = datetime.now(timezone.utc) - REMINDER_COOLDOWN
     recent_reminder = (
         db.query(AuditEvent)
         .filter(

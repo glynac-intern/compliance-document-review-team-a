@@ -112,7 +112,7 @@ class Document(Base):
     # filesystem path (that stays fully server-derived, per TA-23).
     original_filename = Column(String, nullable=True)
     type = Column(Enum(DocumentType), nullable=False)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Revision thread: all documents in one thread share thread_id (the first
     # submission's own id). replaces_document_id points at the specific
@@ -140,7 +140,7 @@ class Review(Base):
     officer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(Enum(ReviewStatus), nullable=False)
     comment = Column(Text, nullable=True)
-    decided_at = Column(DateTime, default=datetime.utcnow)
+    decided_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     document = relationship("Document", back_populates="reviews")
     officer = relationship("User", back_populates="reviews")
@@ -182,7 +182,7 @@ class AuditEvent(Base):
     actor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
     action = Column(Enum(AuditAction), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     document = relationship("Document", back_populates="audit_events")
 
@@ -241,7 +241,7 @@ class DocumentChunk(Base):
     chunk_index = Column(Integer, nullable=False)
     masked_text = Column(Text, nullable=False)
     embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class Notification(Base):
@@ -252,4 +252,4 @@ class Notification(Base):
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=True)
     message = Column(Text, nullable=False)
     is_read = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
