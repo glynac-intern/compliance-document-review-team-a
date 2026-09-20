@@ -297,7 +297,7 @@ export default function AdvisorDashboardPage() {
             <>
               {/* Top Salutation — Big elegant non-bold Inter font with Advisor name */}
               <div>
-                <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter leading-tight">
                   {greeting}, {firstName}.
                 </h1>
               </div>
@@ -368,7 +368,7 @@ export default function AdvisorDashboardPage() {
               {/* Dedicated Submissions Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter leading-tight">
                     My Submissions
                   </h1>
                 </div>
@@ -414,7 +414,7 @@ export default function AdvisorDashboardPage() {
               {/* Dedicated History Header matching My Submissions header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+                  <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter leading-tight">
                     Submission &amp; Review History
                   </h1>
                 </div>

@@ -106,7 +106,7 @@ export function MetricsDashboardView({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
         <div>
           {/* Main title strictly "Compliance Analytics" without subtitle paragraphs */}
-          <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 tracking-tight font-inter">
+          <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter">
             Compliance Analytics
           </h1>
         </div>
