@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User
-from auth.schemas import SignupRequest, LoginRequest, TokenResponse, UserResponse
+from auth.schemas import SignupRequest, LoginRequest, TokenResponse, UserResponse, UpdateMeRequest
 from auth.security import hash_password, verify_password, create_access_token
 from auth.dependencies import get_current_user
 
@@ -47,4 +47,28 @@ def logout():
 
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_me(
+    payload: UpdateMeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if payload.email is not None and payload.email != current_user.email:
+        existing = (
+            db.query(User)
+            .filter(User.email == payload.email, User.id != current_user.id)
+            .first()
+        )
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        current_user.email = payload.email
+
+    if payload.name is not None:
+        current_user.name = payload.name
+
+    db.commit()
+    db.refresh(current_user)
     return current_user

@@ -1,4 +1,6 @@
 import uuid
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 from models import UserRole
@@ -27,6 +29,21 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class UpdateMeRequest(BaseModel):
+    # TA-117: Settings > Profile's Name/Email "Save" -- both optional so
+    # each field can be saved independently, matching EditableField's
+    # one-field-at-a-time inline edit on the frontend.
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+    @field_validator("name")
+    @classmethod
+    def name_not_blank(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not v.strip():
+            raise ValueError("Name cannot be empty")
+        return v.strip() if v is not None else v
 
 
 class TokenResponse(BaseModel):
