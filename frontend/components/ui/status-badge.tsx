@@ -18,27 +18,27 @@ const statusConfigs: Record<
 > = {
   approved: {
     label: "Approved",
-    text: "text-[#166534]",
+    text: "text-status-approved-text",
     isBold: false,
   },
   needs_revision: {
     label: "Needs Revision",
-    text: "text-[#92400e]",
+    text: "text-status-revision-text",
     isBold: false,
   },
   in_review: {
     label: "In Review",
-    text: "text-[#1e4c77]",
+    text: "text-status-pending-text",
     isBold: false,
   },
   pending: {
     label: "Pending Review",
-    text: "text-[#1e4c77]",
+    text: "text-status-pending-text",
     isBold: false,
   },
   rejected: {
     label: "Rejected",
-    text: "text-[#991b1b]",
+    text: "text-status-rejected-text",
     isBold: true,
   },
 };
