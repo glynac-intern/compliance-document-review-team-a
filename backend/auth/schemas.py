@@ -37,6 +37,9 @@ class UpdateMeRequest(BaseModel):
     # one-field-at-a-time inline edit on the frontend.
     name: Optional[str] = None
     email: Optional[EmailStr] = None
+    # TA-119: Settings > Notifications' "In-app notifications" toggle --
+    # a real per-user preference now, not just localStorage.
+    in_app_notifications_enabled: Optional[bool] = None
 
     @field_validator("name")
     @classmethod
@@ -56,5 +59,6 @@ class UserResponse(BaseModel):
     name: str
     email: EmailStr
     role: UserRole
+    in_app_notifications_enabled: bool
 
     model_config = ConfigDict(from_attributes=True)

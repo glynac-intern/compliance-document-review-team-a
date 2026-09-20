@@ -398,15 +398,21 @@ def send_reminder(
 
     officers = db.query(User).filter(User.role == UserRole.officer).all()
     filename = document.original_filename or "a document"
+    # TA-119: honor each officer's "In-app notifications" preference --
+    # skip creating a Notification row for anyone who's opted out.
+    notified_count = 0
     for officer in officers:
+        if not officer.in_app_notifications_enabled:
+            continue
         db.add(Notification(
             user_id=officer.id,
             document_id=document_id,
             message=f'{current_user.name} sent a reminder: "{filename}" is still awaiting review.',
         ))
+        notified_count += 1
 
     db.commit()
-    return {"detail": f"Reminder sent to {len(officers)} officer(s)."}
+    return {"detail": f"Reminder sent to {notified_count} officer(s)."}
 
 
 def _average_embedding(embeddings: list[list[float]]) -> list[float]:

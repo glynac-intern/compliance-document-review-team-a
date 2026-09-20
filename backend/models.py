@@ -67,6 +67,9 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    # TA-119: Settings > Notifications' "In-app notifications" toggle --
+    # checked before a Notification row is created for this user.
+    in_app_notifications_enabled = Column(Boolean, nullable=False, default=True)
 
     documents = relationship("Document", back_populates="advisor")
     reviews = relationship("Review", back_populates="officer")
