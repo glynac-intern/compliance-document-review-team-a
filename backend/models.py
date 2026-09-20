@@ -1,7 +1,7 @@
 import os
 import enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column, String, Text, DateTime, ForeignKey, Enum, UniqueConstraint, Boolean, Integer
@@ -66,7 +66,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     # TA-119: Settings > Notifications' "In-app notifications" toggle --
     # checked before a Notification row is created for this user.
     in_app_notifications_enabled = Column(Boolean, nullable=False, default=True)
