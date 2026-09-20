@@ -26,6 +26,7 @@ import { OfficerMetricsView } from "@/components/officer/officer-metrics-view";
 import { OfficerMyReviewsView } from "@/components/officer/officer-my-reviews-view";
 import { OfficerAuditLogView } from "@/components/officer/officer-audit-log-view";
 import { SettingsView } from "@/components/common/settings-view";
+import { loadSettings } from "@/lib/user-settings";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -122,6 +123,16 @@ export default function OfficerDashboardPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
   const [activeView, setActiveView] = React.useState<OfficerView>("review_queue");
+
+  // TA-118: Settings > Display -- "Collapse sidebar by default" and
+  // "Compact rows", both read after mount so server-rendered and
+  // first-client-render markup match.
+  const [compactRows, setCompactRows] = React.useState(false);
+  React.useEffect(() => {
+    const s = loadSettings();
+    if (s.sidebarCollapsed) setIsSidebarCollapsed(true);
+    if (s.compactRows) setCompactRows(true);
+  }, []);
 
   // Queue data
   const [documents, setDocuments] = React.useState<QueueTableRow[]>([]);
@@ -563,7 +574,7 @@ export default function OfficerDashboardPage() {
                             className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                           >
                             {/* Document Name & ID */}
-                            <td className="py-3.5 px-4">
+                            <td className={cn("px-4", compactRows ? "py-1.5" : "py-3.5")}>
                               <div className="flex items-center gap-3 min-w-0">
                                 <FileTypeIcon
                                   filename={doc.original_filename ?? doc.title}
@@ -589,12 +600,12 @@ export default function OfficerDashboardPage() {
                             </td>
 
                             {/* Advisor */}
-                            <td className="py-3.5 px-4 text-[13px] text-slate-600 font-inter font-normal">
+                            <td className={cn("px-4 text-[13px] text-slate-600 font-inter font-normal", compactRows ? "py-1.5" : "py-3.5")}>
                               {doc.advisor_name}
                             </td>
 
                             {/* Status (TA-66) */}
-                            <td className="py-3.5 px-4 whitespace-nowrap">
+                            <td className={cn("px-4 whitespace-nowrap", compactRows ? "py-1.5" : "py-3.5")}>
                               <StatusBadge status={doc.status} />
                               {doc.advisor_viewed_decision !== null && (
                                 <div
@@ -619,12 +630,12 @@ export default function OfficerDashboardPage() {
                             </td>
 
                             {/* Type */}
-                            <td className="py-3.5 px-4 text-[13px] text-slate-500 font-inter font-normal">
+                            <td className={cn("px-4 text-[13px] text-slate-500 font-inter font-normal", compactRows ? "py-1.5" : "py-3.5")}>
                               {doc.type}
                             </td>
 
                             {/* Submitted */}
-                            <td className="py-3.5 px-4">
+                            <td className={cn("px-4", compactRows ? "py-1.5" : "py-3.5")}>
                               <div className="text-right">
                                 <p className="text-[12px] text-slate-500 font-inter">
                                   {formatRelativeDate(doc.uploaded_at)}

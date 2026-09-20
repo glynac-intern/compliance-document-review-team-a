@@ -16,49 +16,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { authApi, ApiError } from "@/lib/api-client";
-
-/* ------------------------------------------------------------------ */
-/*  Local-storage–backed settings with SSR-safe defaults               */
-/* ------------------------------------------------------------------ */
-
-type ThemeMode = "light" | "dark" | "system";
-
-interface UserSettings {
-  theme: ThemeMode;
-  emailNotifications: boolean;
-  inAppNotifications: boolean;
-  compactRows: boolean;
-  sidebarCollapsed: boolean;
-}
-
-const SETTINGS_KEY = "verity-user-settings";
-
-const DEFAULT_SETTINGS: UserSettings = {
-  theme: "light",
-  emailNotifications: true,
-  inAppNotifications: true,
-  compactRows: false,
-  sidebarCollapsed: false,
-};
-
-function loadSettings(): UserSettings {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS;
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
-}
-
-function saveSettings(s: UserSettings) {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  } catch {
-    // localStorage full or unavailable — fail silently
-  }
-}
+import {
+  type ThemeMode,
+  type UserSettings,
+  DEFAULT_SETTINGS,
+  loadSettings,
+  saveSettings,
+} from "@/lib/user-settings";
 
 /* ------------------------------------------------------------------ */
 /*  Theme application — toggles the `dark` class on <html>             */
