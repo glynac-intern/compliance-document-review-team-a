@@ -388,15 +388,15 @@ export function AiAssistPanel({
         <div className="gemini-agent-inner relative flex-1 flex flex-col">
 
           {/* ===== HEADER ===== */}
-          <div className="relative px-4 py-2.5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+          <div className="relative px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white dark:bg-slate-900">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-md bg-[#1e4c77]/10 flex items-center justify-center border border-[#1e4c77]/20 text-[#1e4c77]">
-                <VerityMark size={14} className="text-[#1e4c77]" />
+              <div className="h-6 w-6 rounded-md bg-[#1e4c77]/10 dark:bg-[#7fb2e3]/15 flex items-center justify-center border border-[#1e4c77]/20 dark:border-[#7fb2e3]/25 text-[#1e4c77] dark:text-[#7fb2e3]">
+                <VerityMark size={14} className="text-[#1e4c77] dark:text-[#7fb2e3]" />
               </div>
-              <h2 className="text-[12px] font-semibold text-slate-900 tracking-tight">
+              <h2 className="text-[12px] font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
                 Verity AI
               </h2>
-              <span className="text-[10px] text-slate-400">Compliance Review</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">Compliance Review</span>
             </div>
 
             {onRetry && (
@@ -404,7 +404,7 @@ export function AiAssistPanel({
                 type="button"
                 onClick={onRetry}
                 disabled={isRetrying || isLoading}
-                className="h-7 px-2.5 rounded-md text-[11px] font-medium text-[#1e4c77] hover:bg-[#1e4c77]/10 border border-[#1e4c77]/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-2xs"
+                className="h-7 px-2.5 rounded-md text-[11px] font-medium text-[#1e4c77] dark:text-[#7fb2e3] hover:bg-[#1e4c77]/10 dark:hover:bg-[#7fb2e3]/15 border border-[#1e4c77]/20 dark:border-[#7fb2e3]/25 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-2xs"
                 title="Re-run compliance scan"
               >
                 <RefreshCw className={cn("h-3 w-3", (isRetrying || isLoading) && "animate-spin")} />
@@ -417,16 +417,16 @@ export function AiAssistPanel({
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {/* Error/Failed State */}
             {(errorMessage || analysis?.status === "failed") && (
-              <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/80 text-xs space-y-2 mb-2">
+              <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/80 dark:bg-amber-950/30 text-xs space-y-2 mb-2">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-amber-900">AI analysis unavailable</p>
-                    <p className="text-amber-700 text-[11px] mt-0.5">
+                    <p className="font-medium text-amber-900 dark:text-amber-200">AI analysis unavailable</p>
+                    <p className="text-amber-700 dark:text-amber-400 text-[11px] mt-0.5">
                       You can still review and chat normally — the analysis is supplementary.
                     </p>
                     {analysis?.error_message && (
-                      <p className="text-amber-600 text-[10px] mt-1 font-mono">{analysis.error_message}</p>
+                      <p className="text-amber-600 dark:text-amber-500 text-[10px] mt-1 font-mono">{analysis.error_message}</p>
                     )}
                   </div>
                 </div>
@@ -446,8 +446,8 @@ export function AiAssistPanel({
 
             {/* Loading skeleton */}
             {isLoading && !errorMessage && analysis?.status !== "failed" && (
-              <div className="flex items-center gap-2 py-3 text-[11px] text-slate-500">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+              <div className="flex items-center gap-2 py-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77] dark:text-[#7fb2e3]" />
                 <span>Analyzing document...</span>
               </div>
             )}
@@ -467,7 +467,7 @@ export function AiAssistPanel({
                     className={cn(
                       "max-w-[92%] rounded-xl text-[12px] leading-relaxed p-3 whitespace-pre-line",
                       isAi
-                        ? "bg-slate-50 border border-slate-200/80 text-slate-800"
+                        ? "bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-100"
                         : "bg-[#1e4c77] text-white"
                     )}
                   >
@@ -475,11 +475,11 @@ export function AiAssistPanel({
 
                     {/* AI action bar */}
                     {isAi && (
-                      <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2 text-[10px]">
+                      <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-2 text-[10px]">
                         <button
                           type="button"
                           onClick={() => handleCopy(msg.id, msg.content)}
-                          className="flex items-center gap-1 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
                         >
                           {copiedId === msg.id ? (
                             <Check className="h-3 w-3 text-emerald-500" />
@@ -493,7 +493,7 @@ export function AiAssistPanel({
                           <button
                             type="button"
                             onClick={() => onInsertComment(msg.decisionText!)}
-                            className="flex items-center gap-1 text-[#1e4c77] hover:text-[#163c60] font-medium bg-[#1e4c77]/5 hover:bg-[#1e4c77]/10 border border-[#1e4c77]/15 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                            className="flex items-center gap-1 text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#163c60] dark:hover:text-[#a4c9ec] font-medium bg-[#1e4c77]/5 dark:bg-[#7fb2e3]/10 hover:bg-[#1e4c77]/10 dark:hover:bg-[#7fb2e3]/15 border border-[#1e4c77]/15 dark:border-[#7fb2e3]/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
                             title="Insert into decision notes"
                           >
                             <ArrowDownToLine className="h-3 w-3" />
@@ -512,7 +512,7 @@ export function AiAssistPanel({
                           key={aIdx}
                           type="button"
                           onClick={() => handleSendMessage(action.query)}
-                          className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-white hover:bg-[#1e4c77]/8 hover:text-[#1e4c77] border border-slate-200 text-slate-500 transition-all cursor-pointer"
+                          className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-white dark:bg-slate-800 hover:bg-[#1e4c77]/8 dark:hover:bg-[#7fb2e3]/15 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
                         >
                           {action.label}
                         </button>
@@ -525,7 +525,7 @@ export function AiAssistPanel({
 
             {/* Typing indicator */}
             {isGenerating && (
-              <div className="flex items-center gap-2 py-2 px-3 text-[11px] text-slate-400 bg-slate-50 rounded-lg border border-slate-200/60 w-fit">
+              <div className="flex items-center gap-2 py-2 px-3 text-[11px] text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60 w-fit">
                 <div className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.3s]" />
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.15s]" />
@@ -539,7 +539,7 @@ export function AiAssistPanel({
           </div>
 
           {/* ===== INPUT BAR ===== */}
-          <div className="p-3 bg-white border-t border-slate-100 shrink-0">
+          <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -552,7 +552,7 @@ export function AiAssistPanel({
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 placeholder="Ask about this document..."
-                className="w-full pl-3 pr-8 py-2 rounded-lg text-[11px] bg-slate-50 border border-slate-200 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-1 focus:ring-[#1e4c77] text-slate-800 placeholder:text-slate-400 transition-all"
+                className="w-full pl-3 pr-8 py-2 rounded-lg text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] focus:ring-1 focus:ring-[#1e4c77] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
               />
               <button
                 type="submit"

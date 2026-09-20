@@ -330,13 +330,13 @@ export default function OfficerDocumentReviewPage() {
   const displayUploadedAt = doc?.uploaded_at ?? mockDoc?.uploaded_at ?? "";
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 font-inter">
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 font-inter">
       {/* ===== TOP NAVIGATION BAR ===== */}
-      <header className="sticky top-0 z-30 h-14 border-b border-slate-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between px-5 shrink-0">
+      <header className="sticky top-0 z-30 h-14 border-b border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex items-center justify-between px-5 shrink-0">
         <button
           type="button"
           onClick={() => router.push("/officer")}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer font-inter"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer font-inter"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Review Queue</span>
@@ -344,10 +344,10 @@ export default function OfficerDocumentReviewPage() {
 
         <div className="flex items-center gap-3">
           <StatusBadge status={displayStatus} />
-          <span className="text-[13px] font-semibold text-slate-800 font-inter max-w-[320px] truncate hidden sm:block">
+          <span className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 font-inter max-w-[320px] truncate hidden sm:block">
             {displayTitle}
           </span>
-          <span className="text-[11px] text-slate-400 font-mono tabular-nums hidden md:block">
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono tabular-nums hidden md:block">
             {documentId}
           </span>
         </div>
@@ -358,12 +358,12 @@ export default function OfficerDocumentReviewPage() {
             onClick={handleExportAudit}
             disabled={isExportingAudit}
             title="Export Audit Trail (CSV)"
-            className="h-8 px-3 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 hover:text-[#1e4c77] hover:border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
+            className="h-8 px-3 rounded-lg border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] hover:border-slate-300 dark:hover:border-slate-600 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
           >
             {isExportingAudit ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77] dark:text-[#7fb2e3]" />
             ) : (
-              <FileDown className="h-3.5 w-3.5 text-[#1e4c77]" />
+              <FileDown className="h-3.5 w-3.5 text-[#1e4c77] dark:text-[#7fb2e3]" />
             )}
             <span className="hidden sm:inline">Export Audit</span>
           </button>
@@ -372,12 +372,12 @@ export default function OfficerDocumentReviewPage() {
             type="button"
             onClick={handleDownload}
             disabled={isDownloading || !doc}
-            className="h-8 px-3 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 hover:text-[#1e4c77] hover:border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
+            className="h-8 px-3 rounded-lg border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] hover:border-slate-300 dark:hover:border-slate-600 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 font-inter shadow-2xs"
           >
             {isDownloading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77] dark:text-[#7fb2e3]" />
             ) : (
-              <Download className="h-3.5 w-3.5 text-[#1e4c77]" />
+              <Download className="h-3.5 w-3.5 text-[#1e4c77] dark:text-[#7fb2e3]" />
             )}
             <span className="hidden sm:inline">Download</span>
           </button>
@@ -386,15 +386,15 @@ export default function OfficerDocumentReviewPage() {
 
       {/* Decision Success Banner */}
       {justDecided && (
-        <div className="px-5 py-2 bg-emerald-50 border-b border-emerald-200 text-[12px] text-emerald-800 font-inter flex items-center justify-between animate-in fade-in shrink-0">
+        <div className="px-5 py-2 bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-200 dark:border-emerald-900/50 text-[12px] text-emerald-800 dark:text-emerald-300 font-inter flex items-center justify-between animate-in fade-in shrink-0">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
             <span className="font-medium">Decision recorded.</span>
           </div>
           <button
             type="button"
             onClick={() => setJustDecided(false)}
-            className="text-[11px] text-emerald-700 underline cursor-pointer"
+            className="text-[11px] text-emerald-700 dark:text-emerald-400 underline cursor-pointer"
           >
             Dismiss
           </button>
@@ -403,7 +403,7 @@ export default function OfficerDocumentReviewPage() {
 
       {/* Error Banner */}
       {docError && (
-        <div className="px-5 py-2 bg-rose-50 border-b border-rose-200 text-[12px] text-rose-700 font-inter shrink-0">
+        <div className="px-5 py-2 bg-rose-50 dark:bg-rose-950/30 border-b border-rose-200 dark:border-rose-900/50 text-[12px] text-rose-700 dark:text-rose-300 font-inter shrink-0">
           <span>{docError}</span>
         </div>
       )}
@@ -411,9 +411,9 @@ export default function OfficerDocumentReviewPage() {
       {/* ===== MAIN CONTENT — SPLIT SCREEN ===== */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
         {/* ===== LEFT PANEL: Document Workspace ===== */}
-        <div className="flex-1 min-w-0 lg:w-[58%] border-r border-slate-200 flex flex-col bg-white overflow-hidden">
+        <div className="flex-1 min-w-0 lg:w-[58%] border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
           {/* Sub-Header: View Mode Tabs */}
-          <div className="h-10 border-b border-slate-200 px-4 flex items-center justify-between bg-slate-50/70 shrink-0">
+          <div className="h-10 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40 shrink-0">
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -421,11 +421,11 @@ export default function OfficerDocumentReviewPage() {
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer font-inter",
                   leftTab === "preview"
-                    ? "bg-white text-[#1e4c77] shadow-2xs border border-slate-200 font-semibold"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-white dark:bg-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] shadow-2xs border border-slate-200 dark:border-slate-600 font-semibold"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                 )}
               >
-                <Eye className={cn("h-3.5 w-3.5", leftTab === "preview" ? "text-[#1e4c77]" : "text-slate-500")} />
+                <Eye className={cn("h-3.5 w-3.5", leftTab === "preview" ? "text-[#1e4c77] dark:text-[#7fb2e3]" : "text-slate-500 dark:text-slate-400")} />
                 <span>Document Preview</span>
               </button>
               <button
@@ -434,11 +434,11 @@ export default function OfficerDocumentReviewPage() {
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer font-inter",
                   leftTab === "details"
-                    ? "bg-white text-[#1e4c77] shadow-2xs border border-slate-200 font-semibold"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-white dark:bg-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] shadow-2xs border border-slate-200 dark:border-slate-600 font-semibold"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                 )}
               >
-                <ListFilter className={cn("h-3.5 w-3.5", leftTab === "details" ? "text-[#1e4c77]" : "text-slate-500")} />
+                <ListFilter className={cn("h-3.5 w-3.5", leftTab === "details" ? "text-[#1e4c77] dark:text-[#7fb2e3]" : "text-slate-500 dark:text-slate-400")} />
                 <span>Document Details</span>
               </button>
             </div>
@@ -448,23 +448,23 @@ export default function OfficerDocumentReviewPage() {
           <div className="flex-1 overflow-hidden flex flex-col">
             {isDocLoading ? (
               <div className="p-8 space-y-4 animate-pulse">
-                <div className="h-8 w-64 bg-slate-100 rounded" />
-                <div className="h-4 w-48 bg-slate-50 rounded" />
-                <div className="h-64 w-full bg-slate-100 rounded-lg mt-6" />
+                <div className="h-8 w-64 bg-slate-100 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-48 bg-slate-50 dark:bg-slate-800/60 rounded" />
+                <div className="h-64 w-full bg-slate-100 dark:bg-slate-800 rounded-lg mt-6" />
               </div>
             ) : leftTab === "preview" ? (
               /* REAL DOCUMENT PREVIEW (PDF in iframe, DOCX/XLSX download prompt) */
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Advisor Revision Note Callout */}
                 {(doc?.revision_notes || mockQueueDoc?.revision_notes) && (
-                  <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-start gap-3 text-xs shrink-0">
-                    <MessageSquare className="h-4 w-4 text-[#1e4c77] shrink-0 mt-0.5" />
+                  <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-start gap-3 text-xs shrink-0">
+                    <MessageSquare className="h-4 w-4 text-[#1e4c77] dark:text-[#7fb2e3] shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 font-medium text-slate-800">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
                         <span>Advisor Revision Note</span>
-                        <span className="text-[11px] text-slate-400 font-normal">· {displayAdvisor}</span>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">· {displayAdvisor}</span>
                       </div>
-                      <p className="text-slate-700 mt-0.5 leading-relaxed">
+                      <p className="text-slate-700 dark:text-slate-300 mt-0.5 leading-relaxed">
                         {doc?.revision_notes ?? mockQueueDoc?.revision_notes}
                       </p>
                     </div>
@@ -489,61 +489,61 @@ export default function OfficerDocumentReviewPage() {
                 <div className="flex items-start gap-4">
                   <FileTypeIcon filename={displayTitle} type={doc?.type ?? "pdf"} size="lg" />
                   <div>
-                    <h1 className="text-base font-bold text-slate-900 font-inter">
+                    <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 font-inter">
                       {displayTitle}
                     </h1>
-                    <p className="text-[11px] text-slate-400 font-mono mt-0.5">{documentId}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">{documentId}</p>
                   </div>
                 </div>
 
                 {/* Metadata Grid */}
-                <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100">
+                <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-slate-800">
                   <div className="flex items-start gap-2.5">
-                    <User className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
+                    <User className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Advisor</p>
-                      <p className="text-[13px] font-medium text-slate-800">{displayAdvisor}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Advisor</p>
+                      <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{displayAdvisor}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <FileText className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
+                    <FileText className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Document Type</p>
-                      <p className="text-[13px] font-medium text-slate-800">{displayType}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Document Type</p>
+                      <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{displayType}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
+                    <Calendar className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Submitted</p>
-                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Submitted</p>
+                      <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         {displayUploadedAt ? formatDateTime(displayUploadedAt) : "—"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
+                    <Hash className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">File Size</p>
-                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">File Size</p>
+                      <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         {displaySize}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Layers className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
+                    <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Version</p>
-                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Version</p>
+                      <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         v{displayVersion}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Clock className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
+                    <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Thread ID</p>
-                      <p className="text-[13px] font-medium text-slate-800 tabular-nums">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Thread ID</p>
+                      <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         {doc?.thread_id ?? mockQueueDoc?.thread_id ?? "—"}
                       </p>
                     </div>
@@ -552,14 +552,14 @@ export default function OfficerDocumentReviewPage() {
 
                 {/* Advisor Revision Note in Details */}
                 {(doc?.revision_notes || mockQueueDoc?.revision_notes) && (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 font-inter">
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4 font-inter">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <MessageSquare className="h-3.5 w-3.5 text-[#1e4c77]" />
-                      <h3 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
+                      <MessageSquare className="h-3.5 w-3.5 text-[#1e4c77] dark:text-[#7fb2e3]" />
+                      <h3 className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                         Advisor Revision Note
                       </h3>
                     </div>
-                    <p className="text-xs text-slate-700 leading-relaxed">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                       {doc?.revision_notes ?? mockQueueDoc?.revision_notes}
                     </p>
                   </div>
@@ -568,30 +568,30 @@ export default function OfficerDocumentReviewPage() {
                 {/* Revision Thread */}
                 {threadEntries.length > 1 && (
                   <div>
-                    <h3 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2">
+                    <h3 className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
                       Revision History
                     </h3>
                     <div className="space-y-2">
                       {threadEntries.map((entry, i) => (
                         <div
                           key={entry.document_id}
-                          className="rounded-xl border border-slate-200 p-3 text-[12px] space-y-1.5"
+                          className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-[12px] space-y-1.5"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-700">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
                               v{threadEntries.length - i}
                             </span>
                             <StatusBadge status={entry.status} />
                           </div>
                           {entry.revision_notes && (
-                            <div className="text-[11px] text-slate-700 bg-slate-50 rounded-lg p-2 border border-slate-100">
-                              <span className="font-semibold text-slate-900 mr-1">Advisor Note:</span>
+                            <div className="text-[11px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-lg p-2 border border-slate-100 dark:border-slate-800">
+                              <span className="font-semibold text-slate-900 dark:text-slate-100 mr-1">Advisor Note:</span>
                               <span>{entry.revision_notes}</span>
                             </div>
                           )}
                           {entry.review?.comment && (
-                            <p className="text-[11px] text-slate-600 mt-1">
-                              <span className="font-semibold text-slate-700 mr-1">Officer Note:</span>
+                            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                              <span className="font-semibold text-slate-700 dark:text-slate-300 mr-1">Officer Note:</span>
                               {entry.review.comment}
                             </p>
                           )}
@@ -604,17 +604,17 @@ export default function OfficerDocumentReviewPage() {
                 {/* Audit Trail */}
                 {auditEvents.length > 0 && (
                   <div>
-                    <h3 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2">
+                    <h3 className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
                       Audit Ledger
                     </h3>
-                    <div className="space-y-1 divide-y divide-slate-100 border border-slate-200 rounded-xl p-3 bg-white">
+                    <div className="space-y-1 divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-white dark:bg-slate-900">
                       {auditEvents.map((event) => (
                         <div
                           key={event.id}
                           className="flex items-center justify-between py-1.5 text-[11px]"
                         >
-                          <span className="text-slate-700 font-medium">{event.action}</span>
-                          <span className="text-slate-400 tabular-nums">
+                          <span className="text-slate-700 dark:text-slate-300 font-medium">{event.action}</span>
+                          <span className="text-slate-400 dark:text-slate-500 tabular-nums">
                             {formatDateTime(event.timestamp)}
                           </span>
                         </div>
@@ -628,7 +628,7 @@ export default function OfficerDocumentReviewPage() {
         </div>
 
         {/* ===== RIGHT PANEL: AI CHAT + DECISION ACTION ===== */}
-        <div className="w-full lg:w-[42%] shrink-0 flex flex-col bg-white overflow-hidden min-h-0">
+        <div className="w-full lg:w-[42%] shrink-0 flex flex-col bg-white dark:bg-slate-900 overflow-hidden min-h-0">
           {/* Conversational AI Chat Window */}
           <div className="flex-1 min-h-0 overflow-hidden">
             <AiAssistPanel
@@ -658,23 +658,23 @@ export default function OfficerDocumentReviewPage() {
           </div>
 
           {/* ===== TA-69: DECISION WORKFLOW AREA ===== */}
-          <div className="border-t border-slate-200 bg-slate-50/70 p-4 shrink-0 font-inter">
+          <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 shrink-0 font-inter">
             {doc?.status !== "pending_review" || recordedReview ? (
               /* Recorded Decision view once document is no longer pending */
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-slate-800">
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   Recorded decision:{" "}
-                  <span className="uppercase font-bold text-[#1e4c77]">
+                  <span className="uppercase font-bold text-[#1e4c77] dark:text-[#7fb2e3]">
                     {recordedReview?.status.replace(/_/g, " ") ?? doc?.status}
                   </span>
                 </p>
                 {recordedReview?.comment && (
-                  <p className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 leading-relaxed">
                     &ldquo;{recordedReview.comment}&rdquo;
                   </p>
                 )}
                 {recordedReview?.decided_at && (
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
                     Decided at: {new Date(recordedReview.decided_at).toLocaleString()}
                   </p>
                 )}
@@ -683,12 +683,12 @@ export default function OfficerDocumentReviewPage() {
               /* Decision Submission Form when pending review */
               <div className="space-y-2.5">
                 {decisionError && (
-                  <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700">
+                  <div className="rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300">
                     {decisionError}
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Comment -- this is what the advisor will read
                   </label>
                   <textarea
@@ -697,7 +697,7 @@ export default function OfficerDocumentReviewPage() {
                     rows={2}
                     disabled={isSubmittingDecision}
                     placeholder="Explain the decision, or what needs to change..."
-                    className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#2575bc] resize-none disabled:opacity-60 shadow-2xs font-inter"
+                    className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#2575bc] resize-none disabled:opacity-60 shadow-2xs font-inter"
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -727,7 +727,7 @@ export default function OfficerDocumentReviewPage() {
                   </button>
                 </div>
                 {isSubmittingDecision && (
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     <span>Recording decision...</span>
                   </div>

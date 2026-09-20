@@ -41,19 +41,19 @@ const DECISIONS: {
     value: "approved",
     label: "Approve",
     icon: CheckCircle2,
-    activeStyle: "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold shadow-2xs",
+    activeStyle: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300 font-semibold shadow-2xs",
   },
   {
     value: "needs_revision",
     label: "Revision",
     icon: AlertCircle,
-    activeStyle: "bg-amber-50 border-amber-500 text-amber-800 font-semibold shadow-2xs",
+    activeStyle: "bg-amber-50 dark:bg-amber-950/40 border-amber-500 dark:border-amber-600 text-amber-800 dark:text-amber-300 font-semibold shadow-2xs",
   },
   {
     value: "rejected",
     label: "Reject",
     icon: XCircle,
-    activeStyle: "bg-rose-50 border-rose-500 text-rose-700 font-semibold shadow-2xs",
+    activeStyle: "bg-rose-50 dark:bg-rose-950/40 border-rose-500 dark:border-rose-600 text-rose-700 dark:text-rose-300 font-semibold shadow-2xs",
   },
 ];
 
@@ -115,14 +115,14 @@ export function ReviewDecisionPanel({
   };
 
   return (
-    <div className="border-t border-slate-200/90 bg-white/95 backdrop-blur-md font-inter shrink-0 p-3 space-y-2.5 shadow-2xs">
+    <div className="border-t border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md font-inter shrink-0 p-3 space-y-2.5 shadow-2xs">
       {/* Already decided notice */}
       {isAlreadyDecided && (
-        <div className="px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
+        <div className="px-3 py-1.5 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
           <span>
             Determination recorded: <strong className="capitalize">{documentStatus}</strong>
           </span>
-          <span className="text-[10px] text-slate-400 uppercase font-medium tracking-wider">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-medium tracking-wider">
             Audit Locked
           </span>
         </div>
@@ -145,7 +145,7 @@ export function ReviewDecisionPanel({
                   "flex-1 h-8 rounded-lg border text-[11px] font-medium flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer disabled:opacity-40 font-inter",
                   isActive
                     ? option.activeStyle
-                    : "border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                    : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 )}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -163,13 +163,13 @@ export function ReviewDecisionPanel({
             disabled={disabled || isSubmitting}
             rows={2}
             placeholder="Review comments..."
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/70 px-2.5 py-1.5 text-[11px] text-slate-800 font-inter placeholder:text-slate-400 resize-none transition-all focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#1e4c77] focus:border-[#1e4c77] disabled:opacity-50 leading-relaxed"
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50 px-2.5 py-1.5 text-[11px] text-slate-800 dark:text-slate-100 font-inter placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none transition-all focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-[#1e4c77] focus:border-[#1e4c77] disabled:opacity-50 leading-relaxed"
           />
         </div>
 
         {/* 3. ERROR ALERT */}
         {submitError && (
-          <div className="flex items-center gap-1.5 p-1.5 rounded bg-rose-50 border border-rose-200 text-[10px] text-rose-700">
+          <div className="flex items-center gap-1.5 p-1.5 rounded bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-[10px] text-rose-700 dark:text-rose-300">
             <AlertCircle className="h-3 w-3 shrink-0" />
             <span>{submitError}</span>
           </div>
@@ -177,7 +177,7 @@ export function ReviewDecisionPanel({
 
         {/* 4. CONFIRMATION OVERLAY */}
         {showConfirm && (
-          <div className="p-2 rounded-lg border border-[#1e4c77]/20 bg-[#1e4c77]/5 flex items-center justify-between text-[11px] text-slate-800 animate-in fade-in">
+          <div className="p-2 rounded-lg border border-[#1e4c77]/20 dark:border-[#7fb2e3]/25 bg-[#1e4c77]/5 dark:bg-[#7fb2e3]/10 flex items-center justify-between text-[11px] text-slate-800 dark:text-slate-100 animate-in fade-in">
             <span>Confirm decision?</span>
             <div className="flex items-center gap-1.5">
               <button
@@ -190,7 +190,7 @@ export function ReviewDecisionPanel({
               <button
                 type="button"
                 onClick={() => setShowConfirm(false)}
-                className="px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 text-[10px] hover:bg-slate-50 cursor-pointer"
+                className="px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
               >
                 Cancel
               </button>
@@ -208,7 +208,7 @@ export function ReviewDecisionPanel({
               "w-full h-8 rounded-lg text-[11px] font-semibold transition-all duration-150 flex items-center justify-center gap-1.5 font-inter",
               canSubmit
                 ? "bg-[#1e4c77] text-white hover:bg-[#163c60] shadow-2xs active:scale-[0.99] cursor-pointer"
-                : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200/50"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/50 dark:border-slate-700/50"
             )}
           >
             {isSubmitting ? (
