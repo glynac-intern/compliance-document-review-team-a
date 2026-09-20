@@ -390,7 +390,7 @@ export default function OfficerDashboardPage() {
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
-                  <h1 className="text-xl font-bold text-slate-900 font-inter">
+                  <h1 className="text-xl font-bold text-slate-900 dark:text-white font-inter">
                     Review Queue
                   </h1>
                   <p className="text-xs text-slate-500 font-inter mt-1">
