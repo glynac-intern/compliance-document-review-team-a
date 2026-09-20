@@ -10,7 +10,7 @@ import { DocumentInspectorDrawer } from "@/components/advisor/document-inspector
 import { NewSubmissionView } from "@/components/advisor/new-submission-view";
 import { MetricsDashboardView } from "@/components/analytics/metrics-dashboard-view";
 import { RevisionUploadModal } from "@/components/advisor/revision-upload-modal";
-import { SettingsView } from "@/components/advisor/settings-view";
+import { SettingsView } from "@/components/common/settings-view";
 import { ComplianceDocument } from "@/types/compliance";
 import { Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";

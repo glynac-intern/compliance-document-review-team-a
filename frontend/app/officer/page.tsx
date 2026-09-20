@@ -25,6 +25,7 @@ import { MOCK_QUEUE_DOCUMENTS } from "@/lib/mock-officer-data";
 import { OfficerMetricsView } from "@/components/officer/officer-metrics-view";
 import { OfficerMyReviewsView } from "@/components/officer/officer-my-reviews-view";
 import { OfficerAuditLogView } from "@/components/officer/officer-audit-log-view";
+import { SettingsView } from "@/components/common/settings-view";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -317,6 +318,7 @@ export default function OfficerDashboardPage() {
       my_reviews: "My Reviews",
       metrics: "Metrics",
       audit_log: "Audit Log",
+      settings: "Settings",
     };
     return [
       { label: "Compliance Officer", href: "/officer" },
@@ -327,7 +329,7 @@ export default function OfficerDashboardPage() {
   if (!isReady) return null;
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-inter">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-inter">
       {/* Toast Notification Container */}
       <div className="fixed top-5 right-5 z-50 pointer-events-none">
         {toastMessage && (
@@ -679,6 +681,12 @@ export default function OfficerDashboardPage() {
           {activeView === "audit_log" && (
             <div className="p-5 sm:p-7 lg:p-8 max-w-[1400px] w-full mx-auto">
               <OfficerAuditLogView onShowToast={showToast} />
+            </div>
+          )}
+
+          {activeView === "settings" && (
+            <div className="p-5 sm:p-7 lg:p-8 max-w-[1400px] w-full mx-auto">
+              <SettingsView />
             </div>
           )}
         </main>
