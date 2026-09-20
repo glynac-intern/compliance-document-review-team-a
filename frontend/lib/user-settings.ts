@@ -13,8 +13,12 @@ export type ThemeMode = "light" | "dark" | "system";
 
 export interface UserSettings {
   theme: ThemeMode;
-  emailNotifications: boolean;
-  inAppNotifications: boolean;
+  // TA-119: "In-app notifications" moved to a real per-user server
+  // preference (User.in_app_notifications_enabled via GET/PATCH
+  // /auth/me) since the backend has to know it, not just the browser --
+  // no longer stored here. "Email notifications" was removed entirely:
+  // this backend has no email-sending code at all, so there was
+  // nothing for that toggle to control.
   compactRows: boolean;
   sidebarCollapsed: boolean;
 }
@@ -23,8 +27,6 @@ export const SETTINGS_KEY = "verity-user-settings";
 
 export const DEFAULT_SETTINGS: UserSettings = {
   theme: "light",
-  emailNotifications: true,
-  inAppNotifications: true,
   compactRows: false,
   sidebarCollapsed: false,
 };

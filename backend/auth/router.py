@@ -69,6 +69,9 @@ def update_me(
     if payload.name is not None:
         current_user.name = payload.name
 
+    if payload.in_app_notifications_enabled is not None:
+        current_user.in_app_notifications_enabled = payload.in_app_notifications_enabled
+
     db.commit()
     db.refresh(current_user)
     return current_user

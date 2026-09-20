@@ -144,6 +144,7 @@ export interface UserResponse {
   name: string;
   email: string;
   role: UserRole;
+  in_app_notifications_enabled: boolean;
 }
 
 // --- Auth endpoints ---
@@ -165,7 +166,7 @@ export const authApi = {
 
   getMe: (): Promise<UserResponse> => apiFetch<UserResponse>("/auth/me"),
 
-  updateMe: (data: { name?: string; email?: string }): Promise<UserResponse> =>
+  updateMe: (data: { name?: string; email?: string; in_app_notifications_enabled?: boolean }): Promise<UserResponse> =>
     apiFetch<UserResponse>("/auth/me", {
       method: "PATCH",
       body: data,

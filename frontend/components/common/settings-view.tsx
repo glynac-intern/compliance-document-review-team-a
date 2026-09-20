@@ -293,6 +293,27 @@ export function SettingsView() {
     await refreshUser();
   };
 
+  // TA-119: "In-app notifications" is a real server-side preference
+  // (gates whether the backend creates a Notification row for this
+  // user at all), not a local/cosmetic setting -- so it's driven by
+  // `user`, with an optimistic local override while the round-trip is
+  // in flight, reverted on failure.
+  const [inAppNotifOverride, setInAppNotifOverride] = React.useState<boolean | null>(null);
+  const inAppNotificationsEnabled = inAppNotifOverride ?? user?.in_app_notifications_enabled ?? true;
+
+  const handleInAppNotificationsToggle = async (next: boolean) => {
+    setInAppNotifOverride(next);
+    try {
+      await authApi.updateMe({ in_app_notifications_enabled: next });
+      await refreshUser();
+    } catch {
+      // Silently revert -- consistent with how other notification
+      // actions in this app (e.g. top-bar's mark-as-read) fail quiet.
+    } finally {
+      setInAppNotifOverride(null);
+    }
+  };
+
   // Derive user info
   const displayName = user?.name || "User";
   const email = user?.email || "—";
@@ -379,17 +400,10 @@ export function SettingsView() {
 
       {/* ── Notifications ── */}
       <SettingsSection icon={Bell} title="Notifications">
-        <SettingsRow label="Email notifications">
-          <Toggle
-            checked={settings.emailNotifications}
-            onChange={(v) => updateSetting("emailNotifications", v)}
-            label="Email notifications"
-          />
-        </SettingsRow>
         <SettingsRow label="In-app notifications">
           <Toggle
-            checked={settings.inAppNotifications}
-            onChange={(v) => updateSetting("inAppNotifications", v)}
+            checked={inAppNotificationsEnabled}
+            onChange={handleInAppNotificationsToggle}
             label="In-app notifications"
           />
         </SettingsRow>

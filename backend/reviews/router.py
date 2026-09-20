@@ -116,11 +116,14 @@ def submit_decision(
     if payload.comment:
         message += f" Comment: {payload.comment}"
 
-    db.add(Notification(
-        user_id=document.advisor_id,
-        document_id=document_id,
-        message=message,
-    ))
+    # TA-119: honor the advisor's "In-app notifications" preference --
+    # skip creating the Notification row entirely when they've opted out.
+    if document.advisor.in_app_notifications_enabled:
+        db.add(Notification(
+            user_id=document.advisor_id,
+            document_id=document_id,
+            message=message,
+        ))
 
     db.commit()
     db.refresh(review)
