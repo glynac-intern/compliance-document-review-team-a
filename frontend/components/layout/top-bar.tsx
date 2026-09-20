@@ -149,7 +149,7 @@ export function TopBar({
 
   return (
     // Taller vertically (h-16 = 64px, +8px from previous h-14), providing airy, elevated feel
-    <header className="sticky top-0 z-30 h-16 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between px-5 sm:px-8 transition-all font-inter">
+    <header className="sticky top-0 z-30 h-16 w-full border-b border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex items-center justify-between px-5 sm:px-8 transition-all font-inter">
       {/* Left: Sidebar Toggle Button + Breadcrumbs */}
       <div className="flex items-center gap-3.5">
         {/* Mobile menu trigger */}
@@ -158,7 +158,7 @@ export function TopBar({
             type="button"
             onClick={onToggleMobileSidebar}
             aria-label="Open mobile menu"
-            className="lg:hidden h-9 w-9 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+            className="lg:hidden h-9 w-9 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -171,29 +171,29 @@ export function TopBar({
             return (
               <React.Fragment key={crumb.label}>
                 {idx > 0 && (
-                  <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0 stroke-[1.8]" />
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0 stroke-[1.8]" />
                 )}
                 {isLast ? (
-                  <span className="font-medium text-slate-800 tracking-tight">
+                  <span className="font-medium text-slate-800 dark:text-slate-100 tracking-tight">
                     {crumb.label}
                   </span>
                 ) : crumb.onClick ? (
                   <button
                     type="button"
                     onClick={crumb.onClick}
-                    className="text-slate-400 font-normal hover:text-slate-600 transition-colors cursor-pointer"
+                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   >
                     {crumb.label}
                   </button>
                 ) : crumb.href ? (
                   <Link
                     href={crumb.href}
-                    className="text-slate-400 font-normal hover:text-slate-600 transition-colors"
+                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
                     {crumb.label}
                   </Link>
                 ) : (
-                  <span className="text-slate-400 font-normal hover:text-slate-600 transition-colors">
+                  <span className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                     {crumb.label}
                   </span>
                 )}
@@ -205,7 +205,7 @@ export function TopBar({
 
       {/* Right: Refined Institutional Utility Toolbar — Sleek segmented control dock */}
       <div className="flex items-center gap-2">
-        <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+        <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
           {/* Refresh Icon Button */}
           <button
             type="button"
@@ -213,8 +213,8 @@ export function TopBar({
             disabled={isRefreshing}
             title="Refresh compliance queue"
             className={cn(
-              "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
-              isRefreshing && "bg-white text-[#1e4c77] shadow-2xs"
+              "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 hover:shadow-2xs",
+              isRefreshing && "bg-white dark:bg-slate-900 text-[#1e4c77] shadow-2xs"
             )}
           >
             <RotateCw
@@ -226,7 +226,7 @@ export function TopBar({
           </button>
 
           {/* Hairline Divider */}
-          <div className="h-3.5 w-px bg-slate-200/90 mx-0.5" />
+          <div className="h-3.5 w-px bg-slate-200/90 dark:bg-slate-700/90 mx-0.5" />
 
           {/* Notification Bell with Dropdown */}
           <div className="relative" ref={notificationsRef}>
@@ -236,13 +236,13 @@ export function TopBar({
               title={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
               aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
               className={cn(
-                "relative h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
-                showNotifications && "bg-white text-[#1e4c77] shadow-2xs"
+                "relative h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 hover:shadow-2xs",
+                showNotifications && "bg-white dark:bg-slate-900 text-[#1e4c77] shadow-2xs"
               )}
             >
               <Bell className="h-4 w-4 stroke-[1.8]" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#1e4c77] text-white text-[9px] font-medium font-numbers flex items-center justify-center ring-2 ring-white shadow-2xs animate-in zoom-in-50 duration-150">
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#1e4c77] text-white text-[9px] font-medium font-numbers flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-2xs animate-in zoom-in-50 duration-150">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -250,13 +250,13 @@ export function TopBar({
 
             {/* Notifications Popover */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2.5 w-80 sm:w-88 rounded-xl bg-white border border-slate-200 shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden font-inter">
+              <div className="absolute right-0 mt-2.5 w-80 sm:w-88 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden font-inter">
                 {/* Popover Header */}
-                <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
+                <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-semibold text-slate-800 font-inter">Notifications</h3>
+                    <h3 className="text-xs font-semibold text-slate-800 dark:text-slate-100 font-inter">Notifications</h3>
                     {unreadCount > 0 && (
-                      <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-medium text-slate-600 font-numbers tabular-nums">
+                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 text-[10px] font-medium text-slate-600 dark:text-slate-300 font-numbers tabular-nums">
                         {unreadCount}
                       </span>
                     )}
@@ -273,10 +273,10 @@ export function TopBar({
                 </div>
 
                 {/* Notifications List */}
-                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto font-inter">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto font-inter">
                   {notifications.length === 0 ? (
                     <div className="py-7 px-4 text-center font-inter">
-                      <p className="text-xs text-slate-400">No notifications</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">No notifications</p>
                     </div>
                   ) : (
                     notifications.map((item) => {
@@ -317,8 +317,8 @@ export function TopBar({
                           key={item.id}
                           onClick={() => handleNotificationClick(item)}
                           className={cn(
-                            "py-2.5 px-3.5 transition-colors cursor-pointer group hover:bg-slate-50 flex items-start gap-2.5",
-                            !item.is_read && "bg-slate-50/60"
+                            "py-2.5 px-3.5 transition-colors cursor-pointer group hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-start gap-2.5",
+                            !item.is_read && "bg-slate-50/60 dark:bg-slate-800/30"
                           )}
                         >
                           <div className="flex-1 min-w-0 font-inter">
@@ -329,22 +329,22 @@ export function TopBar({
                                   iconType === "approved" && "text-[#166534]",
                                   iconType === "revision" && "text-[#92400e]",
                                   iconType === "rejected" && "text-[#991b1b]",
-                                  iconType === "general" && "text-slate-800"
+                                  iconType === "general" && "text-slate-800 dark:text-slate-200"
                                 )}
                               >
                                 {title}
                               </span>
-                              <span className="text-[10.5px] text-slate-400 shrink-0 font-normal font-numbers tabular-nums">
+                              <span className="text-[10.5px] text-slate-400 dark:text-slate-500 shrink-0 font-normal font-numbers tabular-nums">
                                 {formatNotificationTime(item.created_at)}
                               </span>
                             </div>
 
-                            <p className="text-[11.5px] text-slate-600 leading-snug mt-0.5 font-normal">
+                            <p className="text-[11.5px] text-slate-600 dark:text-slate-400 leading-snug mt-0.5 font-normal">
                               {bodyText}
                             </p>
 
                             {commentText && (
-                              <p className="mt-1 text-[11px] text-slate-500 italic">
+                              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 italic">
                                 &ldquo;{commentText}&rdquo;
                               </p>
                             )}
@@ -359,7 +359,7 @@ export function TopBar({
           </div>
 
           {/* Hairline Divider */}
-          <div className="h-3.5 w-px bg-slate-200/90 mx-0.5" />
+          <div className="h-3.5 w-px bg-slate-200/90 dark:bg-slate-700/90 mx-0.5" />
 
           {/* TA-61: real logout -- clears the session and returns to /login */}
           <button
@@ -367,7 +367,7 @@ export function TopBar({
             onClick={logout}
             title="Log out"
             aria-label="Log out"
-            className="h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 hover:text-red-600 hover:bg-white hover:shadow-2xs"
+            className="h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-white dark:hover:bg-slate-900 hover:shadow-2xs"
           >
             <LogOut className="h-4 w-4 stroke-[1.8]" />
           </button>

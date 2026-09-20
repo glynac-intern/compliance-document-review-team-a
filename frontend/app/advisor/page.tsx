@@ -209,7 +209,7 @@ export default function AdvisorDashboardPage() {
 
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-inter">
+    <div className="flex min-h-screen w-full bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-inter">
       {/* Restructured Sidebar matching Image 3 (Handwritten sketch) */}
       <Sidebar
         isCollapsed={isSidebarCollapsed}

@@ -101,8 +101,8 @@ function Toggle({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4c77]/30 focus-visible:ring-offset-2",
-        checked ? "bg-[#1e4c77]" : "bg-slate-200"
+        "relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4c77]/30 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900",
+        checked ? "bg-[#1e4c77]" : "bg-slate-200 dark:bg-slate-700"
       )}
     >
       <span
@@ -124,7 +124,7 @@ function SettingsRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3.5 px-1">
-      <p className="text-[13px] font-normal text-slate-800 font-inter">
+      <p className="text-[13px] font-normal text-slate-800 dark:text-slate-200 font-inter">
         {label}
       </p>
       <div className="shrink-0">{children}</div>
@@ -142,14 +142,14 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-1">
         <Icon className="h-4 w-4 text-[#1e4c77]" strokeWidth={1.8} />
-        <h3 className="text-sm font-medium text-slate-800 font-inter tracking-tight">
+        <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100 font-inter tracking-tight">
           {title}
         </h3>
       </div>
-      <div className="px-5 pb-4 divide-y divide-slate-100">{children}</div>
+      <div className="px-5 pb-4 divide-y divide-slate-100 dark:divide-slate-800">{children}</div>
     </div>
   );
 }
@@ -222,17 +222,17 @@ function EditableField({
     return (
       <div className="flex items-center justify-between gap-4 py-3 px-1 group">
         <div className="min-w-0">
-          <p className="text-[11px] text-slate-400 font-inter font-normal mb-0.5">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 font-inter font-normal mb-0.5">
             {label}
           </p>
-          <p className="text-[13px] text-slate-800 font-inter font-normal truncate">
+          <p className="text-[13px] text-slate-800 dark:text-slate-200 font-inter font-normal truncate">
             {value}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsEditing(true)}
-          className="h-7 w-7 rounded-lg text-slate-300 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer shrink-0 opacity-0 group-hover:opacity-100"
+          className="h-7 w-7 rounded-lg text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0 opacity-0 group-hover:opacity-100"
           aria-label={`Edit ${label}`}
         >
           <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -243,7 +243,7 @@ function EditableField({
 
   return (
     <div className="py-3 px-1">
-      <p className="text-[11px] text-slate-400 font-inter font-normal mb-1.5">
+      <p className="text-[11px] text-slate-400 dark:text-slate-500 font-inter font-normal mb-1.5">
         {label}
       </p>
       <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ function EditableField({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={isSaving}
-          className="flex-1 h-8 px-3 rounded-lg bg-slate-50 border border-slate-200 text-[13px] font-inter font-normal text-slate-800 focus:outline-none focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all disabled:opacity-50"
+          className="flex-1 h-8 px-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[13px] font-inter font-normal text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all disabled:opacity-50"
         />
         <button
           type="button"
@@ -269,13 +269,13 @@ function EditableField({
           type="button"
           onClick={handleCancel}
           disabled={isSaving}
-          className="h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[12px] font-inter font-normal transition-all cursor-pointer disabled:opacity-50"
+          className="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[12px] font-inter font-normal transition-all cursor-pointer disabled:opacity-50"
         >
           Cancel
         </button>
       </div>
       {error && (
-        <p className="text-[11px] text-red-500 mt-1.5 font-inter">{error}</p>
+        <p className="text-[11px] text-red-500 dark:text-red-400 mt-1.5 font-inter">{error}</p>
       )}
     </div>
   );
@@ -348,7 +348,7 @@ export function SettingsView() {
   return (
     <div className="space-y-5 max-w-2xl">
       <div>
-        <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 tracking-tight font-inter leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter leading-tight">
           Settings
         </h1>
       </div>
@@ -361,15 +361,15 @@ export function SettingsView() {
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[14px] font-medium text-slate-800 font-inter truncate">
+            <p className="text-[14px] font-medium text-slate-800 dark:text-slate-100 font-inter truncate">
               {displayName}
             </p>
-            <p className="text-[12px] text-slate-400 font-inter font-normal truncate">
+            <p className="text-[12px] text-slate-400 dark:text-slate-500 font-inter font-normal truncate">
               {email}
             </p>
           </div>
           <div className="shrink-0">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#1e4c77]/8 text-[11px] font-medium text-[#1e4c77] font-inter capitalize">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#1e4c77]/8 dark:bg-[#1e4c77]/20 text-[11px] font-medium text-[#1e4c77] dark:text-[#7fb2e3] font-inter capitalize">
               {role}
             </span>
           </div>
@@ -392,7 +392,7 @@ export function SettingsView() {
       {/* ── Appearance ── */}
       <SettingsSection icon={Palette} title="Appearance">
         <SettingsRow label="Theme">
-          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
             {themeOptions.map(({ value, label, icon: ThemeIcon }) => (
               <button
                 key={value}
@@ -401,8 +401,8 @@ export function SettingsView() {
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-inter font-normal transition-all duration-150 cursor-pointer",
                   settings.theme === value
-                    ? "bg-white text-slate-800 shadow-sm border border-slate-200/80"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm border border-slate-200/80 dark:border-slate-600"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                 )}
               >
                 <ThemeIcon className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -455,7 +455,7 @@ export function SettingsView() {
           <button
             type="button"
             onClick={logout}
-            className="inline-flex items-center gap-2 h-9 px-4 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-normal font-inter transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-4 rounded-xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs font-normal font-inter transition-all cursor-pointer"
           >
             <LogOut className="h-3.5 w-3.5" strokeWidth={1.8} />
             <span>Sign out</span>
