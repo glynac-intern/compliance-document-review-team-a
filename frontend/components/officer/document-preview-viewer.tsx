@@ -101,23 +101,23 @@ export function DocumentPreviewViewer({
   const fileUrl = blobUrl || staticUrl;
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 border-r border-slate-200 overflow-hidden font-inter">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 overflow-hidden font-inter">
       {/* ===== MINIMALIST TOOLBAR ===== */}
-      <div className="h-10 bg-white border-b border-slate-200 px-3.5 flex items-center justify-between shrink-0 shadow-2xs">
+      <div className="h-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3.5 flex items-center justify-between shrink-0 shadow-2xs">
         {/* Left: Document format & title */}
         <div className="flex items-center gap-2 min-w-0">
           <span
             className={cn(
               "px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase font-inter shrink-0",
-              format === "pdf" && "bg-[#1e4c77]/10 text-[#1e4c77] border border-[#1e4c77]/20",
-              format === "docx" && "bg-blue-50 text-blue-700 border border-blue-200",
-              format === "xlsx" && "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              format === "pdf" && "bg-[#1e4c77]/10 dark:bg-[#7fb2e3]/15 text-[#1e4c77] dark:text-[#7fb2e3] border border-[#1e4c77]/20 dark:border-[#7fb2e3]/25",
+              format === "docx" && "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800",
+              format === "xlsx" && "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
             )}
           >
             {format.toUpperCase()}
           </span>
 
-          <span className="text-[12px] font-medium text-slate-800 truncate max-w-[280px] sm:max-w-[420px]">
+          <span className="text-[12px] font-medium text-slate-800 dark:text-slate-200 truncate max-w-[280px] sm:max-w-[420px]">
             {title}
           </span>
         </div>
@@ -128,7 +128,7 @@ export function DocumentPreviewViewer({
             <button
               type="button"
               onClick={onDownload}
-              className="h-7 w-7 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-[#1e4c77] hover:border-slate-300 flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+              className="h-7 w-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] hover:border-slate-300 dark:hover:border-slate-600 flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
               title="Download original file"
               aria-label="Download original file"
             >
@@ -139,7 +139,7 @@ export function DocumentPreviewViewer({
             href={fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-7 w-7 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-[#1e4c77] hover:border-slate-300 flex items-center justify-center transition-colors shadow-2xs"
+            className="h-7 w-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] hover:border-slate-300 dark:hover:border-slate-600 flex items-center justify-center transition-colors shadow-2xs"
             title="Open document in new tab"
             aria-label="Open document in new tab"
           >
@@ -154,25 +154,25 @@ export function DocumentPreviewViewer({
         {format === "pdf" && (
           <iframe
             src={`${fileUrl}#toolbar=1&navpanes=1&view=FitH`}
-            className="w-full h-full border-0 bg-slate-100"
+            className="w-full h-full border-0 bg-slate-100 dark:bg-slate-800"
             title="Document Preview"
           />
         )}
 
         {/* 2. DOCX VIEW (SIMPLE FORMATTED) */}
         {format === "docx" && (
-          <div className="h-full overflow-y-auto p-8 max-w-2xl text-slate-800 font-inter">
+          <div className="h-full overflow-y-auto p-8 max-w-2xl text-slate-800 dark:text-slate-200 font-inter">
             <div className="mb-6">
-              <h1 className="text-lg font-semibold text-slate-900 font-inter">{title}</h1>
-              <p className="text-xs text-slate-500 mt-1 font-inter">
-                Advisor: <span className="font-medium text-slate-700 font-inter">{advisorName ?? "Elena Rostova"}</span>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 font-inter">{title}</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-inter">
+                Advisor: <span className="font-medium text-slate-700 dark:text-slate-300 font-inter">{advisorName ?? "Elena Rostova"}</span>
               </p>
             </div>
 
             <div className="space-y-5">
               <div>
-                <p className="text-xs font-semibold text-[#1e4c77] font-inter">SEC Form CRS</p>
-                <p className="text-xs text-slate-700 mt-1 leading-relaxed font-inter">
+                <p className="text-xs font-semibold text-[#1e4c77] dark:text-[#7fb2e3] font-inter">SEC Form CRS</p>
+                <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed font-inter">
                   Newsletter lacks SEC Form CRS disclosure in footer. Contains absolute language regarding tax certainty.
                 </p>
               </div>
@@ -182,8 +182,8 @@ export function DocumentPreviewViewer({
 
         {/* 3. XLSX SPREADSHEET VIEW */}
         {format === "xlsx" && (
-          <div className="h-full overflow-y-auto p-6 flex justify-center bg-slate-50/70">
-            <div className="bg-white rounded-xl shadow-xs border border-slate-200 max-w-[800px] w-full min-h-[600px] overflow-hidden flex flex-col">
+          <div className="h-full overflow-y-auto p-6 flex justify-center bg-slate-50/70 dark:bg-slate-800/40">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-700 max-w-[800px] w-full min-h-[600px] overflow-hidden flex flex-col">
               <div className="bg-[#1e4c77] text-white px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileSpreadsheet className="h-4 w-4 text-slate-200" />
@@ -195,39 +195,39 @@ export function DocumentPreviewViewer({
               <div className="overflow-x-auto p-2">
                 <table className="w-full text-[11px] border-collapse font-numbers tabular-nums">
                   <thead>
-                    <tr className="bg-slate-100 text-slate-600 font-mono text-[10px] border-b border-slate-300">
-                      <th className="p-1.5 text-left border-r border-slate-200">Security ID</th>
-                      <th className="p-1.5 text-left border-r border-slate-200">Asset Name</th>
-                      <th className="p-1.5 text-right border-r border-slate-200">Duration</th>
-                      <th className="p-1.5 text-right border-r border-slate-200">Yield %</th>
-                      <th className="p-1.5 text-right border-r border-slate-200">Allocation</th>
+                    <tr className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[10px] border-b border-slate-300 dark:border-slate-600">
+                      <th className="p-1.5 text-left border-r border-slate-200 dark:border-slate-700">Security ID</th>
+                      <th className="p-1.5 text-left border-r border-slate-200 dark:border-slate-700">Asset Name</th>
+                      <th className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">Duration</th>
+                      <th className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">Yield %</th>
+                      <th className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">Allocation</th>
                       <th className="p-1.5 text-center">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                     <tr>
-                      <td className="p-1.5 font-mono text-slate-600 border-r border-slate-200">SEC-9012</td>
-                      <td className="p-1.5 font-medium border-r border-slate-200">US Treasury 10Y Note</td>
-                      <td className="p-1.5 text-right border-r border-slate-200">8.4 yrs</td>
-                      <td className="p-1.5 text-right font-medium text-emerald-700 border-r border-slate-200">4.28%</td>
-                      <td className="p-1.5 text-right border-r border-slate-200">35.0%</td>
-                      <td className="p-1.5 text-center"><span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">APPROVED</span></td>
+                      <td className="p-1.5 font-mono text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">SEC-9012</td>
+                      <td className="p-1.5 font-medium border-r border-slate-200 dark:border-slate-700">US Treasury 10Y Note</td>
+                      <td className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">8.4 yrs</td>
+                      <td className="p-1.5 text-right font-medium text-emerald-700 dark:text-emerald-400 border-r border-slate-200 dark:border-slate-700">4.28%</td>
+                      <td className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">35.0%</td>
+                      <td className="p-1.5 text-center"><span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">APPROVED</span></td>
                     </tr>
-                    <tr className="bg-slate-50/50">
-                      <td className="p-1.5 font-mono text-slate-600 border-r border-slate-200">SEC-9018</td>
-                      <td className="p-1.5 font-medium border-r border-slate-200">Investment Grade Corp Index</td>
-                      <td className="p-1.5 text-right border-r border-slate-200">6.1 yrs</td>
-                      <td className="p-1.5 text-right font-medium text-emerald-700 border-r border-slate-200">5.45%</td>
-                      <td className="p-1.5 text-right border-r border-slate-200">25.0%</td>
-                      <td className="p-1.5 text-center"><span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">APPROVED</span></td>
+                    <tr className="bg-slate-50/50 dark:bg-slate-800/30">
+                      <td className="p-1.5 font-mono text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">SEC-9018</td>
+                      <td className="p-1.5 font-medium border-r border-slate-200 dark:border-slate-700">Investment Grade Corp Index</td>
+                      <td className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">6.1 yrs</td>
+                      <td className="p-1.5 text-right font-medium text-emerald-700 dark:text-emerald-400 border-r border-slate-200 dark:border-slate-700">5.45%</td>
+                      <td className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">25.0%</td>
+                      <td className="p-1.5 text-center"><span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">APPROVED</span></td>
                     </tr>
-                    <tr className="bg-slate-50/80 border-y border-slate-200">
-                      <td className="p-1.5 font-mono text-slate-700 border-r border-slate-200">SEC-9088</td>
-                      <td className="p-1.5 font-semibold text-slate-900 border-r border-slate-200">High Yield Debt Tranche (Missing Benchmark Disclosure)</td>
-                      <td className="p-1.5 text-right border-r border-slate-200">4.1 yrs</td>
-                      <td className="p-1.5 text-right font-bold text-slate-700 border-r border-slate-200">9.15%</td>
-                      <td className="p-1.5 text-right border-r border-slate-200">20.0%</td>
-                      <td className="p-1.5 text-center"><span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">AUDIT NOTE</span></td>
+                    <tr className="bg-slate-50/80 dark:bg-slate-800/50 border-y border-slate-200 dark:border-slate-700">
+                      <td className="p-1.5 font-mono text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700">SEC-9088</td>
+                      <td className="p-1.5 font-semibold text-slate-900 dark:text-slate-100 border-r border-slate-200 dark:border-slate-700">High Yield Debt Tranche (Missing Benchmark Disclosure)</td>
+                      <td className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">4.1 yrs</td>
+                      <td className="p-1.5 text-right font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700">9.15%</td>
+                      <td className="p-1.5 text-right border-r border-slate-200 dark:border-slate-700">20.0%</td>
+                      <td className="p-1.5 text-center"><span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium">AUDIT NOTE</span></td>
                     </tr>
                   </tbody>
                 </table>
@@ -238,12 +238,12 @@ export function DocumentPreviewViewer({
 
         {/* 4. UNRENDERABLE DOCUMENT FALLBACK (TA-67) */}
         {!["pdf", "docx", "xlsx"].includes(format) && (
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50 font-inter">
-            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900 font-inter">
+            <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-3">
               <FileText className="h-6 w-6" />
             </div>
-            <p className="text-sm font-medium text-slate-800">Preview Not Available In Browser</p>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm mb-4">
+            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Preview Not Available In Browser</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mb-4">
               This document format cannot be rendered directly in the preview window. You can download the original file to inspect it.
             </p>
             {onDownload && (

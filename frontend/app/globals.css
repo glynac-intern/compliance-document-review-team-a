@@ -239,6 +239,12 @@ body {
   flex-direction: column;
 }
 
+/* TA-121: plain CSS, not a Tailwind class, so dark: can't reach it --
+   the AI Assist panel's inner wrapper otherwise stays white in dark mode. */
+.dark .gemini-agent-inner {
+  background: #0f172a; /* slate-900, matching this app's other dark cards */
+}
+
 .gemini-sparkle-gradient {
   color: #1e4c77;
 }
