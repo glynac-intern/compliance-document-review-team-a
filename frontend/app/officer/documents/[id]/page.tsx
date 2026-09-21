@@ -705,25 +705,28 @@ export default function OfficerDocumentReviewPage() {
                     type="button"
                     onClick={() => handleDecision("approved")}
                     disabled={isSubmittingDecision}
-                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-colors shadow-2xs font-inter"
+                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border border-emerald-200/90 hover:border-emerald-300 bg-emerald-50/80 hover:bg-emerald-100/80 active:bg-emerald-100 dark:border-emerald-800/60 dark:hover:border-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium disabled:opacity-50 cursor-pointer transition-all shadow-2xs font-inter"
                   >
-                    <Check className="h-3.5 w-3.5" /> Approve
+                    <Check className="h-3.5 w-3.5 stroke-[2] text-emerald-600 dark:text-emerald-400" />
+                    <span>Approve</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDecision("needs_revision")}
                     disabled={isSubmittingDecision}
-                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-colors shadow-2xs font-inter"
+                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border border-amber-200/90 hover:border-amber-300 bg-amber-50/80 hover:bg-amber-100/80 active:bg-amber-100 dark:border-amber-800/60 dark:hover:border-amber-700 dark:bg-amber-950/30 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-medium disabled:opacity-50 cursor-pointer transition-all shadow-2xs font-inter"
                   >
-                    <RotateCcw className="h-3.5 w-3.5" /> Revision
+                    <RotateCcw className="h-3.5 w-3.5 stroke-[2] text-amber-600 dark:text-amber-400" />
+                    <span>Revision</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDecision("rejected")}
                     disabled={isSubmittingDecision}
-                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-colors shadow-2xs font-inter"
+                    className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border border-rose-200/90 hover:border-rose-300 bg-rose-50/80 hover:bg-rose-100/80 active:bg-rose-100 dark:border-rose-800/60 dark:hover:border-rose-700 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 text-rose-800 dark:text-rose-300 text-xs font-medium disabled:opacity-50 cursor-pointer transition-all shadow-2xs font-inter"
                   >
-                    <X className="h-3.5 w-3.5" /> Reject
+                    <X className="h-3.5 w-3.5 stroke-[2] text-rose-600 dark:text-rose-400" />
+                    <span>Reject</span>
                   </button>
                 </div>
                 {isSubmittingDecision && (

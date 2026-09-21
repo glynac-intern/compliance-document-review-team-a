@@ -208,9 +208,6 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
           <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter">
             Audit Log
           </h1>
-          <p className="text-xs text-slate-400 font-normal font-inter mt-1">
-            Track document submissions, review decisions, and system events.
-          </p>
         </div>
 
         {/* Action button */}
@@ -347,9 +344,6 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
                   <td className="py-3.5 px-4 min-w-[220px] max-w-[320px]">
                     <p className="text-[12.5px] font-normal text-slate-800 font-inter leading-snug" title={entry.document_title}>
                       {entry.document_title}
-                    </p>
-                    <p className="text-[10.5px] text-slate-400 font-numbers tabular-nums mt-0.5">
-                      {entry.document_id}
                     </p>
                   </td>
 
