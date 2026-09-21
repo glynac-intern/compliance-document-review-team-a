@@ -56,32 +56,32 @@ function renderActivityIcon(type: ActivityItem["type"]) {
   switch (type) {
     case "approved":
       return (
-        <div className="h-8 w-8 rounded-xl bg-slate-50 border border-slate-200/90 text-[#166534] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 transition-colors">
+        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-status-approved-text flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:border-slate-300 dark:group-hover:border-slate-600 transition-colors">
           <Check className="h-4 w-4 stroke-[2.2]" />
         </div>
       );
     case "revision":
       return (
-        <div className="h-8 w-8 rounded-xl bg-slate-50 border border-slate-200/90 text-[#92400e] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 transition-colors">
+        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-status-revision-text flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:border-slate-300 dark:group-hover:border-slate-600 transition-colors">
           <RotateCcw className="h-4 w-4 stroke-[2]" />
         </div>
       );
     case "rejected":
       return (
-        <div className="h-8 w-8 rounded-xl bg-slate-50 border border-slate-200/90 text-[#991b1b] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 transition-colors">
+        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-status-rejected-text flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:border-slate-300 dark:group-hover:border-slate-600 transition-colors">
           <X className="h-4 w-4 stroke-[2.2]" />
         </div>
       );
     case "screening":
       return (
-        <div className="h-8 w-8 rounded-xl bg-slate-50 border border-slate-200/90 text-[#1e4c77] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 transition-colors">
+        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:border-slate-300 dark:group-hover:border-slate-600 transition-colors">
           <Search className="h-4 w-4 stroke-[2]" />
         </div>
       );
     case "submission":
     default:
       return (
-        <div className="h-8 w-8 rounded-xl bg-slate-50 border border-slate-200/90 text-[#1e4c77] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 transition-colors">
+        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white dark:group-hover:bg-slate-700 group-hover:border-slate-300 dark:group-hover:border-slate-600 transition-colors">
           <FileUp className="h-4 w-4 stroke-[1.9]" />
         </div>
       );
@@ -230,16 +230,16 @@ export function RecentActivity({
     : allActivities.slice(0, 4);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-xs font-inter overflow-hidden">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-inter overflow-hidden">
       {/* Header */}
-      <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <History className="h-4 w-4 text-[#1e4c77]" strokeWidth={1.8} />
-          <h2 className="text-sm sm:text-base font-medium text-slate-800 tracking-tight font-inter">
+          <History className="h-4 w-4 text-[#1e4c77] dark:text-[#7fb2e3]" strokeWidth={1.8} />
+          <h2 className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 tracking-tight font-inter">
             {title || (isFullHistory ? "Activity Log" : "Recent Activity")}
           </h2>
           {isFullHistory && allActivities.length > 0 && (
-            <span className="text-[11px] text-slate-400 font-numbers ml-1">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers ml-1">
               ({filteredActivities.length} of {allActivities.length})
             </span>
           )}
@@ -250,13 +250,13 @@ export function RecentActivity({
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
             {/* Search filter for history */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
                 placeholder="Search history..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-48 h-8 pl-8 pr-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e4c77] focus:ring-1 focus:ring-[#1e4c77]/20 transition-all font-inter"
+                className="w-full sm:w-48 h-8 pl-8 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-1 focus:ring-[#1e4c77]/20 dark:focus:ring-[#7fb2e3]/25 transition-all font-inter"
               />
             </div>
 
@@ -276,14 +276,14 @@ export function RecentActivity({
                     "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer font-inter",
                     filterType === f.id
                       ? "bg-[#1e4c77] text-white font-medium shadow-2xs"
-                      : "bg-slate-50 border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-normal"
+                      : "bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-700/80 font-normal"
                   )}
                 >
                   <span>{f.label}</span>
                   <span
                     className={cn(
                       "text-[10px] font-numbers tabular-nums px-1.5 py-0.2 rounded-full",
-                      filterType === f.id ? "bg-white/20 text-white" : "bg-slate-200/70 text-slate-600"
+                      filterType === f.id ? "bg-white/20 text-white" : "bg-slate-200/70 dark:bg-slate-700/70 text-slate-600 dark:text-slate-400"
                     )}
                   >
                     {f.count}
@@ -297,7 +297,7 @@ export function RecentActivity({
             <button
               type="button"
               onClick={onViewAllClick}
-              className="group inline-flex items-center gap-1 text-xs font-normal text-[#1e4c77] hover:text-[#2575bc] transition-colors cursor-pointer font-inter"
+              className="group inline-flex items-center gap-1 text-xs font-normal text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#2575bc] dark:hover:text-[#a6cdf0] transition-colors cursor-pointer font-inter"
             >
               <span>View All</span>
               <ArrowRight
@@ -312,26 +312,26 @@ export function RecentActivity({
       {/* Activities List */}
       {loadError ? (
         <div className="py-10 text-center space-y-2 font-inter px-4">
-          <p className="text-xs font-medium text-rose-600">{loadError}</p>
+          <p className="text-xs font-medium text-rose-600 dark:text-rose-400">{loadError}</p>
           {onRetry && (
             <button
               type="button"
               onClick={onRetry}
-              className="text-xs text-[#1e4c77] hover:underline font-medium cursor-pointer"
+              className="text-xs text-[#1e4c77] dark:text-[#7fb2e3] hover:underline font-medium cursor-pointer"
             >
               Retry
             </button>
           )}
         </div>
       ) : isLoading ? (
-        <div className="py-10 text-center text-slate-400 text-xs font-inter flex items-center justify-center gap-2">
-          <span className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-[#1e4c77] animate-spin" />
+        <div className="py-10 text-center text-slate-400 dark:text-slate-500 text-xs font-inter flex items-center justify-center gap-2">
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-[#1e4c77] dark:border-t-[#7fb2e3] animate-spin" />
           <span>Loading activity...</span>
         </div>
       ) : displayActivities.length === 0 ? (
         <div className="py-10 text-center space-y-2 font-inter">
-          <p className="text-xs font-medium text-slate-600">No activity records found</p>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-400">No activity records found</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
             {searchQuery ? "No entries match your search query." : "Activity events will appear here."}
           </p>
           {searchQuery && (
@@ -341,19 +341,19 @@ export function RecentActivity({
                 setSearchQuery("");
                 setFilterType("all");
               }}
-              className="text-xs text-[#1e4c77] hover:underline font-medium pt-1 cursor-pointer"
+              className="text-xs text-[#1e4c77] dark:text-[#7fb2e3] hover:underline font-medium pt-1 cursor-pointer"
             >
               Reset filters
             </button>
           )}
         </div>
       ) : (
-        <div className="divide-y divide-slate-100 p-2 sm:p-3">
+        <div className="divide-y divide-slate-100 dark:divide-slate-800 p-2 sm:p-3">
           {displayActivities.map((act) => (
             <div
               key={act.id}
               onClick={() => onItemClick && onItemClick(act.documentId)}
-              className="py-3 px-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 rounded-xl transition-all cursor-pointer group font-inter"
+              className="py-3 px-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 rounded-xl transition-all cursor-pointer group font-inter"
             >
               {/* Left: Purposeful Semantic Icon & Clean Details */}
               <div className="flex items-center gap-3.5 min-w-0 flex-1">
@@ -361,17 +361,17 @@ export function RecentActivity({
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[13px] font-medium text-slate-800 group-hover:text-[#1e4c77] transition-colors font-inter">
+                    <span className="text-[13px] font-medium text-slate-800 dark:text-slate-100 group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors font-inter">
                       {act.action}
                     </span>
                     {isFullHistory && (
-                      <span className="text-[11px] text-slate-400 font-numbers px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200/60 shrink-0">
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shrink-0">
                         {act.documentId.slice(0, 13)}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-[12px] text-slate-500 truncate mt-0.5 font-inter">
+                  <p className="text-[12px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-inter">
                     {act.documentTitle}
                   </p>
                 </div>
@@ -379,12 +379,12 @@ export function RecentActivity({
 
               {/* Right: Timestamp & Prompt */}
               <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11.5px] text-slate-400 font-inter font-numbers tabular-nums font-normal">
+                <span className="text-[11.5px] text-slate-400 dark:text-slate-500 font-inter font-numbers tabular-nums font-normal">
                   {act.time}
                 </span>
                 {isFullHistory && (
                   <ArrowRight
-                    className="h-3.5 w-3.5 text-slate-300 group-hover:text-[#1e4c77] group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100"
+                    className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600 group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100"
                     strokeWidth={1.8}
                   />
                 )}

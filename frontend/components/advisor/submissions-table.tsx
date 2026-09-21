@@ -137,12 +137,12 @@ export function SubmissionsTable({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden font-inter">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-inter">
       {/* Overview Header Variant: Clean, uncluttered, showing 5 recent submissions + "View All" button */}
       {variant === "overview" ? (
-        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-base sm:text-lg font-normal text-slate-800 tracking-tight font-inter">
+            <h2 className="text-base sm:text-lg font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter">
               Recent Submissions
             </h2>
           </div>
@@ -151,20 +151,20 @@ export function SubmissionsTable({
             <button
               type="button"
               onClick={onViewMore}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-xs font-normal text-[#1e4c77] hover:text-[#2575bc] transition-all cursor-pointer shadow-2xs font-inter group"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-xs font-normal text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#2575bc] dark:hover:text-[#a6cdf0] transition-all cursor-pointer shadow-2xs font-inter group"
             >
               <span>View All</span>
-              <span className="font-numbers text-slate-400">({documents.length})</span>
+              <span className="font-numbers text-slate-400 dark:text-slate-500">({documents.length})</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
             </button>
           )}
         </div>
       ) : (
         /* Dedicated Full Submissions Header Variant: Search, Status, Sort, Filters — no redundant title */
-        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex flex-col gap-3">
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-normal text-slate-400 font-inter">
-              <span className="font-numbers text-slate-600">{filteredDocuments.length}</span> submission{filteredDocuments.length !== 1 ? "s" : ""}
+            <span className="text-xs font-normal text-slate-400 dark:text-slate-500 font-inter">
+              <span className="font-numbers text-slate-600 dark:text-slate-300">{filteredDocuments.length}</span> submission{filteredDocuments.length !== 1 ? "s" : ""}
               {hasActiveFilters && (
                 <> · <button
                   type="button"
@@ -172,7 +172,7 @@ export function SubmissionsTable({
                     setTypeFilter("all");
                     onResetFilters();
                   }}
-                  className="text-xs font-normal text-[#2575bc] hover:underline cursor-pointer font-inter"
+                  className="text-xs font-normal text-[#2575bc] dark:text-[#7fb2e3] hover:underline cursor-pointer font-inter"
                 >
                   Reset filters
                 </button></>
@@ -184,10 +184,10 @@ export function SubmissionsTable({
           <div className="flex items-center flex-wrap gap-2">
             {/* Search Box with Elegant Brand Theme Gradient Border & Offset on Focus */}
             <div className="relative flex-1 sm:w-64 min-w-[190px]">
-              <div className="relative rounded-xl p-[1px] bg-slate-200 transition-all duration-200 focus-within:bg-gradient-to-r focus-within:from-[#1e4c77] focus-within:to-[#2575bc] focus-within:shadow-[0_0_0_3px_rgba(37,117,188,0.15)] group">
-                <div className="relative flex items-center bg-[#f4f6f8] rounded-[11px] group-focus-within:bg-white transition-colors">
+              <div className="relative rounded-xl p-[1px] bg-slate-200 dark:bg-slate-700 transition-all duration-200 focus-within:bg-gradient-to-r focus-within:from-[#1e4c77] focus-within:to-[#2575bc] focus-within:shadow-[0_0_0_3px_rgba(37,117,188,0.15)] group">
+                <div className="relative flex items-center bg-[#f4f6f8] dark:bg-slate-800 rounded-[11px] group-focus-within:bg-white dark:group-focus-within:bg-slate-800 transition-colors">
                   <Search
-                    className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 group-focus-within:text-[#1e4c77] transition-colors"
+                    className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-[#1e4c77] dark:group-focus-within:text-[#7fb2e3] transition-colors"
                     strokeWidth={1.8}
                   />
                   <input
@@ -195,13 +195,13 @@ export function SubmissionsTable({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder="Search submissions..."
-                    className="w-full h-9 pl-9 pr-7 rounded-[11px] bg-transparent text-xs font-normal font-inter text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                    className="w-full h-9 pl-9 pr-7 rounded-[11px] bg-transparent text-xs font-normal font-inter text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => onSearchChange("")}
-                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                     >
                       <X className="h-3.5 w-3.5" strokeWidth={1.8} />
                     </button>
@@ -215,7 +215,7 @@ export function SubmissionsTable({
               <select
                 value={statusFilter}
                 onChange={(e) => onStatusFilterChange(e.target.value)}
-                className="h-9 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-normal font-inter text-slate-700 pl-3 pr-8 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all cursor-pointer appearance-none"
+                className="h-9 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-700 dark:text-slate-300 pl-3 pr-8 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none"
               >
                 <option value="all">Status: All</option>
                 <option value="pending">Pending Review</option>
@@ -223,7 +223,7 @@ export function SubmissionsTable({
                 <option value="needs_revision">Needs Revision</option>
                 <option value="rejected">Rejected</option>
               </select>
-              <ChevronDown className="absolute right-2.5 top-3 h-3 w-3 text-slate-400 pointer-events-none" strokeWidth={1.8} />
+              <ChevronDown className="absolute right-2.5 top-3 h-3 w-3 text-slate-400 dark:text-slate-500 pointer-events-none" strokeWidth={1.8} />
             </div>
 
             {/* Last Updated Sorting */}
@@ -231,13 +231,13 @@ export function SubmissionsTable({
               <select
                 value={sortBy}
                 onChange={(e) => onSortByChange(e.target.value as "newest" | "oldest" | "title")}
-                className="h-9 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-normal font-inter text-slate-700 pl-3 pr-8 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all cursor-pointer appearance-none"
+                className="h-9 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-700 dark:text-slate-300 pl-3 pr-8 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none"
               >
                 <option value="newest">Last Updated</option>
                 <option value="oldest">Oldest First</option>
                 <option value="title">Title A-Z</option>
               </select>
-              <ArrowUpDown className="absolute right-2.5 top-3 h-3 w-3 text-slate-400 pointer-events-none" strokeWidth={1.8} />
+              <ArrowUpDown className="absolute right-2.5 top-3 h-3 w-3 text-slate-400 dark:text-slate-500 pointer-events-none" strokeWidth={1.8} />
             </div>
 
             {/* Filters Toggle Button */}
@@ -248,7 +248,7 @@ export function SubmissionsTable({
                 "h-9 px-3 rounded-xl border text-xs font-normal font-inter flex items-center gap-1.5 transition-all cursor-pointer",
                 showAdvancedFilters || typeFilter !== "all"
                   ? "bg-[#1e4c77] text-white border-[#1e4c77] shadow-xs"
-                  : "bg-[#f4f6f8] border-slate-200 text-slate-700 hover:bg-slate-200/70"
+                  : "bg-[#f4f6f8] dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700/70"
               )}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -260,8 +260,8 @@ export function SubmissionsTable({
 
       {/* Advanced Filter Drawer (Only active when in full mode and toggled) */}
       {variant === "full" && showAdvancedFilters && (
-        <div className="bg-slate-50/80 px-5 sm:px-6 py-3 border-b border-slate-200 flex items-center gap-2 flex-wrap text-xs font-inter font-normal">
-          <span className="text-slate-600 font-normal">Document Type:</span>
+        <div className="bg-slate-50/80 dark:bg-slate-800/40 px-5 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 flex-wrap text-xs font-inter font-normal">
+          <span className="text-slate-600 dark:text-slate-400 font-normal">Document Type:</span>
           {["all", "Presentation / Deck", "Client Letter", "Promotional Brochure", "Social Media Post"].map(
             (t) => (
               <button
@@ -272,7 +272,7 @@ export function SubmissionsTable({
                   "px-2.5 py-1 rounded-lg transition-colors cursor-pointer font-normal font-inter",
                   typeFilter === t
                     ? "bg-[#1e4c77] text-white"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                    : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
                 )}
               >
                 {t === "all" ? "All Types" : t}
@@ -287,7 +287,7 @@ export function SubmissionsTable({
         <table className="w-full text-left border-collapse">
           <thead>
             {/* Headers: Non-bold, CamelCase Inter font */}
-            <tr className="border-b border-slate-100 bg-[#f8fafc]/90 text-[12px] font-normal text-slate-400 font-inter tracking-normal">
+            <tr className="border-b border-slate-100 dark:border-slate-800 bg-[#f8fafc]/90 dark:bg-slate-800/60 text-[12px] font-normal text-slate-400 dark:text-slate-500 font-inter tracking-normal">
               <th className="py-3 px-5 sm:px-6 font-normal">
                 {variant === "overview" ? "Document Name" : "Document Name & ID"}
               </th>
@@ -302,7 +302,7 @@ export function SubmissionsTable({
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-xs">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
             {loadError ? (
               <tr>
                 <td colSpan={variant === "full" ? 6 : 5} className="py-12 px-4 text-center">
@@ -313,9 +313,9 @@ export function SubmissionsTable({
               </tr>
             ) : isLoading ? (
               <tr>
-                <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center text-slate-400 font-inter">
+                <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center text-slate-400 dark:text-slate-500 font-inter">
                   <div className="flex items-center justify-center gap-2">
-                    <span className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-[#1e4c77] animate-spin" />
+                    <span className="h-4 w-4 rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-[#1e4c77] dark:border-t-[#7fb2e3] animate-spin" />
                     <span>Loading submissions...</span>
                   </div>
                 </td>
@@ -324,19 +324,19 @@ export function SubmissionsTable({
               <tr>
                 <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center">
                   <div className="max-w-xs mx-auto flex flex-col items-center">
-                    <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                    <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3">
                       <FileText className="h-5 w-5" strokeWidth={1.8} />
                     </div>
                     {documents.length === 0 ? (
-                      <p className="text-sm font-normal text-slate-800 font-inter">
+                      <p className="text-sm font-normal text-slate-800 dark:text-slate-100 font-inter">
                         No data available yet.
                       </p>
                     ) : (
                       <>
-                        <p className="text-sm font-normal text-slate-800 font-inter">
+                        <p className="text-sm font-normal text-slate-800 dark:text-slate-100 font-inter">
                           No matching submissions
                         </p>
-                        <p className="text-xs text-slate-400 mt-1 font-inter font-normal">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-inter font-normal">
                           No documents match the current filter or search criteria.
                         </p>
                         <button
@@ -345,7 +345,7 @@ export function SubmissionsTable({
                             setTypeFilter("all");
                             onResetFilters();
                           }}
-                          className="mt-3 text-xs font-normal text-[#1e4c77] hover:underline cursor-pointer font-inter"
+                          className="mt-3 text-xs font-normal text-[#1e4c77] dark:text-[#7fb2e3] hover:underline cursor-pointer font-inter"
                         >
                           Reset all filters
                         </button>
@@ -363,19 +363,19 @@ export function SubmissionsTable({
                   <tr
                     key={doc.id}
                     onClick={() => onSelectDocument(doc)}
-                    className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                   >
                     {/* Document Title & Distinguishable Format Icon */}
                     <td className={cn("px-5 sm:px-6", compact ? "py-1.5" : "py-3.5")}>
                       <div className="flex items-center gap-3">
                         <FileTypeIcon filename={doc.title} type={doc.type} size="md" />
                         <div className="min-w-0 max-w-[260px] sm:max-w-xs md:max-w-md">
-                          <p className="font-normal text-slate-800 truncate group-hover:text-[#1e4c77] transition-colors text-[13px] font-inter">
+                          <p className="font-normal text-slate-800 dark:text-slate-200 truncate group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors text-[13px] font-inter">
                             {doc.title}
                           </p>
                           {variant === "full" && (
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 font-inter font-normal">
-                              <span className="font-normal font-numbers text-slate-400">{doc.id}</span>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 font-inter font-normal">
+                              <span className="font-normal font-numbers text-slate-400 dark:text-slate-500">{doc.id}</span>
                               <span>·</span>
                               <span className="font-numbers">v{doc.version}</span>
                               <span>·</span>
@@ -387,12 +387,12 @@ export function SubmissionsTable({
                     </td>
 
                     {/* Document Type */}
-                    <td className={cn("px-3 whitespace-nowrap text-slate-600 font-normal font-inter text-[12.5px]", compact ? "py-1.5" : "py-3.5")}>
+                    <td className={cn("px-3 whitespace-nowrap text-slate-600 dark:text-slate-400 font-normal font-inter text-[12.5px]", compact ? "py-1.5" : "py-3.5")}>
                       {doc.type}
                     </td>
 
                     {/* Submitted Date */}
-                    <td className={cn("px-3 whitespace-nowrap text-slate-500 font-numbers text-[12px] tabular-nums font-normal", compact ? "py-1.5" : "py-3.5")}>
+                    <td className={cn("px-3 whitespace-nowrap text-slate-500 dark:text-slate-400 font-numbers text-[12px] tabular-nums font-normal", compact ? "py-1.5" : "py-3.5")}>
                       {formatDate(doc.uploaded_at)}
                     </td>
 
@@ -404,11 +404,11 @@ export function SubmissionsTable({
                     {/* Reviewer */}
                     <td className={cn("px-3 whitespace-nowrap", compact ? "py-1.5" : "py-3.5", variant === "overview" && "pr-5 sm:pr-6")}>
                       {doc.officer_name ? (
-                        <span className="text-[12px] font-normal font-inter text-slate-600">
+                        <span className="text-[12px] font-normal font-inter text-slate-600 dark:text-slate-400">
                           {doc.officer_name}
                         </span>
                       ) : (
-                        <span className="text-[12px] text-slate-400 italic font-inter font-normal">
+                        <span className="text-[12px] text-slate-400 dark:text-slate-500 italic font-inter font-normal">
                           Assigned to Queue
                         </span>
                       )}
@@ -424,18 +424,18 @@ export function SubmissionsTable({
                           <button
                             type="button"
                             onClick={() => onReviseClick(doc)}
-                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 bg-white hover:bg-[#ebf4fb]/50 hover:border-[#1e4c77]/30 text-slate-700 hover:text-[#1e4c77] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
+                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#ebf4fb]/50 dark:hover:bg-[#7fb2e3]/10 hover:border-[#1e4c77]/30 dark:hover:border-[#7fb2e3]/30 text-slate-700 dark:text-slate-300 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
                           >
-                            <Edit3 className="h-3.5 w-3.5 stroke-[1.8] text-[#1e4c77]" />
+                            <Edit3 className="h-3.5 w-3.5 stroke-[1.8] text-[#1e4c77] dark:text-[#7fb2e3]" />
                             <span>Revise</span>
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => onSelectDocument(doc)}
-                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 bg-white hover:bg-[#ebf4fb]/50 hover:border-[#1e4c77]/30 text-slate-700 hover:text-[#1e4c77] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
+                            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#ebf4fb]/50 dark:hover:bg-[#7fb2e3]/10 hover:border-[#1e4c77]/30 dark:hover:border-[#7fb2e3]/30 text-slate-700 dark:text-slate-300 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] text-xs font-normal font-inter transition-all shadow-2xs cursor-pointer group select-none"
                           >
-                            <Eye className="h-3.5 w-3.5 stroke-[1.8] text-slate-400 group-hover:text-[#1e4c77] transition-colors" />
+                            <Eye className="h-3.5 w-3.5 stroke-[1.8] text-slate-400 dark:text-slate-500 group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors" />
                             <span>View</span>
                           </button>
                         )}
@@ -451,17 +451,17 @@ export function SubmissionsTable({
 
       {/* Table Footer */}
       {variant === "overview" ? (
-        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 bg-[#f8fafc]/80 flex items-center justify-between text-xs font-inter font-normal text-slate-400">
+        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-[#f8fafc]/80 dark:bg-slate-800/40 flex items-center justify-between text-xs font-inter font-normal text-slate-400 dark:text-slate-500">
           <span>
-            Showing <span className="font-numbers text-slate-600">5</span> of{" "}
-            <span className="font-numbers text-slate-600">{documents.length}</span> submissions
+            Showing <span className="font-numbers text-slate-600 dark:text-slate-300">5</span> of{" "}
+            <span className="font-numbers text-slate-600 dark:text-slate-300">{documents.length}</span> submissions
           </span>
         </div>
       ) : (
-        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 bg-[#f8fafc]/80 flex items-center justify-between text-xs font-inter font-normal text-slate-400">
+        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-[#f8fafc]/80 dark:bg-slate-800/40 flex items-center justify-between text-xs font-inter font-normal text-slate-400 dark:text-slate-500">
           <span>
-            Showing <span className="font-numbers text-slate-600">{filteredDocuments.length}</span> of{" "}
-            <span className="font-numbers text-slate-600">{documents.length}</span> submissions
+            Showing <span className="font-numbers text-slate-600 dark:text-slate-300">{filteredDocuments.length}</span> of{" "}
+            <span className="font-numbers text-slate-600 dark:text-slate-300">{documents.length}</span> submissions
           </span>
           {hasActiveFilters && (
             <button
@@ -470,7 +470,7 @@ export function SubmissionsTable({
                 setTypeFilter("all");
                 onResetFilters();
               }}
-              className="text-xs font-normal font-inter text-[#1e4c77] hover:underline cursor-pointer"
+              className="text-xs font-normal font-inter text-[#1e4c77] dark:text-[#7fb2e3] hover:underline cursor-pointer"
             >
               Clear active filters
             </button>
