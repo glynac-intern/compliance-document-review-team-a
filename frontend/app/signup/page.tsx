@@ -273,7 +273,7 @@ export default function SignupPage() {
           <button
             type="button"
             onClick={() => router.push("/login")}
-            className="font-semibold text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline font-inter cursor-pointer"
+            className="font-semibold text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline font-inter cursor-pointer"
           >
             Sign in
           </button>

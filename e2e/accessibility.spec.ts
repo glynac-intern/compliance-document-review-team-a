@@ -111,6 +111,9 @@ test.describe("Accessibility: Login Page (TA-134)", () => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
 
+    await setLightMode(page);
+    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+
     const result = await runAxeScan(page);
     expect(
       result.failing,
@@ -141,6 +144,11 @@ test.describe("Accessibility: Signup Page (TA-134)", () => {
 
   test("signup page passes axe scan in light mode", async ({ page }) => {
     await page.goto("/signup");
+    await expect(
+      page.getByRole("heading", { name: /create.*account|sign up/i })
+    ).toBeVisible();
+
+    await setLightMode(page);
     await expect(
       page.getByRole("heading", { name: /create.*account|sign up/i })
     ).toBeVisible();

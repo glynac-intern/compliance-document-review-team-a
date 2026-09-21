@@ -125,7 +125,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 overflow-hidden font-inter">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#1a5f9e] bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 overflow-hidden font-inter">
       {/* Soft background ambient radial lighting */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
 
@@ -146,7 +146,7 @@ function LoginForm() {
 
         {/* LEFT PANEL — Artistic Blue Panel with 3D Spheres & Swipable Cards */}
         <div
-          className="relative lg:w-[48%] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none font-inter"
+          className="relative lg:w-[48%] bg-[#124c82] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none font-inter"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onTouchStart={handleTouchStart}
@@ -211,7 +211,7 @@ function LoginForm() {
                     </h2>
 
                     {/* Shortened, elegant descriptive paragraph */}
-                    <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-blue-50/90 font-inter font-normal max-w-[340px]">
+                    <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-white font-inter font-normal max-w-[340px]">
                       {card.description}
                     </p>
                   </div>
@@ -245,7 +245,7 @@ function LoginForm() {
                 type="button"
                 onClick={prevSlide}
                 aria-label="Previous card"
-                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
+                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -253,7 +253,7 @@ function LoginForm() {
                 type="button"
                 onClick={nextSlide}
                 aria-label="Next card"
-                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
+                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -278,7 +278,7 @@ function LoginForm() {
             <div className="lg:hidden mb-6">
               <VerityLogo
                 size={22}
-                markClassName="text-[#2575bc]"
+                markClassName="text-[#1e4c77] dark:text-[#7fb2e3]"
                 wordmarkClassName="text-slate-900 dark:text-slate-100 text-[14px] tracking-[0.2em]"
               />
             </div>
@@ -327,7 +327,7 @@ function LoginForm() {
                       setError(null);
                     }}
                     placeholder="Email"
-                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                 </div>
@@ -354,14 +354,14 @@ function LoginForm() {
                       setError(null);
                     }}
                     placeholder="Password"
-                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] transition-colors shrink-0 cursor-pointer select-none font-inter"
+                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] transition-colors shrink-0 cursor-pointer select-none font-inter"
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
@@ -385,7 +385,7 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => alert("Password reset link sent to registered enterprise email.")}
-                  className="text-[12px] font-medium text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline transition-colors font-inter"
+                  className="text-[12px] font-medium text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline transition-colors font-inter"
                 >
                   Forgot Password?
                 </button>
