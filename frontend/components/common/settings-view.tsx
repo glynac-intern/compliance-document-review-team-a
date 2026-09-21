@@ -22,27 +22,8 @@ import {
   DEFAULT_SETTINGS,
   loadSettings,
   saveSettings,
+  applyTheme,
 } from "@/lib/user-settings";
-
-/* ------------------------------------------------------------------ */
-/*  Theme application — toggles the `dark` class on <html>             */
-/* ------------------------------------------------------------------ */
-
-function applyTheme(mode: ThemeMode) {
-  const root = document.documentElement;
-  if (mode === "dark") {
-    root.classList.add("dark");
-  } else if (mode === "light") {
-    root.classList.remove("dark");
-  } else {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (prefersDark) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }
-}
 
 /* ------------------------------------------------------------------ */
 /*  Reusable sub-components                                            */
