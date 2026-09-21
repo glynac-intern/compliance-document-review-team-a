@@ -320,12 +320,14 @@ officerTest.describe("Error, Empty, and Degraded States (TA-133)", () => {
 
       await page.goto(`/officer/documents/${TEST_DOC_ID}`);
 
-      // Verify zero flags message and approved recommendation
+      // Verify the analysis summary is shown
+      await expect(
+        page.getByText("Comprehensive compliance audit completed.")
+      ).toBeVisible();
+
+      // Verify zero flags message is rendered in the AI assist chat
       await expect(
         page.getByText("No regulatory flags detected in this submission.")
-      ).toBeVisible();
-      await expect(
-        page.getByText("Approved: Document meets regulatory compliance standards.")
       ).toBeVisible();
     }
   );

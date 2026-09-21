@@ -127,6 +127,14 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
             for a in analyses:
                 db.delete(a)
 
+        # Break self-referencing FK chain before deleting documents.
+        # PostgreSQL enforces documents.replaces_document_id → documents.id,
+        # so we must null out the references first to avoid ordering issues.
+        for d in test_docs:
+            if d.replaces_document_id is not None:
+                d.replaces_document_id = None
+        db.flush()
+
         # Documents
         for d in test_docs:
             db.delete(d)
