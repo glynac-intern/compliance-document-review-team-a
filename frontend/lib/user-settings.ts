@@ -49,3 +49,37 @@ export function saveSettings(s: UserSettings) {
     // localStorage full or unavailable — fail silently
   }
 }
+
+export function applyTheme(mode: ThemeMode) {
+  if (typeof window === "undefined") return;
+  const root = document.documentElement;
+  if (mode === "dark") {
+    root.classList.add("dark");
+  } else if (mode === "light") {
+    root.classList.remove("dark");
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (prefersDark) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }
+}
+
+export function initThemeListener(): () => void {
+  if (typeof window === "undefined") return () => {};
+  const settings = loadSettings();
+  applyTheme(settings.theme);
+
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  const handler = () => {
+    const current = loadSettings();
+    if (current.theme === "system") {
+      applyTheme("system");
+    }
+  };
+  mq.addEventListener("change", handler);
+  return () => mq.removeEventListener("change", handler);
+}
+

@@ -19,6 +19,7 @@ import {
   type UserRole,
   type UserResponse,
 } from "./api-client";
+import { initThemeListener } from "./user-settings";
 
 interface DecodedToken {
   sub: string; // user id
@@ -105,6 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     applyToken(null);
     router.push("/login");
   }, [applyToken, router]);
+
+  // Initialize and synchronize theme (light / dark / system) globally
+  React.useEffect(() => {
+    return initThemeListener();
+  }, []);
 
   // Hydrate from localStorage on mount -- this is what makes the
   // session survive a page reload, not just an in-memory React state.

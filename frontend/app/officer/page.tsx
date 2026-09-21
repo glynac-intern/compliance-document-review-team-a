@@ -400,19 +400,19 @@ export default function OfficerDashboardPage() {
                 </div>
 
                 {/* Queue pill indicators */}
-                <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 font-inter shadow-2xs self-start sm:self-auto">
+                <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 font-inter shadow-2xs self-start sm:self-auto">
                   <span className="flex items-center gap-1">
-                    <span className="font-numbers tabular-nums font-semibold text-slate-800">
+                    <span className="font-numbers tabular-nums font-semibold text-slate-800 dark:text-slate-100">
                       {queueCounts.pending}
                     </span>{" "}
                     pending
                   </span>
                   {queueCounts.highRisk > 0 && (
                     <>
-                      <span className="h-3 w-px bg-slate-200" />
+                      <span className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
                       <span className="flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3 text-[#92400e]" />
-                        <span className="font-numbers tabular-nums text-[#92400e] font-medium">
+                        <AlertTriangle className="h-3 w-3 text-[#92400e] dark:text-amber-400" />
+                        <span className="font-numbers tabular-nums text-[#92400e] dark:text-amber-400 font-medium">
                           {queueCounts.highRisk}
                         </span>{" "}
                         high risk
@@ -426,13 +426,13 @@ export default function OfficerDashboardPage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search pending documents, advisors, or IDs..."
-                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 font-inter transition-all focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#1e4c77] focus:bg-white"
+                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-inter transition-all focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:bg-white dark:focus:bg-slate-800"
                   />
                 </div>
 
@@ -441,15 +441,15 @@ export default function OfficerDashboardPage() {
                   <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
-                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
+                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 font-inter appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:border-transparent transition-all"
                   >
                     {TYPE_FILTERS.map((f) => (
-                      <option key={f.value} value={f.value}>
+                      <option key={f.value} value={f.value} className="dark:bg-slate-800 dark:text-slate-100">
                         {f.label}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 </div>
 
                 {/* Advisor Filter (TA-94) */}
@@ -457,15 +457,15 @@ export default function OfficerDashboardPage() {
                   <select
                     value={advisorFilter}
                     onChange={(e) => setAdvisorFilter(e.target.value)}
-                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
+                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 font-inter appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:border-transparent transition-all"
                   >
                     {advisorOptions.map((a) => (
-                      <option key={a.value} value={a.value}>
+                      <option key={a.value} value={a.value} className="dark:bg-slate-800 dark:text-slate-100">
                         {a.label}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 </div>
 
                 {/* Sort */}
@@ -473,25 +473,25 @@ export default function OfficerDashboardPage() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 font-inter appearance-none cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] focus:border-transparent transition-all"
+                    className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 font-inter appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:border-transparent transition-all"
                   >
                     {SORT_OPTIONS.map((s) => (
-                      <option key={s.value} value={s.value}>
+                      <option key={s.value} value={s.value} className="dark:bg-slate-800 dark:text-slate-100">
                         {s.label}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                 </div>
               </div>
 
               {/* Error Banner */}
               {error && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 mb-4 font-inter">
+                <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-3 text-xs text-rose-700 dark:text-rose-300 mb-4 font-inter">
                   {error}{" "}
                   <button
                     onClick={handleRefresh}
-                    className="underline text-rose-900 hover:text-rose-700 font-medium cursor-pointer"
+                    className="underline text-rose-900 dark:text-rose-200 hover:text-rose-700 dark:hover:text-rose-100 font-medium cursor-pointer"
                   >
                     Retry
                   </button>
@@ -499,43 +499,43 @@ export default function OfficerDashboardPage() {
               )}
 
               {/* Queue Table */}
-              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
                 {isLoading ? (
                   // Loading skeleton
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <div key={i} className="flex items-center gap-4 px-4 py-4">
-                        <div className="h-8 w-8 rounded-lg bg-slate-100 animate-pulse" />
+                        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 w-48 bg-slate-100 rounded animate-pulse" />
-                          <div className="h-2.5 w-32 bg-slate-50 rounded animate-pulse" />
+                          <div className="h-3 w-48 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                          <div className="h-2.5 w-32 bg-slate-50 dark:bg-slate-800/60 rounded animate-pulse" />
                         </div>
-                        <div className="h-3 w-20 bg-slate-100 rounded animate-pulse" />
-                        <div className="h-3 w-16 bg-slate-50 rounded animate-pulse" />
+                        <div className="h-3 w-20 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                        <div className="h-3 w-16 bg-slate-50 dark:bg-slate-800/60 rounded animate-pulse" />
                       </div>
                     ))}
                   </div>
                 ) : filteredDocuments.length === 0 ? (
                   // Empty state
                   <div className="p-12 text-center">
-                    <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                    <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-3">
                       <Inbox className="h-5 w-5" />
                     </div>
                     {documents.length === 0 ? (
                       <>
-                        <p className="text-sm font-semibold text-slate-700 font-inter">
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-inter">
                           All caught up!
                         </p>
-                        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto font-inter">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto font-inter">
                           There are no pending submissions in the review queue.
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-semibold text-slate-700 font-inter">
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-inter">
                           No matching submissions
                         </p>
-                        <p className="text-xs text-slate-400 mt-1 font-inter">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-inter">
                           Try adjusting your search query or filters.
                         </p>
                       </>
@@ -545,25 +545,25 @@ export default function OfficerDashboardPage() {
                   // Real Table
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider font-inter">
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
+                      <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-inter">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
                           Document
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
                           Advisor
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
                           Status
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
                           Type
                         </th>
-                        <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-400 tracking-normal">
+                        <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
                           Submitted
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {filteredDocuments.map((doc) => {
                         const days = daysInQueue(doc.uploaded_at);
 
@@ -571,7 +571,7 @@ export default function OfficerDashboardPage() {
                           <tr
                             key={doc.id}
                             onClick={() => router.push(`/officer/documents/${doc.id}`)}
-                            className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                            className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                           >
                             {/* Document Name & ID */}
                             <td className={cn("px-4", compactRows ? "py-1.5" : "py-3.5")}>
@@ -583,11 +583,11 @@ export default function OfficerDashboardPage() {
                                 />
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
-                                    <p className="text-[13px] font-normal text-slate-800 truncate max-w-[260px] font-inter">
+                                    <p className="text-[13px] font-normal text-slate-800 dark:text-slate-200 truncate max-w-[260px] font-inter">
                                       {doc.title}
                                     </p>
                                     {(doc.replaces_document_id || doc.revision_notes) && (
-                                      <span className="rounded-md bg-blue-50 border border-blue-200/80 px-1.5 py-0.5 text-[10px] font-medium text-[#1e4c77] shrink-0 font-inter">
+                                      <span className="rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 px-1.5 py-0.5 text-[10px] font-medium text-[#1e4c77] dark:text-[#7fb2e3] shrink-0 font-inter">
                                         Revision
                                       </span>
                                     )}
@@ -597,7 +597,7 @@ export default function OfficerDashboardPage() {
                             </td>
 
                             {/* Advisor */}
-                            <td className={cn("px-4 text-[13px] text-slate-600 font-inter font-normal", compactRows ? "py-1.5" : "py-3.5")}>
+                            <td className={cn("px-4 text-[13px] text-slate-600 dark:text-slate-300 font-inter font-normal", compactRows ? "py-1.5" : "py-3.5")}>
                               {doc.advisor_name}
                             </td>
 
@@ -608,7 +608,7 @@ export default function OfficerDashboardPage() {
                                 <div
                                   className={cn(
                                     "flex items-center gap-1 mt-1 text-[10px] font-inter",
-                                    doc.advisor_viewed_decision ? "text-slate-400" : "text-[#1e4c77]"
+                                    doc.advisor_viewed_decision ? "text-slate-400 dark:text-slate-500" : "text-[#1e4c77] dark:text-[#7fb2e3]"
                                   )}
                                 >
                                   {doc.advisor_viewed_decision ? (
@@ -627,21 +627,21 @@ export default function OfficerDashboardPage() {
                             </td>
 
                             {/* Type */}
-                            <td className={cn("px-4 text-[13px] text-slate-500 font-inter font-normal", compactRows ? "py-1.5" : "py-3.5")}>
+                            <td className={cn("px-4 text-[13px] text-slate-500 dark:text-slate-400 font-inter font-normal", compactRows ? "py-1.5" : "py-3.5")}>
                               {doc.type}
                             </td>
 
                             {/* Submitted */}
                             <td className={cn("px-4", compactRows ? "py-1.5" : "py-3.5")}>
                               <div className="text-right">
-                                <p className="text-[12px] text-slate-500 font-inter">
+                                <p className="text-[12px] text-slate-500 dark:text-slate-400 font-inter">
                                   {formatRelativeDate(doc.uploaded_at)}
                                 </p>
                                 {days > 0 && doc.status === "pending_review" && (
                                   <p
                                     className={cn(
                                       "text-[10px] mt-0.5 font-numbers tabular-nums",
-                                      days >= 3 ? "text-[#92400e]" : "text-slate-400"
+                                      days >= 3 ? "text-[#92400e] dark:text-amber-400" : "text-slate-400 dark:text-slate-500"
                                     )}
                                   >
                                     {days}d in queue
@@ -659,13 +659,13 @@ export default function OfficerDashboardPage() {
 
               {/* Results count */}
               {!isLoading && filteredDocuments.length > 0 && (
-                <p className="text-[11px] text-slate-400 mt-3 font-inter">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-3 font-inter">
                   Showing{" "}
-                  <span className="font-numbers tabular-nums font-medium text-slate-500">
+                  <span className="font-numbers tabular-nums font-medium text-slate-500 dark:text-slate-400">
                     {filteredDocuments.length}
                   </span>{" "}
                   of{" "}
-                  <span className="font-numbers tabular-nums font-medium text-slate-500">
+                  <span className="font-numbers tabular-nums font-medium text-slate-500 dark:text-slate-400">
                     {documents.length}
                   </span>{" "}
                   submissions
