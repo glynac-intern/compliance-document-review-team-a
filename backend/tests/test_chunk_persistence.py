@@ -7,7 +7,7 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
-from models import DocumentChunk, AIAnalysis, AnalysisStatus
+from models import DocumentChunk
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 

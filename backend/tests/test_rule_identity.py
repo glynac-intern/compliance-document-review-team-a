@@ -75,7 +75,7 @@ def test_removed_rule_is_marked_inactive_not_deleted(db_session):
         db_session.query(Rule)
         .filter(Rule.seed_id.isnot(None))
         .filter(~Rule.seed_id.in_(current_seed_ids))
-        .filter(Rule.is_active == True)
+        .filter(Rule.is_active)
         .all()
     )
     for r in orphaned:

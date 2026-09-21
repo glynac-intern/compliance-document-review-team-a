@@ -17,7 +17,6 @@ FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 def test_upload_dir_is_configurable_via_env_var():
     import documents.router as router_module
-    import importlib
 
     # UPLOAD_DIR should read from the environment, not be hardcoded
     assert os.environ.get("UPLOAD_DIR") or str(router_module.UPLOAD_DIR) == "/app/uploads"

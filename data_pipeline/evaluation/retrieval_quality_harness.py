@@ -142,7 +142,7 @@ def evaluate_rule_lookup(db, sample: list[dict], per_doc_chunk_embeddings: list,
 def evaluate_chunk_size_comparison(db, sample: list[dict], per_doc_chunk_embeddings: list,
                                     whole_doc_embeddings: list) -> dict:
     rules = db.query(Rule).filter(Rule.type.in_(("prohibited_claim", "performance_standard")),
-                                   Rule.is_active == True).all()
+                                   Rule.is_active).all()
 
     def _accuracy(embeddings_per_doc, top_k=3):
         hits = 0
@@ -173,7 +173,7 @@ def evaluate_chunk_size_comparison(db, sample: list[dict], per_doc_chunk_embeddi
 
 def evaluate_distance_metric_comparison(db, sample: list[dict], per_doc_chunk_embeddings: list) -> dict:
     rules = db.query(Rule).filter(Rule.type.in_(("prohibited_claim", "performance_standard")),
-                                   Rule.is_active == True).all()
+                                   Rule.is_active).all()
 
     results = {}
     for metric_name, metric_fn in DISTANCE_METRICS.items():
@@ -202,7 +202,7 @@ def evaluate_disclosure_absence(db, sample: list[dict], per_doc_chunk_embeddings
                                  thresholds: list[float]) -> dict:
     print(f"\nDisclosure absence: evaluating {len(sample)} documents")
 
-    disclosure_rules = db.query(Rule).filter(Rule.type == "disclosure", Rule.is_active == True).all()
+    disclosure_rules = db.query(Rule).filter(Rule.type == "disclosure", Rule.is_active).all()
     disclosure_embeddings = [r.embedding for r in disclosure_rules]
 
     doc_results = []
