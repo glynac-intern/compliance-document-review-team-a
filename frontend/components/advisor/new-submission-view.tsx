@@ -121,12 +121,12 @@ export function NewSubmissionView({
   const getFileFormatBadge = (fileName: string) => {
     const ext = fileName.split(".").pop()?.toUpperCase() || "DOC";
     if (ext === "PDF") {
-      return { label: "PDF", bg: "bg-rose-50 text-rose-700 border-rose-200" };
+      return { label: "PDF", bg: "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" };
     }
     if (ext === "XLSX" || ext === "XLS") {
-      return { label: "XLSX", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+      return { label: "XLSX", bg: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" };
     }
-    return { label: "DOCX", bg: "bg-blue-50 text-blue-700 border-blue-200" };
+    return { label: "DOCX", bg: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -184,7 +184,7 @@ export function NewSubmissionView({
   return (
     <div className="max-w-4xl space-y-6 font-inter">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div>
           <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter">
             New Document Submission
@@ -196,7 +196,7 @@ export function NewSubmissionView({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="h-9 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-normal text-slate-600 transition-all cursor-pointer disabled:opacity-50 font-inter"
+            className="h-9 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-normal text-slate-600 dark:text-slate-300 transition-all cursor-pointer disabled:opacity-50 font-inter"
           >
             Cancel
           </button>
@@ -223,12 +223,12 @@ export function NewSubmissionView({
 
       {/* Progress Bar (TA-63) */}
       {isSubmitting && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 space-y-1.5 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between text-xs font-inter text-slate-700">
+        <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/30 p-4 space-y-1.5 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between text-xs font-inter text-slate-700 dark:text-slate-300">
             <span className="font-medium">Uploading document to Compliance Vault...</span>
             <span className="font-numbers">{uploadProgress}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-blue-200/50 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-blue-200/50 dark:bg-blue-900/50 overflow-hidden">
             <div
               className="h-full bg-[#1e4c77] transition-all duration-150 rounded-full"
               style={{ width: `${uploadProgress}%` }}
@@ -240,13 +240,13 @@ export function NewSubmissionView({
       {/* Main Submission Form */}
       <div className="space-y-5">
         {error && (
-          <div className="flex items-start gap-2.5 rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-800 animate-in fade-in duration-150">
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+          <div className="flex items-start gap-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 p-3.5 text-xs text-rose-800 dark:text-rose-200 animate-in fade-in duration-150">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
             <div className="flex-1 font-inter">{error}</div>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="text-rose-500 hover:text-rose-700 cursor-pointer"
+              className="text-rose-500 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -254,15 +254,15 @@ export function NewSubmissionView({
         )}
 
         {/* Section 1: File Upload Zone */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xs">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-sm font-medium text-slate-800 font-inter">
-                Document File <span className="text-rose-500">*</span>
+              <h2 className="text-sm font-medium text-slate-800 dark:text-slate-100 font-inter">
+                Document File <span className="text-rose-500 dark:text-rose-400">*</span>
               </h2>
             </div>
             {file && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-inter font-normal">
+              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 font-inter font-normal">
                 <CheckCircle2 className="h-3 w-3" />
                 <span>File validated</span>
               </span>
@@ -287,29 +287,29 @@ export function NewSubmissionView({
               className={cn(
                 "border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer flex flex-col items-center justify-center",
                 isDragging
-                  ? "border-[#1e4c77] bg-[#ebf4fb]/50"
-                  : "border-slate-200 hover:border-slate-300 bg-[#f8fafc]/60 hover:bg-[#f8fafc]"
+                  ? "border-[#1e4c77] dark:border-[#7fb2e3] bg-[#ebf4fb]/50 dark:bg-[#1e4c77]/15"
+                  : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-[#f8fafc]/60 dark:bg-slate-800/60 hover:bg-[#f8fafc] dark:hover:bg-slate-800"
               )}
             >
-              <div className="h-11 w-11 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[#1e4c77] mb-3 shadow-2xs">
+              <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#1e4c77] dark:text-[#7fb2e3] mb-3 shadow-2xs">
                 <UploadCloud className="h-5 w-5 stroke-[1.8]" />
               </div>
-              <p className="text-xs font-medium text-slate-800 font-inter">
+              <p className="text-xs font-medium text-slate-800 dark:text-slate-200 font-inter">
                 Click to browse or drag and drop document here
               </p>
-              <p className="text-[11px] text-slate-400 font-inter mt-1">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 font-inter mt-1">
                 Supported formats: PDF, DOCX, XLSX · Maximum size: 10 MB
               </p>
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 flex items-center justify-between gap-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-800 p-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
                 <FileTypeIcon filename={file.name} size="md" />
                 <div className="min-w-0 font-inter">
-                  <p className="text-xs font-medium text-slate-800 truncate">
+                  <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
                     {file.name}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
                     <span className="font-numbers tabular-nums">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </span>
@@ -330,7 +330,7 @@ export function NewSubmissionView({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-xs text-[#1e4c77] hover:underline font-inter cursor-pointer px-2 py-1"
+                  className="text-xs text-[#1e4c77] dark:text-[#7fb2e3] hover:underline font-inter cursor-pointer px-2 py-1"
                 >
                   Change
                 </button>
@@ -338,7 +338,7 @@ export function NewSubmissionView({
                   type="button"
                   onClick={handleRemoveFile}
                   title="Remove file"
-                  className="h-7 w-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                  className="h-7 w-7 rounded-lg text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -348,15 +348,15 @@ export function NewSubmissionView({
         </div>
 
         {/* Section 2: Document Metadata */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
-          <h2 className="text-sm font-medium text-slate-800 font-inter">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xs space-y-4">
+          <h2 className="text-sm font-medium text-slate-800 dark:text-slate-100 font-inter">
             Document Metadata
           </h2>
 
           {/* Title */}
           <div>
-            <label htmlFor="submission-title" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
-              Document Title <span className="text-rose-500">*</span>
+            <label htmlFor="submission-title" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 font-inter">
+              Document Title <span className="text-rose-500 dark:text-rose-400">*</span>
             </label>
             <input
               id="submission-title"
@@ -364,15 +364,15 @@ export function NewSubmissionView({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Document title"
-              className="w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 text-xs font-normal font-inter text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all"
+              className="w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all"
             />
           </div>
 
           {/* Category & Audience */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="submission-category" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
-                Document Category <span className="text-rose-500">*</span>
+              <label htmlFor="submission-category" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 font-inter">
+                Document Category <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               <div className="relative">
                 <select
@@ -385,8 +385,8 @@ export function NewSubmissionView({
                     }
                   }}
                   className={cn(
-                    "w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 text-xs font-normal font-inter focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all cursor-pointer appearance-none",
-                    !category ? "text-slate-400" : "text-slate-800"
+                    "w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none",
+                    !category ? "text-slate-400 dark:text-slate-500" : "text-slate-800 dark:text-slate-200"
                   )}
                 >
                   <option value="" disabled>
@@ -408,7 +408,7 @@ export function NewSubmissionView({
                     value={customCategory}
                     onChange={(e) => setCustomCategory(e.target.value)}
                     placeholder="Enter custom category"
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 text-xs font-normal font-inter text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all"
+                    className="w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all"
                     autoFocus
                   />
                 </div>
@@ -416,8 +416,8 @@ export function NewSubmissionView({
             </div>
 
             <div>
-              <label htmlFor="submission-audience" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
-                Target Audience <span className="text-rose-500">*</span>
+              <label htmlFor="submission-audience" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 font-inter">
+                Target Audience <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               <div className="relative">
                 <select
@@ -430,8 +430,8 @@ export function NewSubmissionView({
                     }
                   }}
                   className={cn(
-                    "w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 text-xs font-normal font-inter focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all cursor-pointer appearance-none",
-                    !audience ? "text-slate-400" : "text-slate-800"
+                    "w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none",
+                    !audience ? "text-slate-400 dark:text-slate-500" : "text-slate-800 dark:text-slate-200"
                   )}
                 >
                   <option value="" disabled>
@@ -453,7 +453,7 @@ export function NewSubmissionView({
                     value={customAudience}
                     onChange={(e) => setCustomAudience(e.target.value)}
                     placeholder="Enter custom audience"
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 text-xs font-normal font-inter text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all"
+                    className="w-full h-10 px-3.5 rounded-xl bg-[#f8fafc] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all"
                     autoFocus
                   />
                 </div>
@@ -463,9 +463,9 @@ export function NewSubmissionView({
 
           {/* Submission Notes */}
           <div>
-            <label htmlFor="submission-notes" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
+            <label htmlFor="submission-notes" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 font-inter">
               Notes for Compliance Officer{" "}
-              <span className="text-slate-400 font-normal">(Optional)</span>
+              <span className="text-slate-400 dark:text-slate-500 font-normal">(Optional)</span>
             </label>
             <textarea
               id="submission-notes"
@@ -473,7 +473,7 @@ export function NewSubmissionView({
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="include details"
-              className="w-full p-3 rounded-xl bg-[#f8fafc] border border-slate-200 text-xs font-normal font-inter text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all resize-none"
+              className="w-full p-3 rounded-xl bg-[#f8fafc] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all resize-none"
             />
           </div>
         </div>
