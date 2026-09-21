@@ -57,19 +57,19 @@ export function DocumentViewer({
 
   if (isLoading) {
     return (
-      <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 p-8 text-center ${className}`}>
-        <Loader2 className="h-8 w-8 text-[#1e4c77] animate-spin mb-3" />
-        <p className="text-xs font-medium text-slate-600">Loading document preview...</p>
+      <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 dark:bg-slate-950 p-8 text-center ${className}`}>
+        <Loader2 className="h-8 w-8 text-[#1e4c77] dark:text-[#7fb2e3] animate-spin mb-3" />
+        <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Loading document preview...</p>
       </div>
     );
   }
 
   if (error && !activeSource) {
     return (
-      <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 p-8 text-center ${className}`}>
-        <FileWarning className="h-8 w-8 text-slate-300 mb-3" />
-        <h3 className="text-sm font-semibold text-slate-900">Preview Unavailable</h3>
-        <p className="text-xs text-slate-500 mt-1 mb-4 max-w-sm">{error}</p>
+      <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 dark:bg-slate-950 p-8 text-center ${className}`}>
+        <FileWarning className="h-8 w-8 text-slate-300 dark:text-slate-600 mb-3" />
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Preview Unavailable</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4 max-w-sm">{error}</p>
         {onDownload && (
           <button
             type="button"
@@ -88,15 +88,15 @@ export function DocumentViewer({
     const pdfSrc = fileBlobUrl || fileUrl;
     if (!pdfSrc) {
       return (
-        <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 p-8 text-center ${className}`}>
-          <FileText className="h-8 w-8 text-slate-300 mb-2" />
-          <p className="text-xs text-slate-500">Preparing PDF preview...</p>
+        <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 dark:bg-slate-950 p-8 text-center ${className}`}>
+          <FileText className="h-8 w-8 text-slate-300 dark:text-slate-600 mb-2" />
+          <p className="text-xs text-slate-500 dark:text-slate-400">Preparing PDF preview...</p>
         </div>
       );
     }
 
     return (
-      <div className={`flex flex-col h-full w-full bg-slate-100 overflow-hidden ${className}`}>
+      <div className={`flex flex-col h-full w-full bg-slate-100 dark:bg-slate-900 overflow-hidden ${className}`}>
         <iframe
           src={`${pdfSrc}#toolbar=1&navpanes=1`}
           className="flex-1 w-full h-full border-0"
@@ -132,12 +132,12 @@ export function DocumentViewer({
 
   // 4. Fallback for unrenderable file types
   return (
-    <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 p-8 text-center ${className}`}>
-      <FileWarning className="h-8 w-8 text-slate-300 mb-3" />
-      <h3 className="text-sm font-semibold text-slate-900">
+    <div className={`flex flex-col items-center justify-center h-full w-full bg-slate-50 dark:bg-slate-950 p-8 text-center ${className}`}>
+      <FileWarning className="h-8 w-8 text-slate-300 dark:text-slate-600 mb-3" />
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
         {filename}
       </h3>
-      <p className="text-xs text-slate-500 mt-1 mb-4 max-w-sm">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4 max-w-sm">
         This file format cannot be previewed inline. Download the original document to view it in your local software.
       </p>
       {onDownload && (

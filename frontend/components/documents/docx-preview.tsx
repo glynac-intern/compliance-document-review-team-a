@@ -80,40 +80,40 @@ export function DocxPreview({
   const handleZoomReset = () => setZoom(100);
 
   return (
-    <div className={`flex flex-col h-full w-full bg-slate-100 overflow-hidden font-inter select-text ${className}`}>
+    <div className={`flex flex-col h-full w-full bg-slate-100 dark:bg-slate-950 overflow-hidden font-inter select-text ${className}`}>
       {/* ===== Toolbar ===== */}
-      <div className="h-10 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 shadow-2xs z-10">
+      <div className="h-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 shadow-2xs z-10">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase font-inter bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1 shrink-0">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase font-inter bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 flex items-center gap-1 shrink-0">
             <FileText className="h-3 w-3" />
             DOCX
           </span>
-          <span className="text-xs font-medium text-slate-800 truncate max-w-[240px] sm:max-w-md" title={filename}>
+          <span className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate max-w-[240px] sm:max-w-md" title={filename}>
             {filename}
           </span>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Zoom controls */}
-          <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 p-0.5">
+          <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 p-0.5">
             <button
               type="button"
               onClick={handleZoomOut}
               disabled={zoom <= 60}
-              className="h-6 w-6 rounded flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-colors disabled:opacity-40 cursor-pointer"
+              className="h-6 w-6 rounded flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
               title="Zoom out"
               aria-label="Zoom out"
             >
               <ZoomOut className="h-3.5 w-3.5" />
             </button>
-            <span className="text-[11px] font-medium text-slate-700 px-2 font-mono tabular-nums w-12 text-center select-none">
+            <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 px-2 font-mono tabular-nums w-12 text-center select-none">
               {zoom}%
             </span>
             <button
               type="button"
               onClick={handleZoomIn}
               disabled={zoom >= 200}
-              className="h-6 w-6 rounded flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-colors disabled:opacity-40 cursor-pointer"
+              className="h-6 w-6 rounded flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
               title="Zoom in"
               aria-label="Zoom in"
             >
@@ -124,7 +124,7 @@ export function DocxPreview({
           <button
             type="button"
             onClick={handleZoomReset}
-            className="h-7 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center gap-1 text-[11px] font-medium transition-colors shadow-2xs cursor-pointer select-none"
+            className="h-7 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 text-[11px] font-medium transition-colors shadow-2xs cursor-pointer select-none"
             title="Reset Zoom to 100%"
           >
             <RotateCcw className="h-3 w-3" />
@@ -135,7 +135,7 @@ export function DocxPreview({
             <button
               type="button"
               onClick={onDownload}
-              className="h-7 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#1e4c77] flex items-center gap-1.5 text-xs font-medium transition-colors shadow-2xs cursor-pointer ml-1"
+              className="h-7 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#1e4c77] dark:hover:text-[#7fb2e3] flex items-center gap-1.5 text-xs font-medium transition-colors shadow-2xs cursor-pointer ml-1"
               title="Download original file"
             >
               <Download className="h-3.5 w-3.5" />
@@ -146,19 +146,19 @@ export function DocxPreview({
       </div>
 
       {/* ===== Content Area ===== */}
-      <div className="flex-1 overflow-auto p-4 sm:p-8 flex justify-center relative bg-slate-100/90">
+      <div className="flex-1 overflow-auto p-4 sm:p-8 flex justify-center relative bg-slate-100/90 dark:bg-slate-950">
         {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-2xs z-20 gap-3">
-            <Loader2 className="h-7 w-7 text-[#1e4c77] animate-spin" />
-            <p className="text-xs font-medium text-slate-600">Rendering Word Document...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 dark:bg-slate-950/80 backdrop-blur-2xs z-20 gap-3">
+            <Loader2 className="h-7 w-7 text-[#1e4c77] dark:text-[#7fb2e3] animate-spin" />
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Rendering Word Document...</p>
           </div>
         )}
 
         {error && !isLoading && (
           <div className="flex flex-col items-center justify-center p-8 text-center max-w-md my-auto">
-            <AlertCircle className="h-10 w-10 text-rose-500 mb-3" />
-            <h3 className="text-sm font-semibold text-slate-900">Failed to render DOCX</h3>
-            <p className="text-xs text-slate-500 mt-1 mb-4">{error}</p>
+            <AlertCircle className="h-10 w-10 text-rose-500 dark:text-rose-400 mb-3" />
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Failed to render DOCX</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">{error}</p>
             {onDownload && (
               <button
                 type="button"
@@ -184,7 +184,13 @@ export function DocxPreview({
         />
       </div>
 
-      {/* Embedded styles for authentic Word paper layout */}
+      {/* Embedded styles for authentic Word paper layout. The rendered
+          page itself stays a literal white sheet with black text in
+          both themes -- it's the actual document content (rendered by
+          the docx-preview library with its own inline styles), not app
+          chrome, and real documents assume a white background the way
+          a printed page or an embedded PDF does. Only the toolbar and
+          canvas around it are dark-mode aware. */}
       <style jsx global>{`
         .docx-preview-container .docx-wrapper {
           background: transparent !important;
