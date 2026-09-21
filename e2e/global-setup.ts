@@ -26,14 +26,14 @@ async function globalSetup(config: FullConfig) {
 
   const advisorData = {
     name: `E2E Advisor ${runPrefix}`,
-    email: `advisor_${runPrefix}@e2e.test`,
+    email: `advisor_${runPrefix}@example.com`,
     password: "TestPassword123!",
     role: "advisor" as const,
   };
 
   const officerData = {
     name: `E2E Officer ${runPrefix}`,
-    email: `officer_${runPrefix}@e2e.test`,
+    email: `officer_${runPrefix}@example.com`,
     password: "TestPassword123!",
     role: "officer" as const,
   };

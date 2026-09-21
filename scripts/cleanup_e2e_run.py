@@ -52,7 +52,8 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
         .filter(
             (User.email.ilike(pattern))
             | (User.name.ilike(pattern))
-            | (User.email.ilike(email_pattern))
+            | (User.email.ilike("%@e2e.test"))
+            | (User.email.ilike(f"%{prefix}%@example.com"))
         )
         .all()
     )

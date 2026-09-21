@@ -38,10 +38,9 @@ export function getRunInfo(): RunInfo | null {
  * Fixture providing an authenticated Advisor session.
  * Reuses storageState established during global setup.
  */
-export const advisorTest = base.extend<{ advisorPage: Page }>({
-  storageState: fs.existsSync(ADVISOR_STORAGE_STATE) ? ADVISOR_STORAGE_STATE : undefined,
-  advisorPage: async ({ page }, use) => {
-    await use(page);
+export const advisorTest = base.extend({
+  storageState: async ({}, use) => {
+    await use(ADVISOR_STORAGE_STATE);
   },
 });
 
@@ -49,10 +48,9 @@ export const advisorTest = base.extend<{ advisorPage: Page }>({
  * Fixture providing an authenticated Officer session.
  * Reuses storageState established during global setup.
  */
-export const officerTest = base.extend<{ officerPage: Page }>({
-  storageState: fs.existsSync(OFFICER_STORAGE_STATE) ? OFFICER_STORAGE_STATE : undefined,
-  officerPage: async ({ page }, use) => {
-    await use(page);
+export const officerTest = base.extend({
+  storageState: async ({}, use) => {
+    await use(OFFICER_STORAGE_STATE);
   },
 });
 
