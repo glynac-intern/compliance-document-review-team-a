@@ -308,21 +308,26 @@ function LoginForm() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Email Input */}
               <div>
+                <label htmlFor="email" className="sr-only">
+                  Email address
+                </label>
                 <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-                  <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500">
+                  <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400">
                     <Mail className="h-4 w-4" />
                   </div>
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     autoComplete="email"
+                    aria-label="Email address"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setError(null);
                     }}
                     placeholder="Email"
-                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                 </div>
@@ -330,28 +335,33 @@ function LoginForm() {
 
               {/* Password Input */}
               <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
                 <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-                  <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500">
+                  <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
+                    aria-label="Password"
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
                       setError(null);
                     }}
                     placeholder="Password"
-                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] transition-colors shrink-0 cursor-pointer select-none font-inter"
-                    tabIndex={-1}
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
@@ -360,15 +370,17 @@ function LoginForm() {
 
               {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between pt-0.5">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer select-none">
                   <input
+                    id="remember-me"
+                    name="remember"
                     type="checkbox"
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
                     className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 text-[#1e4c77] dark:text-[#7fb2e3] focus:ring-[#2575bc] dark:focus:ring-[#7fb2e3]"
                     disabled={isLoading}
                   />
-                  <span className="text-[12px] text-slate-600 dark:text-slate-400 font-inter">Remember Me</span>
+                  <span className="text-[12px] text-slate-700 dark:text-slate-300 font-inter">Remember Me</span>
                 </label>
                 <button
                   type="button"
@@ -397,7 +409,7 @@ function LoginForm() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                 </div>
-                <div className="relative bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-400 dark:text-slate-500 tracking-wider font-medium font-inter">
+                <div className="relative bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-600 dark:text-slate-300 tracking-wider font-medium font-inter">
                   Or
                 </div>
               </div>

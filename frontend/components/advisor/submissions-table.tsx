@@ -180,7 +180,7 @@ export function SubmissionsTable({
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-xs font-normal text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#2575bc] dark:hover:text-[#a6cdf0] transition-all cursor-pointer shadow-2xs font-inter group"
             >
               <span>View All</span>
-              <span className="font-numbers text-slate-400 dark:text-slate-500">({documents.length})</span>
+              <span className="font-numbers text-slate-700 dark:text-slate-300">({documents.length})</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
             </button>
           )}
@@ -189,8 +189,8 @@ export function SubmissionsTable({
         /* Dedicated Full Submissions Header Variant: Search, Status, Sort, Filters — no redundant title */
         <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-normal text-slate-400 dark:text-slate-500 font-inter">
-              <span className="font-numbers text-slate-600 dark:text-slate-300">{filteredDocuments.length}</span> submission{filteredDocuments.length !== 1 ? "s" : ""}
+            <span className="text-xs font-normal text-slate-700 dark:text-slate-300 font-inter">
+              <span className="font-numbers text-slate-800 dark:text-slate-200">{filteredDocuments.length}</span> submission{filteredDocuments.length !== 1 ? "s" : ""}
               {hasActiveFilters && (
                 <> · <button
                   type="button"
@@ -210,23 +210,29 @@ export function SubmissionsTable({
           <div className="flex items-center flex-wrap gap-2">
             {/* Search Box with Elegant Brand Theme Gradient Border & Offset on Focus */}
             <div className="relative flex-1 sm:w-64 min-w-[190px]">
+              <label htmlFor="advisor-submissions-search" className="sr-only">
+                Search submissions
+              </label>
               <div className="relative rounded-xl p-[1px] bg-slate-200 dark:bg-slate-700 transition-all duration-200 focus-within:bg-gradient-to-r focus-within:from-[#1e4c77] focus-within:to-[#2575bc] focus-within:shadow-[0_0_0_3px_rgba(37,117,188,0.15)] group">
                 <div className="relative flex items-center bg-[#f4f6f8] dark:bg-slate-800 rounded-[11px] group-focus-within:bg-white dark:group-focus-within:bg-slate-800 transition-colors">
                   <Search
-                    className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-[#1e4c77] dark:group-focus-within:text-[#7fb2e3] transition-colors"
+                    className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500 dark:text-slate-400 group-focus-within:text-[#1e4c77] dark:group-focus-within:text-[#7fb2e3] transition-colors"
                     strokeWidth={1.8}
                   />
                   <input
+                    id="advisor-submissions-search"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder="Search submissions..."
-                    className="w-full h-9 pl-9 pr-7 rounded-[11px] bg-transparent text-xs font-normal font-inter text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
+                    aria-label="Search submissions"
+                    className="w-full h-9 pl-9 pr-7 rounded-[11px] bg-transparent text-xs font-normal font-inter text-slate-800 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => onSearchChange("")}
+                      aria-label="Clear search"
                       className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                     >
                       <X className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -238,7 +244,12 @@ export function SubmissionsTable({
 
             {/* Status Dropdown Filter */}
             <div className="relative">
+              <label htmlFor="advisor-status-filter" className="sr-only">
+                Filter submissions by status
+              </label>
               <select
+                id="advisor-status-filter"
+                aria-label="Filter submissions by status"
                 value={statusFilter}
                 onChange={(e) => onStatusFilterChange(e.target.value)}
                 className="h-9 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-700 dark:text-slate-300 pl-3 pr-8 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none"
@@ -254,7 +265,12 @@ export function SubmissionsTable({
 
             {/* Last Updated Sorting */}
             <div className="relative">
+              <label htmlFor="advisor-sort-by" className="sr-only">
+                Sort submissions
+              </label>
               <select
+                id="advisor-sort-by"
+                aria-label="Sort submissions"
                 value={sortBy}
                 onChange={(e) => onSortByChange(e.target.value as "newest" | "oldest" | "title")}
                 className="h-9 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-700 dark:text-slate-300 pl-3 pr-8 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none"
@@ -313,7 +329,7 @@ export function SubmissionsTable({
         <table className="w-full text-left border-collapse">
           <thead>
             {/* Headers: Non-bold, CamelCase Inter font */}
-            <tr className="border-b border-slate-100 dark:border-slate-800 bg-[#f8fafc]/90 dark:bg-slate-800/60 text-[12px] font-normal text-slate-400 dark:text-slate-500 font-inter tracking-normal">
+            <tr className="border-b border-slate-100 dark:border-slate-800 bg-[#f8fafc]/90 dark:bg-slate-800/60 text-[12px] font-normal text-slate-600 dark:text-slate-300 font-inter tracking-normal">
               <th className="py-3 px-5 sm:px-6 font-normal">
                 Document Name
               </th>
@@ -339,7 +355,7 @@ export function SubmissionsTable({
               </tr>
             ) : isLoading ? (
               <tr>
-                <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center text-slate-400 dark:text-slate-500 font-inter">
+                <td colSpan={variant === "full" ? 6 : 5} className="py-12 text-center text-slate-600 dark:text-slate-300 font-inter">
                   <div className="flex items-center justify-center gap-2">
                     <span className="h-4 w-4 rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-[#1e4c77] dark:border-t-[#7fb2e3] animate-spin" />
                     <span>Loading submissions...</span>
@@ -362,7 +378,7 @@ export function SubmissionsTable({
                         <p className="text-sm font-normal text-slate-800 dark:text-slate-100 font-inter">
                           No matching submissions
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-inter font-normal">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-inter font-normal">
                           No documents match the current filter or search criteria.
                         </p>
                         <button
@@ -400,7 +416,7 @@ export function SubmissionsTable({
                             {doc.title}
                           </p>
                           {variant === "full" && (
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 font-inter font-normal">
+                            <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 font-inter font-normal">
                               <span className="font-numbers">v{doc.version}</span>
                               <span>·</span>
                               <span className="font-numbers">{doc.file_size_mb} MB</span>
@@ -432,7 +448,7 @@ export function SubmissionsTable({
                           {doc.officer_name}
                         </span>
                       ) : (
-                        <span className="text-[12px] text-slate-400 dark:text-slate-500 italic font-inter font-normal">
+                        <span className="text-[12px] text-slate-600 dark:text-slate-300 italic font-inter font-normal">
                           Assigned to Queue
                         </span>
                       )}
@@ -475,17 +491,17 @@ export function SubmissionsTable({
 
       {/* Table Footer */}
       {variant === "overview" ? (
-        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-[#f8fafc]/80 dark:bg-slate-800/40 flex items-center justify-between text-xs font-inter font-normal text-slate-400 dark:text-slate-500">
+        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-[#f8fafc]/80 dark:bg-slate-800/40 flex items-center justify-between text-xs font-inter font-normal text-slate-600 dark:text-slate-300">
           <span>
-            Showing <span className="font-numbers text-slate-600 dark:text-slate-300">5</span> of{" "}
-            <span className="font-numbers text-slate-600 dark:text-slate-300">{documents.length}</span> submissions
+            Showing <span className="font-numbers text-slate-700 dark:text-slate-200">5</span> of{" "}
+            <span className="font-numbers text-slate-700 dark:text-slate-200">{documents.length}</span> submissions
           </span>
         </div>
       ) : (
-        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-[#f8fafc]/80 dark:bg-slate-800/40 flex items-center justify-between text-xs font-inter font-normal text-slate-400 dark:text-slate-500">
+        <div className="p-3.5 px-5 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-[#f8fafc]/80 dark:bg-slate-800/40 flex items-center justify-between text-xs font-inter font-normal text-slate-600 dark:text-slate-300">
           <span>
-            Showing <span className="font-numbers text-slate-600 dark:text-slate-300">{filteredDocuments.length}</span> of{" "}
-            <span className="font-numbers text-slate-600 dark:text-slate-300">{documents.length}</span> submissions
+            Showing <span className="font-numbers text-slate-700 dark:text-slate-200">{filteredDocuments.length}</span> of{" "}
+            <span className="font-numbers text-slate-700 dark:text-slate-200">{documents.length}</span> submissions
           </span>
           {hasActiveFilters && (
             <button
