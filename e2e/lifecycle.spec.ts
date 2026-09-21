@@ -32,8 +32,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       runInfo?.runPrefix ||
       `e2e_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    const docTitle = `Quarterly Fund Overview ${runPrefix}`;
     const initialFilename = `${runPrefix}_fund_overview.pdf`;
+    const docTitle = initialFilename;
     const revisedFilename = `${runPrefix}_fund_overview_v2.pdf`;
 
     const revisionComment = `Please clarify fee structure in Section 2 and update risk disclaimers (${runPrefix})`;
@@ -91,20 +91,36 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         .getByLabel(/target audience/i)
         .selectOption("Institutional Investors");
 
-      // Submit for review
+      // Submit for review and wait for backend upload response
+      const createSubmissionResponse = advisorPage.waitForResponse((response) => {
+        return (
+          response.request().method() === "POST" &&
+          response.url().includes("/documents") &&
+          response.ok()
+        );
+      });
+
       await advisorPage
         .getByRole("button", { name: /submit for review/i })
         .click();
+
+      await createSubmissionResponse;
 
       // Verify appearance on advisor dashboard
       await expect(
         advisorPage.getByRole("heading", { name: /my submissions/i })
       ).toBeVisible();
+
+      // Reload to ensure list displays the committed server record
+      await advisorPage.reload();
+
+      const advisorDocRow = advisorPage
+        .getByRole("row")
+        .filter({ hasText: docTitle })
+        .first();
+      await expect(advisorDocRow).toBeVisible();
       await expect(
-        advisorPage.getByText(docTitle).first()
-      ).toBeVisible();
-      await expect(
-        advisorPage.getByText(/pending review/i).first()
+        advisorDocRow.getByText(/pending review/i)
       ).toBeVisible();
 
       // =======================================================================
@@ -129,9 +145,20 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       await officerPage
         .getByPlaceholder(/explain the decision/i)
         .fill(revisionComment);
+
+      const revisionDecisionResponse = officerPage.waitForResponse((response) => {
+        return (
+          response.request().method() === "POST" &&
+          response.url().includes("/decision") &&
+          response.ok()
+        );
+      });
+
       await officerPage
         .getByRole("button", { name: /revision/i })
         .click();
+
+      await revisionDecisionResponse;
 
       // Assert decision is recorded on the officer screen
       await expect(
@@ -148,17 +175,17 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       await expect(advisorPage.getByRole("main")).toBeVisible();
 
       // Locate document row in advisor's submissions and verify status change
-      const advisorDocRow = advisorPage
+      const advisorRevisionRow = advisorPage
         .getByRole("row")
-        .filter({ hasText: docTitle })
+        .filter({ hasText: initialFilename })
         .first();
-      await expect(advisorDocRow).toBeVisible();
+      await expect(advisorRevisionRow).toBeVisible();
       await expect(
-        advisorDocRow.getByText(/needs revision/i)
+        advisorRevisionRow.getByText(/needs revision/i)
       ).toBeVisible();
 
       // Advisor opens document inspector
-      await advisorDocRow.click();
+      await advisorRevisionRow.click();
 
       // Assert officer's comment is visible verbatim to the advisor
       await expect(
@@ -194,10 +221,20 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         .getByLabel(/revision notes/i)
         .fill(revisionNotes);
 
-      // Submit revision
+      // Submit revision and wait for response
+      const createRevisionResponse = advisorPage.waitForResponse((response) => {
+        return (
+          response.request().method() === "POST" &&
+          response.url().includes("/revisions") &&
+          response.ok()
+        );
+      });
+
       await advisorPage
         .getByRole("button", { name: /submit revision/i })
         .click();
+
+      await createRevisionResponse;
 
       // Modal closes automatically on success
       await expect(
@@ -229,9 +266,20 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       await officerPage
         .getByPlaceholder(/explain the decision/i)
         .fill(approvalComment);
+
+      const approvalDecisionResponse = officerPage.waitForResponse((response) => {
+        return (
+          response.request().method() === "POST" &&
+          response.url().includes("/decision") &&
+          response.ok()
+        );
+      });
+
       await officerPage
         .getByRole("button", { name: /approve/i })
         .click();
+
+      await approvalDecisionResponse;
 
       // Assert approval recorded
       await expect(
@@ -250,10 +298,10 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       await advisorPage.goto("/advisor");
       await expect(advisorPage.getByRole("main")).toBeVisible();
 
-      // Open inspector for the document
+      // Open inspector for the revised (approved) document
       const updatedAdvisorRow = advisorPage
         .getByRole("row")
-        .filter({ hasText: docTitle })
+        .filter({ hasText: revisedFilename })
         .first();
       await updatedAdvisorRow.click();
 

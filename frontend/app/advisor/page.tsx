@@ -196,8 +196,9 @@ export default function AdvisorDashboardPage() {
   const handleNewSubmission = (uploaded: BackendDocument | Partial<ComplianceDocument>) => {
     if ("original_filename" in uploaded && uploaded.id) {
       const newDoc = adaptBackendDocument(uploaded as BackendDocument, "You", "");
-      setDocuments((prev) => [newDoc, ...prev]);
+      setDocuments((prev) => [newDoc, ...prev.filter((d) => d.id !== newDoc.id)]);
       showToast(`"${newDoc.title}" submitted for compliance review.`);
+      void loadDocuments();
     }
   };
 
@@ -209,8 +210,9 @@ export default function AdvisorDashboardPage() {
   // replaces_document_id / thread linkage represents.
   const handleRevisionSubmit = (uploaded: BackendDocument) => {
     const newDoc = adaptBackendDocument(uploaded, "You", "");
-    setDocuments((prev) => [newDoc, ...prev]);
+    setDocuments((prev) => [newDoc, ...prev.filter((d) => d.id !== newDoc.id)]);
     showToast(`Version submitted -- now pending review.`);
+    void loadDocuments();
   };
 
   if (!isReady) {
