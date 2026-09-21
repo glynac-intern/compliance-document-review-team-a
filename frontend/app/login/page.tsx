@@ -139,9 +139,11 @@ function LoginForm() {
         <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
       </button>
 
-      {/* Main Floating Card */}
-      <div className="relative z-10 w-full max-w-[900px] rounded-[28px] bg-white shadow-[0_24px_70px_-15px_rgba(10,38,72,0.45)] overflow-hidden flex flex-col lg:flex-row min-h-[530px]">
-        
+      {/* Main Floating Card. The left brand panel below keeps its solid
+          blue gradient in both themes (same as the KPI cards elsewhere) --
+          only the white right-hand form panel needs dark: pairing. */}
+      <div className="relative z-10 w-full max-w-[900px] rounded-[28px] bg-white dark:bg-slate-900 shadow-[0_24px_70px_-15px_rgba(10,38,72,0.45)] overflow-hidden flex flex-col lg:flex-row min-h-[530px]">
+
         {/* LEFT PANEL — Artistic Blue Panel with 3D Spheres & Swipable Cards */}
         <div
           className="relative lg:w-[48%] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none font-inter"
@@ -260,8 +262,8 @@ function LoginForm() {
         </div>
 
         {/* RIGHT PANEL — Sign In Form */}
-        <div className="relative flex-1 bg-white px-8 py-9 sm:px-12 sm:py-10 flex flex-col justify-center">
-          
+        <div className="relative flex-1 bg-white dark:bg-slate-900 px-8 py-9 sm:px-12 sm:py-10 flex flex-col justify-center">
+
           {/* Subtle Blue Sphere peek in bottom-right corner matching screenshot */}
           <div
             className="absolute -bottom-10 -right-10 w-28 h-28 rounded-full pointer-events-none z-0"
@@ -277,27 +279,27 @@ function LoginForm() {
               <VerityLogo
                 size={22}
                 markClassName="text-[#2575bc]"
-                wordmarkClassName="text-slate-900 text-[14px] tracking-[0.2em]"
+                wordmarkClassName="text-slate-900 dark:text-slate-100 text-[14px] tracking-[0.2em]"
               />
             </div>
 
             {/* Header */}
             <div className="mb-6">
-              <h2 className="text-[26px] font-bold text-slate-900 tracking-tight font-inter">
+              <h2 className="text-[26px] font-bold text-slate-900 dark:text-slate-100 tracking-tight font-inter">
                 Sign In
               </h2>
             </div>
 
             {/* Signup success message (TA-62) */}
             {signupSuccess && !error && (
-              <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700 mb-4 font-inter">
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-[12px] text-emerald-700 dark:text-emerald-300 mb-4 font-inter">
                 <span>Account Created. Please Sign In.</span>
               </div>
             )}
 
             {/* Error Message */}
             {error && (
-              <div className="rounded-xl border border-rose-200/90 bg-rose-50/90 px-3.5 py-2.5 text-[12.5px] text-rose-700 mb-4 font-inter text-center font-normal animate-in fade-in duration-150 shadow-2xs">
+              <div className="rounded-xl border border-rose-200/90 dark:border-rose-900/50 bg-rose-50/90 dark:bg-rose-950/30 px-3.5 py-2.5 text-[12.5px] text-rose-700 dark:text-rose-300 mb-4 font-inter text-center font-normal animate-in fade-in duration-150 shadow-2xs">
                 <span>{error}</span>
               </div>
             )}
@@ -306,8 +308,8 @@ function LoginForm() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Email Input */}
               <div>
-                <div className="relative flex items-center rounded-xl bg-[#f4f6f8] border border-slate-200 transition-colors focus-within:border-[#2575bc] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2575bc]/20">
-                  <div className="pl-3.5 pr-2 text-slate-400">
+                <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
+                  <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500">
                     <Mail className="h-4 w-4" />
                   </div>
                   <input
@@ -320,7 +322,7 @@ function LoginForm() {
                       setError(null);
                     }}
                     placeholder="Email"
-                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                 </div>
@@ -328,8 +330,8 @@ function LoginForm() {
 
               {/* Password Input */}
               <div>
-                <div className="relative flex items-center rounded-xl bg-[#f4f6f8] border border-slate-200 transition-colors focus-within:border-[#2575bc] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#2575bc]/20">
-                  <div className="pl-3.5 pr-2 text-slate-400">
+                <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
+                  <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
@@ -342,13 +344,13 @@ function LoginForm() {
                       setError(null);
                     }}
                     placeholder="Password"
-                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#2575bc] hover:text-[#185386] transition-colors shrink-0 cursor-pointer select-none font-inter"
+                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] transition-colors shrink-0 cursor-pointer select-none font-inter"
                     tabIndex={-1}
                   >
                     {showPassword ? "Hide" : "Show"}
@@ -363,15 +365,15 @@ function LoginForm() {
                     type="checkbox"
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-[#1e4c77] focus:ring-[#2575bc]"
+                    className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 text-[#1e4c77] dark:text-[#7fb2e3] focus:ring-[#2575bc] dark:focus:ring-[#7fb2e3]"
                     disabled={isLoading}
                   />
-                  <span className="text-[12px] text-slate-600 font-inter">Remember Me</span>
+                  <span className="text-[12px] text-slate-600 dark:text-slate-400 font-inter">Remember Me</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => alert("Password reset link sent to registered enterprise email.")}
-                  className="text-[12px] font-medium text-[#2575bc] hover:text-[#185386] hover:underline transition-colors font-inter"
+                  className="text-[12px] font-medium text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline transition-colors font-inter"
                 >
                   Forgot Password?
                 </button>
@@ -393,9 +395,9 @@ function LoginForm() {
               {/* Or Divider */}
               <div className="relative flex items-center justify-center my-3.5">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200" />
+                  <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                 </div>
-                <div className="relative bg-white px-3 text-[11px] text-slate-400 tracking-wider font-medium font-inter">
+                <div className="relative bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-400 dark:text-slate-500 tracking-wider font-medium font-inter">
                   Or
                 </div>
               </div>
@@ -405,7 +407,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => router.push("/signup")}
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium text-[13px] transition-all flex items-center justify-center cursor-pointer shadow-2xs font-inter"
+                className="w-full h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 text-slate-700 dark:text-slate-300 font-medium text-[13px] transition-all flex items-center justify-center cursor-pointer shadow-2xs font-inter"
               >
                 Sign Up
               </button>
