@@ -178,8 +178,10 @@ test.describe("Accessibility: Advisor Dashboard (TA-134)", () => {
   advisorTest(
     "advisor dashboard passes axe scan in light mode",
     async ({ page }) => {
-      await setLightMode(page);
       await page.goto("/advisor");
+      await expect(page.getByRole("main")).toBeVisible();
+
+      await setLightMode(page);
       await expect(page.getByRole("main")).toBeVisible();
 
       const result = await runAxeScan(page);
@@ -215,8 +217,10 @@ test.describe("Accessibility: Officer Review Queue (TA-134)", () => {
   officerTest(
     "officer queue passes axe scan in light mode",
     async ({ page }) => {
-      await setLightMode(page);
       await page.goto("/officer");
+      await expect(page.getByRole("main")).toBeVisible();
+
+      await setLightMode(page);
       await expect(page.getByRole("main")).toBeVisible();
 
       const result = await runAxeScan(page);
@@ -253,9 +257,12 @@ test.describe("Accessibility: Officer Document Review (TA-134)", () => {
     "officer document review passes axe scan in light mode",
     async ({ page }) => {
       setupMockDocRoutes(page);
-      await setLightMode(page);
       await page.goto(`/officer/documents/${TEST_DOC_ID}`);
-      // Wait for the analysis to render
+      await expect(
+        page.getByText("Accessibility test analysis summary.")
+      ).toBeVisible();
+
+      await setLightMode(page);
       await expect(
         page.getByText("Accessibility test analysis summary.")
       ).toBeVisible();

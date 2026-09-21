@@ -526,7 +526,7 @@ export default function OfficerDashboardPage() {
                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-inter">
                           All caught up!
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto font-inter">
+                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 max-w-sm mx-auto font-inter">
                           There are no pending submissions in the review queue.
                         </p>
                       </>
@@ -535,7 +535,7 @@ export default function OfficerDashboardPage() {
                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-inter">
                           No matching submissions
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-inter">
+                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 font-inter">
                           Try adjusting your search query or filters.
                         </p>
                       </>
@@ -608,7 +608,7 @@ export default function OfficerDashboardPage() {
                                 <div
                                   className={cn(
                                     "flex items-center gap-1 mt-1 text-[10px] font-inter",
-                                    doc.advisor_viewed_decision ? "text-slate-400 dark:text-slate-500" : "text-[#1e4c77] dark:text-[#7fb2e3]"
+                                    doc.advisor_viewed_decision ? "text-slate-500 dark:text-slate-300" : "text-[#1e4c77] dark:text-[#7fb2e3]"
                                   )}
                                 >
                                   {doc.advisor_viewed_decision ? (
@@ -641,7 +641,7 @@ export default function OfficerDashboardPage() {
                                   <p
                                     className={cn(
                                       "text-[10px] mt-0.5 font-numbers tabular-nums",
-                                      days >= 3 ? "text-[#92400e] dark:text-amber-400" : "text-slate-400 dark:text-slate-500"
+                                      days >= 3 ? "text-[#92400e] dark:text-amber-400" : "text-slate-500 dark:text-slate-300"
                                     )}
                                   >
                                     {days}d in queue
@@ -659,13 +659,13 @@ export default function OfficerDashboardPage() {
 
               {/* Results count */}
               {!isLoading && filteredDocuments.length > 0 && (
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-3 font-inter">
+                <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-3 font-inter">
                   Showing{" "}
-                  <span className="font-numbers tabular-nums font-medium text-slate-500 dark:text-slate-400">
+                  <span className="font-numbers tabular-nums font-medium text-slate-700 dark:text-slate-200">
                     {filteredDocuments.length}
                   </span>{" "}
                   of{" "}
-                  <span className="font-numbers tabular-nums font-medium text-slate-500 dark:text-slate-400">
+                  <span className="font-numbers tabular-nums font-medium text-slate-700 dark:text-slate-200">
                     {documents.length}
                   </span>{" "}
                   submissions

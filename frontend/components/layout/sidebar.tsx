@@ -184,7 +184,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onCloseMobile}
-            className="lg:hidden h-8 w-8 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+            className="lg:hidden h-8 w-8 rounded-lg text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
           >
             <X className="h-4 w-4" />
           </button>
@@ -208,7 +208,7 @@ export function Sidebar({
         {/* Workspace Navigation Group (Consolidated single list with exact order) */}
         <div className="mt-5">
           {!isCollapsed && (
-            <p className="px-2.5 text-xs text-slate-400 dark:text-slate-500 font-normal font-inter mb-1.5 tracking-normal">
+            <p className="px-2.5 text-xs text-slate-500 dark:text-slate-300 font-normal font-inter mb-1.5 tracking-normal">
               Workspace
             </p>
           )}
@@ -289,7 +289,7 @@ export function Sidebar({
             title="Settings"
             aria-label="Settings"
             className={cn(
-              "h-7 w-7 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 flex items-center justify-center transition-colors cursor-pointer shrink-0",
+              "h-7 w-7 rounded-lg text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 flex items-center justify-center transition-colors cursor-pointer shrink-0",
               isCollapsed && "mt-1"
             )}
           >
