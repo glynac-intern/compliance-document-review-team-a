@@ -364,11 +364,6 @@ export function RecentActivity({
                     <span className="text-[13px] font-medium text-slate-800 dark:text-slate-100 group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors font-inter">
                       {act.action}
                     </span>
-                    {isFullHistory && (
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shrink-0">
-                        {act.documentId.slice(0, 13)}
-                      </span>
-                    )}
                   </div>
 
                   <p className="text-[12px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-inter">
