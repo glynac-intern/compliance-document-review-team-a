@@ -107,6 +107,11 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
         for e in events:
             db.delete(e)
 
+        # Notifications for test documents
+        doc_notifications = db.query(Notification).filter(Notification.document_id.in_(doc_ids)).all()
+        for n in doc_notifications:
+            db.delete(n)
+
         # PII mappings
         pii = db.query(PIIMapping).filter(PIIMapping.document_id.in_(doc_ids)).all()
         for p in pii:
@@ -128,13 +133,10 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
         db.flush()
 
     if user_ids:
-        # Notifications for or by test users
+        # Notifications for test users
         notifications = (
             db.query(Notification)
-            .filter(
-                (Notification.recipient_id.in_(user_ids))
-                | (Notification.actor_id.in_(user_ids))
-            )
+            .filter(Notification.user_id.in_(user_ids))
             .all()
         )
         for n in notifications:

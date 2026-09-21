@@ -53,8 +53,8 @@ test.describe("Playwright Harness Smoke Suite", () => {
       await expect(page).toHaveURL(/\/advisor/);
 
       // Verify advisor dashboard elements
-      await expect(page.getByRole("main").or(page.locator("body"))).toBeVisible();
-      await expect(page.getByText(/verity/i).first()).toBeVisible();
+      await expect(page.getByRole("main")).toBeVisible();
+      await expect(page.getByText(/good (morning|afternoon|evening)/i)).toBeVisible();
     });
 
     officerTest("officer session lands directly on /officer dashboard", async ({ page }) => {
@@ -62,9 +62,9 @@ test.describe("Playwright Harness Smoke Suite", () => {
       await expect(page).toHaveURL(/\/officer/);
 
       // Verify officer dashboard elements
-      await expect(page.getByRole("main").or(page.locator("body"))).toBeVisible();
+      await expect(page.getByRole("main")).toBeVisible();
       await expect(
-        page.getByRole("heading", { name: /review queue/i }).or(page.getByText(/review queue/i).first())
+        page.getByRole("heading", { name: /review queue/i })
       ).toBeVisible();
     });
   });
