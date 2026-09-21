@@ -23,14 +23,16 @@ import {
 test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
   test("complete submit, revise, resubmit, and approve loop across advisor and officer", async ({
     browser,
-  }) => {
+  }, testInfo) => {
     // -------------------------------------------------------------------------
     // Setup isolated test contexts and identifiers (TA-104 isolation)
+    // Include retry number so retries never collide with leftover data from
+    // a previous attempt that failed after creating database records.
     // -------------------------------------------------------------------------
     const runInfo = getRunInfo();
     const runPrefix =
-      runInfo?.runPrefix ||
-      `e2e_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      `${runInfo?.runPrefix ?? `e2e_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`}` +
+      `_retry${testInfo.retry}`;
 
     const initialFilename = `${runPrefix}_fund_overview.pdf`;
     const docTitle = initialFilename;
@@ -116,7 +118,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
 
       const advisorDocRow = advisorPage
         .getByRole("row")
-        .filter({ hasText: docTitle })
+        .filter({ has: advisorPage.getByText(docTitle, { exact: true }) })
         .first();
       await expect(advisorDocRow).toBeVisible();
       await expect(
@@ -134,7 +136,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       // Functional loop rubric row: assert document appears in the officer's queue
       const queueDocumentRow = officerPage
         .getByRole("row")
-        .filter({ hasText: initialFilename });
+        .filter({ has: officerPage.getByText(initialFilename, { exact: true }) })
+        .first();
       await expect(queueDocumentRow).toBeVisible();
 
       // Officer opens the document review workspace
@@ -155,7 +158,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       });
 
       await officerPage
-        .getByRole("button", { name: /revision/i })
+        .getByRole("button", { name: /^revision$/i })
         .click();
 
       await revisionDecisionResponse;
@@ -177,7 +180,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       // Locate document row in advisor's submissions and verify status change
       const advisorRevisionRow = advisorPage
         .getByRole("row")
-        .filter({ hasText: initialFilename })
+        .filter({ has: advisorPage.getByText(initialFilename, { exact: true }) })
         .first();
       await expect(advisorRevisionRow).toBeVisible();
       await expect(
@@ -252,7 +255,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       // In review queue, resubmission appears with Revision indicator
       const revisionQueueRow = officerPage
         .getByRole("row")
-        .filter({ hasText: revisedFilename });
+        .filter({ has: officerPage.getByText(revisedFilename, { exact: true }) })
+        .first();
       await expect(revisionQueueRow).toBeVisible();
       await expect(
         revisionQueueRow.getByText(/revision/i)
@@ -301,7 +305,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       // Open inspector for the revised (approved) document
       const updatedAdvisorRow = advisorPage
         .getByRole("row")
-        .filter({ hasText: revisedFilename })
+        .filter({ has: advisorPage.getByText(revisedFilename, { exact: true }) })
         .first();
       await updatedAdvisorRow.click();
 
