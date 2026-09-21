@@ -5,6 +5,10 @@ returned as its own display-only field, never used for any filesystem
 path.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("Q1_Report.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

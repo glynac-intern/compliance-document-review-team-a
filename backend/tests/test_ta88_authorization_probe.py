@@ -12,6 +12,10 @@ silently patched without a record of what broke.
 """
 import pytest
 
+pytestmark = pytest.mark.integration
+
+import pytest
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 NIL_UUID = "00000000-0000-0000-0000-000000000000"
 

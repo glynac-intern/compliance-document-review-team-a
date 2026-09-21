@@ -24,6 +24,10 @@ the comment through the masker at all) is meant to close. Keeping the
 test aligned with what mask_pii is documented to catch is what proves
 THIS fix specifically, without conflating it with that other gap.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import io
 from unittest.mock import patch
 

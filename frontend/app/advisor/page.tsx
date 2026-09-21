@@ -18,7 +18,6 @@ import { useRequireAuth } from "@/lib/use-require-auth";
 import { useAuth } from "@/lib/auth-context";
 import { documentsApi, type BackendDocument } from "@/lib/documents-api";
 import { adaptBackendDocument } from "@/lib/document-adapter";
-import { ApiError } from "@/lib/api-client";
 import { classifyError, logDiagnosticError } from "@/lib/error-utils";
 import { loadSettings } from "@/lib/user-settings";
 

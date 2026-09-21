@@ -1,0 +1,106 @@
+# Playwright E2E Testing Harness
+
+This directory contains the browser end-to-end (E2E) testing suite for the Compliance Document Review system, established under **TA-130**. Subsequent flow tickets ([TA-131](https://aufatapiopa.atlassian.net/browse/TA-131), [TA-132](https://aufatapiopa.atlassian.net/browse/TA-132), [TA-133](https://aufatapiopa.atlassian.net/browse/TA-133), [TA-134](https://aufatapiopa.atlassian.net/browse/TA-134)) build on this harness.
+
+---
+
+## Conventions for Flow Tickets
+
+To ensure tests remain fast, reliable, maintainable, and deterministic, all flow tests must strictly adhere to the following conventions:
+
+### 1. Locators: Role-Based and Accessible Names Over CSS Selectors
+Always locate elements by user-facing, semantic attributes rather than implementation details (e.g. CSS classes, element tags, or arbitrary IDs):
+
+- **Preferred**:
+  - `page.getByRole('button', { name: /submit/i })`
+  - `page.getByRole('heading', { name: /review queue/i })`
+  - `page.getByLabel('Document Title')`
+  - `page.getByPlaceholder('Search submissions...')`
+  - `page.getByText('Approved')`
+- **Avoid**:
+  - `page.locator('.btn-primary')`
+  - `page.locator('div > span:nth-child(2)')`
+  - `page.locator('#custom-id-xyz')`
+
+### 2. Auto-Waiting Assertions Over Manual Waits
+Never introduce manual delays, fixed sleeps, or `page.waitForTimeout()`:
+- **Preferred**:
+  - `await expect(page.getByRole('dialog')).toBeVisible();`
+  - `await expect(page).toHaveURL(/\/advisor/);`
+  - `await expect(page.getByText('Submission successful')).toBeVisible();`
+- **Strictly Prohibited**:
+  - `await page.waitForTimeout(3000);` // NEVER use fixed sleeps
+  - Arbitrary `setTimeout` loops
+
+### 3. Authentication Reuse via `storageState`
+Do **NOT** sign up or log in through the UI in every single test. This is the primary cause of slow, brittle test suites:
+- Use pre-authenticated sessions provided by `advisorTest` and `officerTest` in `e2e/fixtures.ts`:
+  ```ts
+  import { advisorTest, expect } from "./fixtures";
+
+  advisorTest("advisor can upload a document", async ({ page }) => {
+    await page.goto("/advisor");
+    // Already authenticated as an advisor!
+  });
+  ```
+- Or assign the storageState explicitly:
+  ```ts
+  test.use({ storageState: ADVISOR_STORAGE_STATE });
+  ```
+
+### 4. Test Data Isolation (The TA-104 Rule)
+Every test run must operate in its own sandbox to avoid polluting live data or the precedent index:
+- Test accounts and documents are created under a unique per-run prefix (e.g., `e2e_<timestamp>_<random>`).
+- Global teardown calls `scripts/cleanup_e2e_run.py` to remove all test users, documents, and ensure `precedent_index` has zero residue.
+- When creating test documents in flow tickets, use unique filenames like `${runPrefix}_document.pdf`.
+
+### 5. Single User-Visible Outcome Per Test
+Each test should verify **one** distinct, meaningful user workflow and assert on the observable outcome (e.g. status badge change, notification banner, redirection), rather than testing internal state.
+
+### 6. Timeouts and Retries Belong to the Config
+Do not hardcode custom timeouts inside individual tests unless testing an intentional long-polling operation. `playwright.config.ts` owns timeouts, retries, and browser viewport settings.
+
+---
+
+## Running the Suite
+
+### Prerequisites
+The application stack must be running (either via Docker Compose or locally):
+```bash
+# Start backend and frontend via Docker Compose
+./scripts/setup.sh
+docker compose up -d frontend
+```
+
+### Run Tests
+```bash
+# Run all end-to-end tests
+npx playwright test
+
+# Run in interactive UI mode
+npx playwright test --ui
+
+# Run in headed browser mode
+npx playwright test --headed
+
+# Run against custom base URL
+PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test
+```
+
+### Viewing Reports & Diagnostics
+When tests complete (or fail), Playwright retains traces, screenshots, and videos in `test-results/`:
+```bash
+# Open interactive HTML test report
+npx playwright show-report
+```
+
+---
+
+## CI Pipeline Integration
+
+In GitHub Actions (`.github/workflows/tests.yml`):
+- Runs on **Pull Requests to `main`** and on **direct pushes to `main`** (`test-e2e` job).
+- Starts clean compose stack, verifies backend & frontend readiness via non-blocking polling.
+- Runs `npx playwright test`.
+- Uploads `playwright-report/` and `test-results/` as downloadable CI artifacts upon failure.
+- Tears down with `docker compose down -v` in an `always()` step.

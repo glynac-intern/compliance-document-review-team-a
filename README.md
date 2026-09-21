@@ -105,7 +105,14 @@ against this after any retrieval tuning to confirm it actually helped.
 
 ## Running tests
 
+### Backend tests
+
 ```bash
+# Run unit tests (fast, no DB or Docker needed)
+pytest -m unit -v
+
+# Run integration tests (or full suite via Docker)
+docker compose run --rm backend pytest -m integration -v
 docker compose run --rm backend pytest backend/tests/ -v
 ```
 
@@ -114,17 +121,33 @@ docker compose run --rm backend pytest backend/tests/ -v
 root. `pyproject.toml`'s `pythonpath` setting resolves the same
 first-party imports either way, without any sys.path hacks in code.)
 
-99 tests (verified by actually running the suite, not just counting
-files): the role boundary (advisor/officer access enforcement, tested
-in both directions), PII masking (entity detection, documented
-limitations, round-trip unmasking, and that masking runs before
-anything is embedded or sent to the LLM), documents and revision
-threads, upload validation (size cap, content-sniffed file type, not
-just the client-supplied one), review decisions and notifications,
-precedent indexing/similarity, disclosure detection, and seed-data
-integrity. Tests run against a dedicated test database
-(`compliance_test_db`), created automatically on first run — separate
-from your dev data.
+### Frontend unit tests (TA-122)
+
+```bash
+cd frontend && npm test
+```
+
+### End-to-end browser tests (TA-130)
+
+Browser tests use Playwright with pre-authenticated sessions (`storageState`) and automatic test data isolation:
+
+```bash
+# Start the application stack
+./scripts/setup.sh
+docker compose up -d frontend
+
+# Run the Playwright test suite
+npx playwright test
+
+# Interactive UI runner
+npx playwright test --ui
+
+# View HTML diagnostic reports and traces
+npx playwright show-report
+```
+
+See [e2e/README.md](e2e/README.md) for testing conventions, locators, and auth fixtures.
+
 
 ## API documentation
 

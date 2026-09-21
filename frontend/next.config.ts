@@ -13,6 +13,9 @@ const publicHost = process.env.PUBLIC_HOST;
 
 const nextConfig: NextConfig = {
   ...(publicHost ? { allowedDevOrigins: [publicHost] } : {}),
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

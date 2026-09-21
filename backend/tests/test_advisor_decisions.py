@@ -3,6 +3,10 @@ Tests for TA-21: an advisor can read the decision, comment, and timestamp
 on their own document's reviews, but not another advisor's.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

@@ -2,6 +2,10 @@
 Unit tests for ai/masking/masker.py. Pure logic, no DB/API dependency --
 fast and deterministic.
 """
+import pytest
+
+pytestmark = pytest.mark.unit
+
 from ai.masking.masker import mask_pii, unmask_for_display
 
 

@@ -4,6 +4,10 @@ history in a single request, with each entry carrying its status,
 decision, and comment.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

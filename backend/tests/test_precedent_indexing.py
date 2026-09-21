@@ -9,6 +9,10 @@ with only a dummy LLM_API_KEY, consistent with how the rest of this
 suite avoids live API dependencies wherever the logic itself (not the
 AI output) is what's under test.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from unittest.mock import patch
 
 

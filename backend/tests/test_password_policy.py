@@ -4,6 +4,10 @@ rule, not accept any string.
 """
 
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 def test_signup_rejects_password_too_short(client):
     resp = client.post("/auth/signup", json={
         "name": "Test User", "email": "shortpass@test.com",

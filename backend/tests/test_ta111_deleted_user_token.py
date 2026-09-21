@@ -15,6 +15,10 @@ model supports a disabled state, cover that too") doesn't apply here;
 documented rather than invented. Deletion is the only account-removal
 path that exists.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from models import User
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")

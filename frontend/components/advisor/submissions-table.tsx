@@ -38,6 +38,65 @@ interface SubmissionsTableProps {
   onRetry?: () => void;
 }
 
+export interface FilterAndSortOptions {
+  searchQuery?: string;
+  statusFilter?: string;
+  typeFilter?: string;
+  sortBy?: "newest" | "oldest" | "title";
+}
+
+export function filterAndSortDocuments(
+  documents: ComplianceDocument[],
+  options: FilterAndSortOptions = {}
+): ComplianceDocument[] {
+  const {
+    searchQuery = "",
+    statusFilter = "all",
+    typeFilter = "all",
+    sortBy = "newest",
+  } = options;
+
+  return documents
+    .filter((doc) => {
+      // Status filter
+      if (statusFilter !== "all") {
+        if (statusFilter === "pending" && doc.status !== "pending" && doc.status !== "in_review") {
+          return false;
+        } else if (statusFilter !== "pending" && doc.status !== statusFilter) {
+          return false;
+        }
+      }
+
+      // Type filter
+      if (typeFilter !== "all" && doc.type !== typeFilter) {
+        return false;
+      }
+
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = doc.title.toLowerCase().includes(q);
+        const matchId = doc.id.toLowerCase().includes(q);
+        const matchType = doc.type.toLowerCase().includes(q);
+        const matchOfficer = doc.officer_name?.toLowerCase().includes(q);
+        if (!matchTitle && !matchId && !matchType && !matchOfficer) {
+          return false;
+        }
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "newest") {
+        return new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime();
+      }
+      if (sortBy === "oldest") {
+        return new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime();
+      }
+      return a.title.localeCompare(b.title);
+    });
+}
+
 export function SubmissionsTable({
   documents,
   searchQuery,
@@ -67,45 +126,12 @@ export function SubmissionsTable({
 
   // Filter & sort logic
   const filteredDocuments = React.useMemo(() => {
-    return documents
-      .filter((doc) => {
-        // Status filter
-        if (statusFilter !== "all") {
-          if (statusFilter === "pending" && doc.status !== "pending" && doc.status !== "in_review") {
-            return false;
-          } else if (statusFilter !== "pending" && doc.status !== statusFilter) {
-            return false;
-          }
-        }
-
-        // Type filter
-        if (typeFilter !== "all" && doc.type !== typeFilter) {
-          return false;
-        }
-
-        // Search query
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchTitle = doc.title.toLowerCase().includes(q);
-          const matchId = doc.id.toLowerCase().includes(q);
-          const matchType = doc.type.toLowerCase().includes(q);
-          const matchOfficer = doc.officer_name?.toLowerCase().includes(q);
-          if (!matchTitle && !matchId && !matchType && !matchOfficer) {
-            return false;
-          }
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === "newest") {
-          return new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime();
-        }
-        if (sortBy === "oldest") {
-          return new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime();
-        }
-        return a.title.localeCompare(b.title);
-      });
+    return filterAndSortDocuments(documents, {
+      searchQuery,
+      statusFilter,
+      typeFilter,
+      sortBy,
+    });
   }, [documents, searchQuery, statusFilter, typeFilter, sortBy]);
 
   // Overview variant shows only the top 5 recent documents; full variant shows all filtered

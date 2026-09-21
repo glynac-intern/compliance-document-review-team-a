@@ -17,6 +17,10 @@ trigger characters must be neutralized (a leading `'` is the standard
 approach -- it forces Excel to treat the cell as text) before being
 written, not passed through raw.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import csv
 import io
 

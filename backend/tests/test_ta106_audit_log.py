@@ -10,6 +10,10 @@ cover real data reaching it, the decided-event split into
 approved/rejected/needs_revision (matching the frontend's distinct
 badges), and that it's officer-only like the rest of the review surface.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

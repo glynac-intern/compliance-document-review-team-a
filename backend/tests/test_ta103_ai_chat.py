@@ -8,6 +8,10 @@ Mocks the LLM client (google.genai), same approach as
 test_ta87_ai_outage_resilience.py -- these tests exercise the route's
 context-building and error handling, not the real model.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from unittest.mock import MagicMock, patch
 
 import reviews.router as reviews_router

@@ -15,6 +15,10 @@ guard, a full multi-hop cycle, and audit trail content/ordering.
 """
 import pytest
 
+pytestmark = pytest.mark.integration
+
+import pytest
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

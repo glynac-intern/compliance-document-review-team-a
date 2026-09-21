@@ -6,3 +6,9 @@
 # sys.path manipulation in any test file needed either way.
 pythonpath = [".", "backend"]
 testpaths = ["backend/tests"]
+addopts = "--strict-markers"
+markers = [
+    "unit: fast unit tests with no DB or Docker dependency",
+    "integration: tests requiring database and FastAPI TestClient",
+]
+

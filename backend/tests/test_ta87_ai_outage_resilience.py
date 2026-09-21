@@ -17,6 +17,10 @@ lookup is anchored to the module it's DEFINED in, not the module that
 imported it, so both must be patched for one fake client to reach both
 call sites consistently.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from unittest.mock import MagicMock, patch
 
 import ai.compliance.analyze_document as analyze_document

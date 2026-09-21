@@ -5,6 +5,10 @@ deliberately -- collapsed when consecutive, but logged fresh again once
 something else has happened since.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

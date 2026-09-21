@@ -4,6 +4,10 @@ document type, on top of the existing status filter, all combining as
 AND -- not OR.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

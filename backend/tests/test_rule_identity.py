@@ -4,6 +4,10 @@ on rules.json's seed_id, so existing flags keep resolving to their
 rule. An edited rule updates in place; a removed rule is marked
 inactive, never deleted.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from models import Rule, AIAnalysis, Flag, AnalysisStatus
 
 

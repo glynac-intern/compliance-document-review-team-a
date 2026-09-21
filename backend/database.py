@@ -4,14 +4,17 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(DATABASE_URL) if DATABASE_URL else None
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) if engine else None
 Base = declarative_base()
 
 
 def get_db():
+    if SessionLocal is None:
+        raise RuntimeError("DATABASE_URL is not configured.")
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
