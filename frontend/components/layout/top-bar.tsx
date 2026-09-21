@@ -8,12 +8,6 @@ import {
   Bell,
   ChevronRight,
   Menu,
-  Check,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  XCircle,
-  BellOff,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

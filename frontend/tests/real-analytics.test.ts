@@ -80,7 +80,7 @@ describe("real-analytics module", () => {
       const doc = createMockDoc({
         id: "5",
         original_filename: "random_raw_file",
-        type: "unknown" as any,
+        type: "unknown" as BackendDocument["type"],
         status: "pending_review",
       });
       expect(resolveDocumentCategory(doc)).toBe("Other");
