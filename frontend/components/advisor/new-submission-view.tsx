@@ -355,10 +355,11 @@ export function NewSubmissionView({
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
+            <label htmlFor="submission-title" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
               Document Title <span className="text-rose-500">*</span>
             </label>
             <input
+              id="submission-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -370,11 +371,12 @@ export function NewSubmissionView({
           {/* Category & Audience */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
+              <label htmlFor="submission-category" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
                 Document Category <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="submission-category"
                   value={category}
                   onChange={(e) => {
                     setCategory(e.target.value);
@@ -414,11 +416,12 @@ export function NewSubmissionView({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
+              <label htmlFor="submission-audience" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
                 Target Audience <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="submission-audience"
                   value={audience}
                   onChange={(e) => {
                     setAudience(e.target.value);
@@ -460,11 +463,12 @@ export function NewSubmissionView({
 
           {/* Submission Notes */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
+            <label htmlFor="submission-notes" className="block text-xs font-medium text-slate-700 mb-1.5 font-inter">
               Notes for Compliance Officer{" "}
               <span className="text-slate-400 font-normal">(Optional)</span>
             </label>
             <textarea
+              id="submission-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}

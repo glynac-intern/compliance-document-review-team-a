@@ -156,7 +156,7 @@ export function RevisionUploadModal({
 
           {/* File Picker */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="revision-file-upload" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               Revised File
             </label>
             <div
