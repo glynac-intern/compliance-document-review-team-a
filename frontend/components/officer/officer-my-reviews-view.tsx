@@ -257,9 +257,6 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
           <h1 className="text-xl font-medium text-[#1e4c77] dark:text-[#7fb2e3] tracking-tight font-inter">
             My Reviews
           </h1>
-          <p className="text-xs text-[#1e4c77]/60 dark:text-[#7fb2e3]/60 mt-0.5 font-inter">
-            Previous reviews — rejected, approved, and needs revision
-          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -411,9 +408,6 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
                       <div className="min-w-0">
                         <p className="text-[12px] font-normal text-slate-800 dark:text-slate-200 truncate max-w-[240px] font-inter group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors">
                           {review.title}
-                        </p>
-                        <p className="text-[10px] text-[#1e4c77]/35 dark:text-[#7fb2e3]/40 font-numbers tabular-nums mt-0.5">
-                          {review.id}
                         </p>
                       </div>
                     </div>

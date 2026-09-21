@@ -332,7 +332,11 @@ export default function OfficerDashboardPage() {
       settings: "Settings",
     };
     return [
-      { label: "Compliance Officer", href: "/officer" },
+      {
+        label: "Workspace",
+        href: "/officer",
+        onClick: () => setActiveView("review_queue"),
+      },
       { label: viewLabels[activeView] },
     ];
   }, [activeView]);
@@ -393,15 +397,11 @@ export default function OfficerDashboardPage() {
                   <h1 className="text-xl font-bold text-slate-900 dark:text-white font-inter">
                     Review Queue
                   </h1>
-                  <p className="text-xs text-slate-500 font-inter mt-1">
-                    Pending compliance submissions awaiting review and determination
-                  </p>
                 </div>
 
                 {/* Queue pill indicators */}
                 <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 font-inter shadow-2xs self-start sm:self-auto">
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-[#1e4c77] animate-pulse" />
+                  <span className="flex items-center gap-1">
                     <span className="font-numbers tabular-nums font-semibold text-slate-800">
                       {queueCounts.pending}
                     </span>{" "}
@@ -592,9 +592,6 @@ export default function OfficerDashboardPage() {
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-[11px] text-slate-400 font-numbers tabular-nums mt-0.5">
-                                    {doc.id}
-                                  </p>
                                 </div>
                               </div>
                             </td>

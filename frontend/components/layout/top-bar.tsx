@@ -174,26 +174,26 @@ export function TopBar({
                   <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0 stroke-[1.8]" />
                 )}
                 {isLast ? (
-                  <span className="font-medium text-slate-800 dark:text-slate-100 tracking-tight">
+                  <span className="font-medium text-slate-800 dark:text-slate-100 tracking-tight font-inter">
                     {crumb.label}
                   </span>
                 ) : crumb.onClick ? (
                   <button
                     type="button"
                     onClick={crumb.onClick}
-                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer font-inter inline-flex items-center"
                   >
                     {crumb.label}
                   </button>
                 ) : crumb.href ? (
                   <Link
                     href={crumb.href}
-                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-inter inline-flex items-center"
                   >
                     {crumb.label}
                   </Link>
                 ) : (
-                  <span className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                  <span className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-inter">
                     {crumb.label}
                   </span>
                 )}

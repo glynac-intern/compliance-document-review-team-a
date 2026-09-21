@@ -68,17 +68,27 @@ export function OfficerSidebar({
         {/* Brand Bar */}
         <div className="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           {!isCollapsed ? (
-            <div className="min-w-0 flex-1 pr-2 flex items-center">
+            <button
+              type="button"
+              onClick={() => onSelectView?.("review_queue")}
+              title="Go to Review Queue"
+              className="min-w-0 flex-1 pr-2 flex items-center text-left cursor-pointer hover:opacity-85 transition-opacity bg-transparent border-none p-0"
+            >
               <VerityLogo
                 size={36}
                 markClassName="text-[#1e4c77]"
                 wordmarkClassName="text-slate-900 dark:text-white text-[21px] font-extrabold tracking-[0.16em] leading-none font-inter"
               />
-            </div>
+            </button>
           ) : (
-            <div className="w-full flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onSelectView?.("review_queue")}
+              title="Go to Review Queue"
+              className="w-full flex flex-col items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity bg-transparent border-none p-0"
+            >
               <VerityMark size={32} className="text-[#1e4c77]" />
-            </div>
+            </button>
           )}
 
           {/* Collapse toggle */}
