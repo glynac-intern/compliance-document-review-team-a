@@ -3,6 +3,10 @@ Tests for TA-24: the 10MB cap must be enforced WHILE STREAMING, not
 after the whole file is buffered. Reading must stop once the cap is
 exceeded, not continue draining the rest of an oversized upload.
 """
+import pytest
+
+pytestmark = pytest.mark.unit
+
 from documents.router import _read_upload_with_cap, MAX_FILE_SIZE
 
 

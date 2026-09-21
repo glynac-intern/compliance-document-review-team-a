@@ -5,6 +5,10 @@ CSV. The cross-advisor access-boundary test for this endpoint lives in
 test_ta88_authorization_probe.py, alongside every other document-scoped
 endpoint's role-boundary probe -- not duplicated here.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import csv
 import io
 

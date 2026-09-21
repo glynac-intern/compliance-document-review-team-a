@@ -7,6 +7,10 @@ docker-compose/infrastructure concern, verified manually), but it proves
 the code-level fix: UPLOAD_DIR is read from the environment rather than
 hardcoded, and a real upload actually lands at that configured path.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import os
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 

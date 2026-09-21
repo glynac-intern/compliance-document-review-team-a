@@ -3,6 +3,10 @@ Tests for TA-51: chunk embeddings are persisted (document_id, chunk_index,
 masked_text, embedding), reusable by retrieval without re-embedding, and
 replaced (not accumulated) when a document is re-analysed.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from models import DocumentChunk, AIAnalysis, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")

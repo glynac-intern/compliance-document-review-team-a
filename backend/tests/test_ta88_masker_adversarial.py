@@ -11,6 +11,10 @@ changes in masker.py this same commit touches). Where it's a genuine,
 harder limitation, it's asserted as a documented miss -- not silently
 left unasserted -- and folded into masker.py's KNOWN_LIMITATIONS.
 """
+import pytest
+
+pytestmark = pytest.mark.unit
+
 from ai.masking.masker import mask_pii
 
 

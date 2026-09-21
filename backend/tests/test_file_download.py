@@ -4,6 +4,10 @@ file, with correct access control, content type, and filename -- and
 an unauthenticated request is rejected.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

@@ -16,6 +16,10 @@ email-sending code anywhere in this backend (grepped for smtp/
 sendgrid/send_email/mailer, no matches), so there is nothing to gate.
 See the ticket for that toggle's disposition.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

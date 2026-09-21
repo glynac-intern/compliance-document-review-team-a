@@ -4,6 +4,10 @@ advisor, listable newest-first with unread state, markable as read,
 and never visible to anyone but the recipient.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

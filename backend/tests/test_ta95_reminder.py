@@ -4,6 +4,10 @@ sitting in pending_review. The brief fixes "any officer can act on any
 document; there is no per-officer routing" -- there's no single officer
 to notify, so a reminder must reach every officer, not one.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

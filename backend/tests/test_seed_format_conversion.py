@@ -6,10 +6,16 @@ email, and account number together.
 """
 import json
 from pathlib import Path
+import pytest
+
+pytestmark = pytest.mark.unit
+
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+SEED_DIR = Path("/app/seed") if Path("/app/seed").exists() else (REPO_ROOT / "seed")
 
 
 def test_converted_files_exist_in_all_three_formats():
-    converted_dir = Path("/app/seed/documents/converted")
+    converted_dir = SEED_DIR / "documents" / "converted"
     assert converted_dir.exists()
 
     files = list(converted_dir.glob("*"))
@@ -20,7 +26,7 @@ def test_converted_files_exist_in_all_three_formats():
 
 
 def test_converted_metadata_covers_a_representative_spread():
-    metadata_path = Path("/app/seed/documents/converted/converted_metadata.json")
+    metadata_path = SEED_DIR / "documents" / "converted" / "converted_metadata.json"
     assert metadata_path.exists()
 
     data = json.loads(metadata_path.read_text())
@@ -34,7 +40,7 @@ def test_converted_metadata_covers_a_representative_spread():
 
 
 def test_pii_demo_document_is_present_and_flagged():
-    metadata_path = Path("/app/seed/documents/converted/converted_metadata.json")
+    metadata_path = SEED_DIR / "documents" / "converted" / "converted_metadata.json"
     data = json.loads(metadata_path.read_text())
 
     pii_demo = next((d for d in data if d["filename"] == "doc_004.txt"), None)
@@ -45,7 +51,7 @@ def test_pii_demo_document_is_present_and_flagged():
 def test_extraction_works_against_all_three_real_formats():
     from data_pipeline.extraction.extract import extract_text
 
-    converted_dir = Path("/app/seed/documents/converted")
+    converted_dir = SEED_DIR / "documents" / "converted"
     metadata = json.loads((converted_dir / "converted_metadata.json").read_text())
 
     checked_formats = set()
@@ -57,5 +63,6 @@ def test_extraction_works_against_all_three_real_formats():
         text = extract_text(str(file_path), fmt)
         assert len(text) > 0, f"extraction produced no text for {fmt}"
         checked_formats.add(fmt)
+
 
     assert checked_formats == {"pdf", "docx", "xlsx"}

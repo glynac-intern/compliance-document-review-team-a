@@ -11,6 +11,9 @@ this project's scope.
 import os
 from pathlib import Path
 
+# Provide a valid test secret key when running pytest outside docker / without .env loaded
+os.environ.setdefault("BACKEND_SECRET_KEY", "ci_dummy_secret_for_testing_only_32char")
+
 import psycopg2
 import pytest
 from alembic import command
@@ -20,7 +23,6 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from database import Base, get_db
-from main import app
 import models  # noqa: F401 -- registers all tables on Base.metadata
 
 TEST_DB_NAME = "compliance_test_db"
@@ -32,13 +34,12 @@ def _build_url(dbname: str) -> str:
     return f"{prefix}/{dbname}"
 
 
-ADMIN_DATABASE_URL = _build_url("postgres")
-TEST_DATABASE_URL = _build_url(TEST_DB_NAME)
-
-
 @pytest.fixture(scope="session")
 def test_db_engine():
-    conn = psycopg2.connect(ADMIN_DATABASE_URL)
+    admin_database_url = _build_url("postgres")
+    test_database_url = _build_url(TEST_DB_NAME)
+
+    conn = psycopg2.connect(admin_database_url)
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (TEST_DB_NAME,))
@@ -56,7 +57,7 @@ def test_db_engine():
     # checkout takes. The extension is created by the first migration
     # itself, so no separate manual step is needed here anymore.
     original_db_url = os.environ.get("DATABASE_URL")
-    os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+    os.environ["DATABASE_URL"] = test_database_url
     try:
         # TA-79: __file__-relative, not a hardcoded container path --
         # alembic.ini is always backend/'s own sibling, in Docker or out.
@@ -66,7 +67,7 @@ def test_db_engine():
         if original_db_url is not None:
             os.environ["DATABASE_URL"] = original_db_url
 
-    engine = create_engine(TEST_DATABASE_URL)
+    engine = create_engine(test_database_url)
     yield engine
     engine.dispose()
 
@@ -87,6 +88,8 @@ def db_session(test_db_engine):
 
 @pytest.fixture()
 def client(db_session):
+    from main import app
+
     def override_get_db():
         yield db_session
 

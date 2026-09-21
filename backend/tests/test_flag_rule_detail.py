@@ -8,6 +8,10 @@ real LLM pipeline entirely) so this test is fast, deterministic, and
 doesn't need a real Gemini API key -- it's testing the response schema,
 not the AI logic itself (which is covered separately, manually).
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from models import Rule, AIAnalysis, Flag, AnalysisStatus
 
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")

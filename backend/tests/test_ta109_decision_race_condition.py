@@ -21,6 +21,10 @@ interleave window isn't fully guaranteed with only two threads, and 8
 makes it overwhelmingly likely at least two interleave before either
 commits, on unfixed code.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import threading
 from concurrent.futures import ThreadPoolExecutor
 

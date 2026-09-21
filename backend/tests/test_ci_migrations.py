@@ -11,6 +11,9 @@ the file, confirmed the step is present) rather than via an automated
 test that could never actually reach it.
 """
 from pathlib import Path
+import pytest
+
+pytestmark = pytest.mark.unit
 
 
 def test_conftest_uses_alembic_not_create_all():

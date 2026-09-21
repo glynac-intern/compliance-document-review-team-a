@@ -9,6 +9,10 @@ anywhere. Found during manual testing: an advisor's revision note never
 showed up on the officer side because it was never actually persisted.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

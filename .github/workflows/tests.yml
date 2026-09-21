@@ -37,8 +37,11 @@ jobs:
       - name: Run setup script
         run: SKIP_SEEDING=1 ./scripts/setup.sh
 
-      - name: Run test suite (role boundary + masker)
-        run: docker compose run --rm backend pytest backend/tests/ -v
+      - name: Run unit test suite
+        run: docker compose run --rm backend pytest -m unit -v
+
+      - name: Run integration test suite
+        run: docker compose run --rm backend pytest -m integration -v
 
       - name: Tear down
         if: always()
@@ -74,8 +77,8 @@ jobs:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
         run: npm run build
 
-      - name: Run frontend tests (once they exist)
-        run: npm test --if-present
+      - name: Run frontend tests
+        run: npm test
 
   deploy:
     needs: [test, test-frontend]

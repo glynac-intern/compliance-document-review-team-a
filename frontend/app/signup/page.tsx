@@ -6,29 +6,7 @@ import { Mail, Lock, User, Loader2, Scale, Briefcase, Check } from "lucide-react
 import { VerityLogo } from "@/components/ui/verity-logo";
 import { authApi, ApiError, type UserRole } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-
-const PASSWORD_MIN_LENGTH = 8; // mirrors the server's real rule (TA-14)
-
-function validatePassword(password: string): string | null {
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`;
-  }
-  if (!/[a-zA-Z]/.test(password)) {
-    return "Password must contain at least one letter.";
-  }
-  if (!/[0-9]/.test(password)) {
-    return "Password must contain at least one digit.";
-  }
-  return null;
-}
-
-function validateEmail(email: string): string | null {
-  const simplePattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!simplePattern.test(email)) {
-    return "Please enter a valid email address.";
-  }
-  return null;
-}
+import { validateEmail, validatePassword } from "@/lib/validation";
 
 export default function SignupPage() {
   const router = useRouter();

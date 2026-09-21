@@ -11,6 +11,10 @@ enforced through the real endpoint (not just the helper function), or
 what happens to a file that looks like an allowed type but is corrupt
 once something actually tries to read it.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import io
 
 from docx import Document as DocxDocument

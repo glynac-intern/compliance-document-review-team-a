@@ -12,6 +12,10 @@ faked. This is what makes the captured payload trustworthy: it's the
 literal string the real code would have sent, not a hand-constructed
 example.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from unittest.mock import MagicMock, patch
 
 

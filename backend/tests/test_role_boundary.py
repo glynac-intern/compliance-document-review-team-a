@@ -5,6 +5,10 @@ advisors blocked from officer actions, and officers blocked from advisor
 actions.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 

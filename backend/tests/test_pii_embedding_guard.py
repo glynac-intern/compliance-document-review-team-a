@@ -11,6 +11,9 @@ If the guard is ever removed or bypassed, test_raw_pii_never_reaches_the_api
 below will fail, since the mocked API would then actually get called.
 """
 from unittest.mock import MagicMock, patch
+import pytest
+
+pytestmark = pytest.mark.unit
 
 
 import data_pipeline.embeddings.embed_client as embed_client

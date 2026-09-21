@@ -4,6 +4,10 @@ documents as precedents, each with decision and comment. The document
 being reviewed is never its own precedent. An empty index degrades to
 an empty list, not an error.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import uuid
 
 

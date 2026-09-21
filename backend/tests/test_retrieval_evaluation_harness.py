@@ -5,6 +5,9 @@ baseline has genuinely been recorded (not just claimed).
 """
 import json
 from pathlib import Path
+import pytest
+
+pytestmark = pytest.mark.unit
 
 # TA-79: __file__-relative, not a hardcoded container path -- resolves
 # the same way in Docker or outside it.

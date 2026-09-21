@@ -8,6 +8,10 @@ than synthetic FakeRule objects -- a real pgvector column requires
 genuine 768-dimension vectors, and the query itself needs real rows to
 run against.
 """
+import pytest
+
+pytestmark = pytest.mark.integration
+
 from ai.compliance.analyze_document import detect_missing_disclosures
 from models import Rule
 
