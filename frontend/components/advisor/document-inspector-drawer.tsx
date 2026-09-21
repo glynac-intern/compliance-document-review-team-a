@@ -270,7 +270,7 @@ export function DocumentInspectorDrawer({
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <StatusBadge status={doc.status} />
                 <span className="text-xs text-slate-400 dark:text-slate-500 font-numbers font-normal">
-                  {doc.id} · v{doc.version}
+                  v{doc.version}
                 </span>
               </div>
               <h2 className="text-base font-medium text-slate-900 dark:text-slate-100 leading-snug break-words font-inter">
@@ -357,14 +357,7 @@ export function DocumentInspectorDrawer({
                     <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Submitted By</td>
                     <td className="py-2 px-3 text-slate-800 dark:text-slate-200">{doc.advisor_name}</td>
                   </tr>
-                  <tr>
-                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Document ID</td>
-                    <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">{doc.id}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Thread ID</td>
-                    <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">{doc.thread_id}</td>
-                  </tr>
+
                   {doc.uploaded_at && (
                     <tr>
                       <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Submitted Date</td>

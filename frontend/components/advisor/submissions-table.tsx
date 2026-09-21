@@ -315,7 +315,7 @@ export function SubmissionsTable({
             {/* Headers: Non-bold, CamelCase Inter font */}
             <tr className="border-b border-slate-100 dark:border-slate-800 bg-[#f8fafc]/90 dark:bg-slate-800/60 text-[12px] font-normal text-slate-400 dark:text-slate-500 font-inter tracking-normal">
               <th className="py-3 px-5 sm:px-6 font-normal">
-                {variant === "overview" ? "Document Name" : "Document Name & ID"}
+                Document Name
               </th>
               <th className="py-3 px-3 font-normal">Type</th>
               <th className="py-3 px-3 font-normal">Submitted</th>
@@ -401,8 +401,6 @@ export function SubmissionsTable({
                           </p>
                           {variant === "full" && (
                             <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 font-inter font-normal">
-                              <span className="font-normal font-numbers text-slate-400 dark:text-slate-500">{doc.id}</span>
-                              <span>·</span>
                               <span className="font-numbers">v{doc.version}</span>
                               <span>·</span>
                               <span className="font-numbers">{doc.file_size_mb} MB</span>
