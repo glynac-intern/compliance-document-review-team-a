@@ -27,6 +27,7 @@ import jsonschema
 import pytest
 
 from main import app
+from models import AIAnalysis, AnalysisStatus
 
 pytestmark = pytest.mark.integration
 
@@ -56,7 +57,7 @@ def test_submit_document_response_matches_documentresponse_schema(client, adviso
     _validate_against_schema(resp.json(), "DocumentResponse", openapi_schema)
 
 
-def test_get_analysis_response_matches_analysisresponse_schema(client, advisor_token):
+def test_get_analysis_response_matches_analysisresponse_schema(client, db_session, advisor_token):
     submit = client.post(
         "/documents",
         headers={"Authorization": f"Bearer {advisor_token}"},
@@ -64,11 +65,18 @@ def test_get_analysis_response_matches_analysisresponse_schema(client, advisor_t
     )
     doc_id = submit.json()["id"]
 
-    # Deliberately not waiting on a real AI call -- the not_started
-    # state (set on submission, see test_analysis_state.py) already
-    # exercises the full response shape: flags/precedents as empty
-    # lists, summary/generated_at as null. That's the contract, same
-    # as any other state.
+    # GET .../analysis synchronously runs the real AI pipeline when the
+    # row is still not_started (see documents/router.py's get_analysis),
+    # which 503s with no live AI key configured -- that's TA-87's
+    # graceful-degradation behavior, not a bug. Force it to in_progress
+    # directly first, exactly like test_analysis_state.py's
+    # test_get_analysis_response_shape_for_not_yet_run_state does, so
+    # this test exercises the response *shape* without depending on a
+    # real LLM call succeeding.
+    analysis = db_session.query(AIAnalysis).filter(AIAnalysis.document_id == doc_id).first()
+    analysis.status = AnalysisStatus.in_progress
+    db_session.commit()
+
     resp = client.get(
         f"/documents/{doc_id}/analysis",
         headers={"Authorization": f"Bearer {advisor_token}"},
