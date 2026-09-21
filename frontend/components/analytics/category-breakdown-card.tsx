@@ -15,15 +15,15 @@ export function CategoryBreakdownCard({
   const totalDocs = categories.reduce((sum, c) => sum + c.totalSubmissions, 0);
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
+    <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
       {/* Header */}
-      <div className="pb-3 border-b border-slate-100 mb-4 flex items-center justify-between">
+      <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-sm sm:text-base font-medium text-slate-800 tracking-tight font-inter">
+          <h2 className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 tracking-tight font-inter">
             {title}
           </h2>
         </div>
-        <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 font-inter">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 font-inter">
           Clearance Rate
         </span>
       </div>
@@ -31,8 +31,8 @@ export function CategoryBreakdownCard({
       {/* Minimalist Category Rows */}
       {totalDocs === 0 ? (
         <div className="py-10 text-center space-y-1 font-inter">
-          <p className="text-xs font-medium text-slate-500">No document records found</p>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">No document records found</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
             Throughput metrics will populate automatically as submissions are processed.
           </p>
         </div>
@@ -49,31 +49,31 @@ export function CategoryBreakdownCard({
               >
                 {/* Category Name */}
                 <div className="w-40 sm:w-48 shrink-0">
-                  <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                  <span className="font-normal text-slate-700 dark:text-slate-300 font-inter group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors truncate block">
                     {cat.type}
                   </span>
                 </div>
 
                 {/* Minimalist Hairline Progress Bar */}
-                <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     style={{ width: `${hasDocs ? cat.clearanceRatePct : 0}%` }}
-                    className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                    className="h-full rounded-full bg-[#1e4c77] dark:bg-[#7fb2e3] transition-all duration-300"
                   />
                 </div>
 
                 {/* Metrics: Document count and clearance percentage */}
                 <div className="flex items-center gap-3 shrink-0 text-right">
-                  <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-14 text-right">
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers tabular-nums w-14 text-right">
                     {hasDocs ? `${cat.totalSubmissions} docs` : "00 docs"}
                   </span>
                   <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
                     {hasClearance ? (
-                      <span className="text-[#1e4c77]">{cat.clearanceRatePct.toFixed(1)}%</span>
+                      <span className="text-[#1e4c77] dark:text-[#7fb2e3]">{cat.clearanceRatePct.toFixed(1)}%</span>
                     ) : hasDocs ? (
-                      <span className="text-slate-500">00%</span>
+                      <span className="text-slate-500 dark:text-slate-400">00%</span>
                     ) : (
-                      <span className="text-slate-400 font-normal">No data</span>
+                      <span className="text-slate-400 dark:text-slate-500 font-normal">No data</span>
                     )}
                   </span>
                 </div>
@@ -84,9 +84,9 @@ export function CategoryBreakdownCard({
       )}
 
       {/* Footer */}
-      <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-inter">
+      <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-inter">
         <span>Total Submissions Analyzed</span>
-        <span className="font-numbers text-slate-600 font-medium">
+        <span className="font-numbers text-slate-600 dark:text-slate-400 font-medium">
           {totalDocs > 0 ? `${totalDocs} documents` : "00 documents"}
         </span>
       </div>

@@ -109,7 +109,7 @@ export function OfficerMetricsView({
   return (
     <div className="space-y-6 font-inter select-none">
       {/* Top Header & Operational Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div>
           <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 dark:text-slate-100 tracking-tight font-inter">
             Compliance Review Analytics
@@ -121,7 +121,7 @@ export function OfficerMetricsView({
           {/* Time Horizon Select Control with extended monthly, quarterly, and annual options */}
           <div className="relative">
             <Calendar
-              className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none"
+              className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none"
               strokeWidth={1.8}
             />
             <select
@@ -130,7 +130,7 @@ export function OfficerMetricsView({
                 handleHorizonChange(e.target.value as AnalyticsTimeHorizon)
               }
               aria-label="Select reporting time period"
-              className="h-9 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-normal font-inter text-slate-700 pl-8.5 pr-8 focus:outline-none focus:bg-white focus:border-[#1e4c77] focus:ring-2 focus:ring-[#1e4c77]/15 transition-all cursor-pointer appearance-none shadow-2xs"
+              className="h-9 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-normal font-inter text-slate-700 dark:text-slate-300 pl-8.5 pr-8 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#1e4c77]/15 dark:focus:ring-[#7fb2e3]/20 transition-all cursor-pointer appearance-none shadow-2xs"
             >
               <optgroup label="Monthly Horizons">
                 <option value="30d">Last 30 Days</option>
@@ -148,13 +148,13 @@ export function OfficerMetricsView({
               </optgroup>
             </select>
             <ChevronDown
-              className="absolute right-2.5 top-3 h-3 w-3 text-slate-400 pointer-events-none"
+              className="absolute right-2.5 top-3 h-3 w-3 text-slate-400 dark:text-slate-500 pointer-events-none"
               strokeWidth={1.8}
             />
           </div>
 
           {/* Unified Utility Action Dock */}
-          <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+          <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 shadow-2xs">
             {/* Sync / Refresh Button */}
             <button
               type="button"
@@ -162,27 +162,27 @@ export function OfficerMetricsView({
               disabled={isLoading}
               title="Sync metrics"
               className={cn(
-                "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs",
-                isLoading && "bg-white text-[#1e4c77] shadow-2xs"
+                "h-8 w-8 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs",
+                isLoading && "bg-white dark:bg-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] shadow-2xs"
               )}
             >
               <RotateCw
                 className={cn(
                   "h-4 w-4 stroke-[1.8] transition-transform",
-                  isLoading && "animate-spin text-[#1e4c77]"
+                  isLoading && "animate-spin text-[#1e4c77] dark:text-[#7fb2e3]"
                 )}
               />
             </button>
 
             {/* Subtle Divider */}
-            <div className="h-4 w-[1px] bg-slate-200 mx-0.5" />
+            <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-700 mx-0.5" />
 
             {/* Export Report CSV Button */}
             <button
               type="button"
               onClick={handleExport}
               title="Export compliance audit report CSV"
-              className="h-8 px-2.5 rounded-md flex items-center gap-1.5 transition-all duration-150 cursor-pointer text-xs font-normal text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-2xs font-inter"
+              className="h-8 px-2.5 rounded-md flex items-center gap-1.5 transition-all duration-150 cursor-pointer text-xs font-normal text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs font-inter"
             >
               <Download className="h-3.5 w-3.5 stroke-[1.8]" />
               <span className="hidden sm:inline">Export CSV</span>
@@ -193,12 +193,12 @@ export function OfficerMetricsView({
 
       {/* Error Fallback State */}
       {hasError ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center space-y-3 shadow-2xs">
-          <AlertCircle className="h-6 w-6 text-slate-600 mx-auto" />
-          <h3 className="text-sm font-medium text-slate-800">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center space-y-3 shadow-2xs">
+          <AlertCircle className="h-6 w-6 text-slate-600 dark:text-slate-400 mx-auto" />
+          <h3 className="text-sm font-medium text-slate-800 dark:text-slate-100">
             Unable to Load Compliance Review Analytics
           </h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
             The reporting service encountered a temporary error while aggregating officer decision records.
           </p>
           <button
@@ -226,12 +226,12 @@ export function OfficerMetricsView({
           </div>
 
           {/* Skeleton Hero Chart */}
-          <div className="h-72 rounded-xl border border-slate-200 bg-white p-5 shadow-2xs" />
+          <div className="h-72 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-2xs" />
 
           {/* Skeleton 2 Columns Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-80 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs" />
-            <div className="h-80 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs" />
+            <div className="h-80 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs" />
+            <div className="h-80 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs" />
           </div>
         </div>
       ) : (
@@ -304,15 +304,15 @@ export function OfficerMetricsView({
             />
 
             {/* Officer Risk & Supervisory Oversight Card */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
               {/* Header */}
-              <div className="pb-3.5 border-b border-slate-100 mb-4 flex items-center justify-between">
+              <div className="pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-sm sm:text-base font-medium text-slate-800 tracking-tight font-inter">
+                  <h2 className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 tracking-tight font-inter">
                     Supervisory & Quality Telemetry
                   </h2>
                 </div>
-                <span className="text-[11px] uppercase tracking-wider font-medium text-slate-400 font-inter">
+                <span className="text-[11px] uppercase tracking-wider font-medium text-slate-400 dark:text-slate-500 font-inter">
                   Real Operations
                 </span>
               </div>
@@ -326,25 +326,25 @@ export function OfficerMetricsView({
                   return (
                     <div className="group flex items-center justify-between gap-3 text-xs">
                       <div className="w-36 sm:w-44 shrink-0">
-                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                        <span className="font-normal text-slate-700 dark:text-slate-300 font-inter group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors truncate block">
                           First-Pass Clearance
                         </span>
                       </div>
-                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                           style={{ width: `${hasReviewed ? rate : 0}%` }}
-                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                          className="h-full rounded-full bg-[#1e4c77] dark:bg-[#7fb2e3] transition-all duration-300"
                         />
                       </div>
                       <div className="flex items-center gap-3 shrink-0 text-right">
-                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers tabular-nums w-16 text-right">
                           {hasReviewed ? `${data.outcomeDistribution.approvedCount} approved` : "00 approved"}
                         </span>
                         <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
                           {hasReviewed ? (
-                            <span className="text-[#1e4c77]">{rate.toFixed(1)}%</span>
+                            <span className="text-[#1e4c77] dark:text-[#7fb2e3]">{rate.toFixed(1)}%</span>
                           ) : (
-                            <span className="text-slate-400 font-normal">No data</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal">No data</span>
                           )}
                         </span>
                       </div>
@@ -359,27 +359,27 @@ export function OfficerMetricsView({
                   return (
                     <div className="group flex items-center justify-between gap-3 text-xs">
                       <div className="w-36 sm:w-44 shrink-0">
-                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                        <span className="font-normal text-slate-700 dark:text-slate-300 font-inter group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors truncate block">
                           Revision Iterations
                         </span>
                       </div>
-                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                           style={{ width: `${hasReviewed ? rate : 0}%` }}
-                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                          className="h-full rounded-full bg-[#1e4c77] dark:bg-[#7fb2e3] transition-all duration-300"
                         />
                       </div>
                       <div className="flex items-center gap-3 shrink-0 text-right">
-                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers tabular-nums w-16 text-right">
                           {hasReviewed ? `${data.outcomeDistribution.revisionCount} revisions` : "00 revisions"}
                         </span>
                         <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
                           {hasReviewed && rate > 0 ? (
-                            <span className="text-[#1e4c77]">{rate.toFixed(1)}%</span>
+                            <span className="text-[#1e4c77] dark:text-[#7fb2e3]">{rate.toFixed(1)}%</span>
                           ) : hasReviewed ? (
-                            <span className="text-slate-500">00%</span>
+                            <span className="text-slate-500 dark:text-slate-400">00%</span>
                           ) : (
-                            <span className="text-slate-400 font-normal">No data</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal">No data</span>
                           )}
                         </span>
                       </div>
@@ -394,27 +394,27 @@ export function OfficerMetricsView({
                   return (
                     <div className="group flex items-center justify-between gap-3 text-xs">
                       <div className="w-36 sm:w-44 shrink-0">
-                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                        <span className="font-normal text-slate-700 dark:text-slate-300 font-inter group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors truncate block">
                           Determination Rejections
                         </span>
                       </div>
-                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                           style={{ width: `${hasReviewed ? rate : 0}%` }}
-                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                          className="h-full rounded-full bg-[#1e4c77] dark:bg-[#7fb2e3] transition-all duration-300"
                         />
                       </div>
                       <div className="flex items-center gap-3 shrink-0 text-right">
-                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers tabular-nums w-16 text-right">
                           {hasReviewed ? `${data.outcomeDistribution.rejectedCount} rejected` : "00 rejected"}
                         </span>
                         <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
                           {hasReviewed && rate > 0 ? (
-                            <span className="text-[#1e4c77]">{rate.toFixed(1)}%</span>
+                            <span className="text-[#1e4c77] dark:text-[#7fb2e3]">{rate.toFixed(1)}%</span>
                           ) : hasReviewed ? (
-                            <span className="text-slate-500">00%</span>
+                            <span className="text-slate-500 dark:text-slate-400">00%</span>
                           ) : (
-                            <span className="text-slate-400 font-normal">No data</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal">No data</span>
                           )}
                         </span>
                       </div>
@@ -430,25 +430,25 @@ export function OfficerMetricsView({
                   return (
                     <div className="group flex items-center justify-between gap-3 text-xs">
                       <div className="w-36 sm:w-44 shrink-0">
-                        <span className="font-normal text-slate-700 font-inter group-hover:text-[#1e4c77] transition-colors truncate block">
+                        <span className="font-normal text-slate-700 dark:text-slate-300 font-inter group-hover:text-[#1e4c77] dark:group-hover:text-[#7fb2e3] transition-colors truncate block">
                           Active Intake in Queue
                         </span>
                       </div>
-                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="flex-1 min-w-[60px] h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                           style={{ width: `${totalCount > 0 ? pendingPct : 0}%` }}
-                          className="h-full rounded-full bg-[#1e4c77] transition-all duration-300"
+                          className="h-full rounded-full bg-[#1e4c77] dark:bg-[#7fb2e3] transition-all duration-300"
                         />
                       </div>
                       <div className="flex items-center gap-3 shrink-0 text-right">
-                        <span className="text-[11px] text-slate-400 font-numbers tabular-nums w-16 text-right">
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers tabular-nums w-16 text-right">
                           {totalCount > 0 ? `${pendingCount} pending` : "00 docs"}
                         </span>
                         <span className="text-[12px] font-numbers font-medium tabular-nums w-14 text-right">
                           {totalCount > 0 ? (
                             <span className="text-[#1e4c77]">{pendingPct.toFixed(1)}%</span>
                           ) : (
-                            <span className="text-slate-400 font-normal">No data</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal">No data</span>
                           )}
                         </span>
                       </div>
@@ -458,12 +458,12 @@ export function OfficerMetricsView({
               </div>
 
               {/* Subtle Footer Note */}
-              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-inter font-normal">
+              <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-inter font-normal">
                 <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-[#1e4c77]" />
+                  <ShieldCheck className="h-3.5 w-3.5 text-[#1e4c77] dark:text-[#7fb2e3]" />
                   Human-in-the-Loop Safeguard
                 </span>
-                <span className="text-slate-600 font-medium">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">
                   {rawDocuments.length > 0
                     ? `${rawDocuments.length} repository records`
                     : "No data"}
