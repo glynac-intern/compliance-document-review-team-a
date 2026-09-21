@@ -2,6 +2,15 @@
 
 This directory contains the browser end-to-end (E2E) testing suite for the Compliance Document Review system, established under **TA-130**. Subsequent flow tickets ([TA-131](https://aufatapiopa.atlassian.net/browse/TA-131), [TA-132](https://aufatapiopa.atlassian.net/browse/TA-132), [TA-133](https://aufatapiopa.atlassian.net/browse/TA-133), [TA-134](https://aufatapiopa.atlassian.net/browse/TA-134)) build on this harness.
 
+### Accessibility Checks (TA-134)
+
+Automated accessibility scanning is integrated via `@axe-core/playwright`. The shared helper in `e2e/axe-helper.ts` wraps axe-core with a deliberate impact threshold:
+
+- **Fail on**: `serious` and `critical` violations (the threshold is set in code, not left at library default)
+- **Report without failing**: `moderate` and `minor` violations (logged to CI output for triage)
+- **Dual-theme coverage**: Every screen is scanned in both light and dark mode
+- **Known exclusions**: Any disabled rule carries an inline comment explaining why (see `KNOWN_EXCLUSIONS` in `axe-helper.ts`)
+
 ---
 
 ## Conventions for Flow Tickets
