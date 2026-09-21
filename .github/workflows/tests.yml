@@ -31,6 +31,12 @@ jobs:
       - name: Build backend image
         run: docker compose build backend
 
+      # TA-125: static analysis only, no DB/services needed -- runs
+      # right after the image builds rather than after setup, so a
+      # lint failure fails fast instead of waiting on migrations.
+      - name: Lint (ruff)
+        run: docker compose run --rm backend ruff check .
+
       # TA-80: same path the README uses, seeding skipped -- CI's
       # dummy LLM_API_KEY can't make real embedding calls, which
       # pytest doesn't need anyway.
@@ -69,6 +75,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
 
       - name: Build
         env:

@@ -1,3 +1,31 @@
+[tool.ruff]
+# TA-125: minimal config to start, deliberately -- target-version and
+# line-length only, no custom [tool.ruff.lint] select. Ruff's built-in
+# default rule set (E4, E7, E9, F) is itself a conservative, sensible
+# starting point; broadening it is a separate decision once this
+# baseline is clean, not something to bundle into standing this up.
+target-version = "py312"
+line-length = 110
+# .agents/ carries its own scripts (Claude Code skill tooling), not
+# this project's source -- ruff would otherwise lint code this team
+# didn't write and can't fix here.
+extend-exclude = [".agents"]
+
+[tool.ruff.lint.per-file-ignores]
+# Every test module in this suite deliberately puts `pytestmark =
+# pytest.mark.unit/integration` right after `import pytest`, before
+# the rest of its imports -- an established, consistent convention
+# across the whole directory (see any file in backend/tests/), not an
+# accident. Reordering ~50 files' imports just to satisfy E402 would
+# be pure churn for a style ruff doesn't have an opinion worth
+# overriding here; scoped to this one directory + rule, not a blanket
+# ignore of E402 project-wide.
+"backend/tests/*.py" = ["E402"]
+# sys.path.insert(...) has to run before the local imports that depend
+# on it -- the standard idiom for a script invoked from outside its
+# package, not an ordering mistake.
+"scripts/cleanup_e2e_run.py" = ["E402"]
+
 [tool.pytest.ini_options]
 # TA-79: makes the suite resolve first-party imports the same way
 # outside Docker as the Dockerfile's ENV PYTHONPATH does inside it --

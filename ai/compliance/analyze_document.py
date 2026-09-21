@@ -76,7 +76,7 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict, list[dict]]:
     masked_text, mapping = mask_pii(raw_text)
     chunks = chunk_paragraphs(masked_text)
 
-    disclosure_rules = db.query(Rule).filter(Rule.type == "disclosure", Rule.is_active == True).all()
+    disclosure_rules = db.query(Rule).filter(Rule.type == "disclosure", Rule.is_active).all()
 
     # Batch ALL chunk embeddings in ONE API call (TA-52), instead of one
     # network round trip per chunk.

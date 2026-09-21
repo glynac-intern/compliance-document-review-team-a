@@ -92,7 +92,7 @@ def main():
             db.query(Rule)
             .filter(Rule.seed_id.isnot(None))
             .filter(~Rule.seed_id.in_(current_seed_ids))
-            .filter(Rule.is_active == True)
+            .filter(Rule.is_active)
             .all()
         )
         for rule in orphaned:
@@ -100,7 +100,7 @@ def main():
 
         db.commit()
 
-        final_active_count = db.query(Rule).filter(Rule.is_active == True).count()
+        final_active_count = db.query(Rule).filter(Rule.is_active).count()
         print(f"\nDone. {updated_count} rule(s) updated in place, "
               f"{created_count} new rule(s) created, "
               f"{len(orphaned)} rule(s) marked inactive (removed from corpus).")

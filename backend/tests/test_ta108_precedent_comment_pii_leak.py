@@ -34,8 +34,7 @@ from unittest.mock import patch
 from docx import Document as DocxDocument
 
 from ai.compliance.precedent_indexer import index_document_as_precedent
-from ai.masking.masker import mask_pii
-from models import AIAnalysis, AnalysisStatus, Document, DocumentChunk, PrecedentIndex, Review, User
+from models import AIAnalysis, AnalysisStatus, Document, DocumentChunk, PrecedentIndex, Review
 
 FAKE_EMBEDDING = [0.3] * 768
 

@@ -6,8 +6,6 @@ extracted text, not the raw file, since a PDF/DOCX's binary structure
 isn't something the masker's regexes can operate on directly.
 """
 
-from pathlib import Path
-
 from pypdf import PdfReader
 from docx import Document as DocxDocument
 from openpyxl import load_workbook

@@ -138,7 +138,7 @@ def gen_meeting_notes(include_disclosure, include_claim, perf_style, with_pii):
         body += _maybe_pii_block(client) + "\n\n"
     body += "Next steps: Follow up in Q3 to reassess allocation.\n"
     if include_disclosure:
-        body += f"\nNote: Client's investment objectives and risk tolerance are on file per compliance requirements.\n"
+        body += "\nNote: Client's investment objectives and risk tolerance are on file per compliance requirements.\n"
     return body
 
 

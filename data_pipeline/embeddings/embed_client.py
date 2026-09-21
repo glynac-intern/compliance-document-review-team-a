@@ -80,7 +80,7 @@ def embed_texts_batch(texts: list[str], retries: int = 3) -> list[list[float]]:
             return vectors
         except ValueError:
             raise  # dimension mismatch / PII guard -- not transient, don't retry
-        except Exception as e:
+        except Exception:
             if attempt == retries - 1:
                 raise
             time.sleep(2 ** attempt)

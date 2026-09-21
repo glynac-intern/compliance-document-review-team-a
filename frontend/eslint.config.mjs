@@ -16,6 +16,13 @@ const eslintConfig = defineConfig([
       // pressure just to satisfy an overly aggressive experimental
       // rule -- rewriting six real, working files carries more actual
       // risk than this warning does.
+      //
+      // TA-125: `npm run lint` now runs with --max-warnings=26 (the
+      // exact count this rule produces today) instead of a blanket
+      // --max-warnings=0, specifically so this stays visible without
+      // relitigating TA-76's call. That number is a ceiling, not a
+      // target -- it should shrink as instances get fixed for real,
+      // never grow to make room for a new, unrelated warning.
       "react-hooks/set-state-in-effect": "warn",
     },
   },
