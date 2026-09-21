@@ -259,21 +259,21 @@ export function DocumentInspectorDrawer({
       {/* Drawer Body */}
       <div
         className={cn(
-          "w-full bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300 transition-all",
+          "w-full bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col z-10 overflow-hidden border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300 transition-all",
           drawerTab === "preview" ? "max-w-3xl lg:max-w-4xl" : "max-w-lg"
         )}
       >
         {/* Drawer Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 bg-white font-inter shrink-0">
+        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-inter shrink-0">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1 pr-4">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <StatusBadge status={doc.status} />
-                <span className="text-xs text-slate-400 font-numbers font-normal">
+                <span className="text-xs text-slate-400 dark:text-slate-500 font-numbers font-normal">
                   {doc.id} · v{doc.version}
                 </span>
               </div>
-              <h2 className="text-base font-medium text-slate-900 leading-snug break-words font-inter">
+              <h2 className="text-base font-medium text-slate-900 dark:text-slate-100 leading-snug break-words font-inter">
                 {doc.title}
               </h2>
             </div>
@@ -282,22 +282,22 @@ export function DocumentInspectorDrawer({
               type="button"
               onClick={onClose}
               aria-label="Close inspector"
-              className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+              className="h-8 w-8 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Segmented View Tabs */}
-          <div className="flex items-center gap-1 mt-3.5 p-0.5 bg-slate-100 rounded-lg w-fit border border-slate-200/70">
+          <div className="flex items-center gap-1 mt-3.5 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg w-fit border border-slate-200/70 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setDrawerTab("overview")}
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
                 drawerTab === "overview"
-                  ? "bg-white text-[#1e4c77] shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] shadow-2xs font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               Overview &amp; Findings
@@ -308,8 +308,8 @@ export function DocumentInspectorDrawer({
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer flex items-center gap-1.5",
                 drawerTab === "preview"
-                  ? "bg-white text-[#1e4c77] shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-700 text-[#1e4c77] dark:text-[#7fb2e3] shadow-2xs font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               <Eye className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export function DocumentInspectorDrawer({
         </div>
 
         {drawerTab === "preview" ? (
-          <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+          <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
             <DocumentViewer
               fileBlob={previewBlob}
               fileBlobUrl={previewBlobUrl}
@@ -336,45 +336,45 @@ export function DocumentInspectorDrawer({
           /* Scrollable Content (Overview & Findings) */
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 font-inter">
           {historyError && (
-            <div className="border border-rose-200 bg-rose-50/50 p-2.5 rounded text-xs text-rose-700 font-inter">
+            <div className="border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 p-2.5 rounded text-xs text-rose-700 dark:text-rose-300 font-inter">
               {historyError}
             </div>
           )}
 
           {/* Section 1: Document Details in a Clean Table */}
           <div className="space-y-1.5 font-inter">
-            <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Document Information
             </h3>
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
               <table className="w-full text-xs text-left border-collapse font-inter">
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                   <tr>
-                    <td className="py-2 px-3 text-slate-500 font-medium w-32 bg-slate-50/60">Category / Type</td>
-                    <td className="py-2 px-3 text-slate-800 font-medium">{doc.type}</td>
+                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium w-32 bg-slate-50/60 dark:bg-slate-800/40">Category / Type</td>
+                    <td className="py-2 px-3 text-slate-800 dark:text-slate-200 font-medium">{doc.type}</td>
                   </tr>
                   <tr>
-                    <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60">Submitted By</td>
-                    <td className="py-2 px-3 text-slate-800">{doc.advisor_name}</td>
+                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Submitted By</td>
+                    <td className="py-2 px-3 text-slate-800 dark:text-slate-200">{doc.advisor_name}</td>
                   </tr>
                   <tr>
-                    <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60">Document ID</td>
-                    <td className="py-2 px-3 font-numbers text-slate-700">{doc.id}</td>
+                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Document ID</td>
+                    <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">{doc.id}</td>
                   </tr>
                   <tr>
-                    <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60">Thread ID</td>
-                    <td className="py-2 px-3 font-numbers text-slate-700">{doc.thread_id}</td>
+                    <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Thread ID</td>
+                    <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">{doc.thread_id}</td>
                   </tr>
                   {doc.uploaded_at && (
                     <tr>
-                      <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60">Submitted Date</td>
-                      <td className="py-2 px-3 font-numbers text-slate-700">{formatDate(doc.uploaded_at)}</td>
+                      <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Submitted Date</td>
+                      <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">{formatDate(doc.uploaded_at)}</td>
                     </tr>
                   )}
                   {doc.file_size_mb && (
                     <tr>
-                      <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60">File Size</td>
-                      <td className="py-2 px-3 font-numbers text-slate-700">{doc.file_size_mb} MB</td>
+                      <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">File Size</td>
+                      <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">{doc.file_size_mb} MB</td>
                     </tr>
                   )}
                 </tbody>
@@ -384,33 +384,33 @@ export function DocumentInspectorDrawer({
 
           {/* Section 2: Officer Decision & Comments in a Table */}
           {isLoadingHistory ? (
-            <div className="py-3 text-xs text-slate-400 font-inter">
+            <div className="py-3 text-xs text-slate-400 dark:text-slate-500 font-inter">
               Loading review status...
             </div>
           ) : currentEntry?.review ? (
             <div className="space-y-1.5 font-inter">
-              <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Review Decision
               </h3>
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
                 <table className="w-full text-xs text-left border-collapse font-inter">
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                     <tr>
-                      <td className="py-2 px-3 text-slate-500 font-medium w-32 bg-slate-50/60">Outcome</td>
+                      <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium w-32 bg-slate-50/60 dark:bg-slate-800/40">Outcome</td>
                       <td className="py-2 px-3 font-medium">
                         <StatusBadge status={currentEntry.review.status} />
                       </td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60">Decision Date</td>
-                      <td className="py-2 px-3 font-numbers text-slate-700">
+                      <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40">Decision Date</td>
+                      <td className="py-2 px-3 font-numbers text-slate-700 dark:text-slate-300">
                         {formatDate(currentEntry.review.decided_at)}
                       </td>
                     </tr>
                     {currentEntry.review.comment && (
                       <tr>
-                        <td className="py-2 px-3 text-slate-500 font-medium bg-slate-50/60 align-top">Officer Comment</td>
-                        <td className="py-2 px-3 text-slate-800 leading-relaxed font-normal">
+                        <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-medium bg-slate-50/60 dark:bg-slate-800/40 align-top">Officer Comment</td>
+                        <td className="py-2 px-3 text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
                           {currentEntry.review.comment}
                         </td>
                       </tr>
@@ -420,24 +420,24 @@ export function DocumentInspectorDrawer({
               </div>
             </div>
           ) : (
-            <div className="py-2 text-xs text-slate-500 font-inter flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-[#1e4c77] shrink-0" />
+            <div className="py-2 text-xs text-slate-500 dark:text-slate-400 font-inter flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5 text-[#1e4c77] dark:text-[#7fb2e3] shrink-0" />
               <span>Pending review — awaiting compliance officer assessment.</span>
             </div>
           )}
 
           {/* Section 3: Compliance Citations in a Professional Table */}
           {isLoadingAnalysis ? (
-            <div className="py-3 flex items-center gap-2 text-xs text-slate-500 font-inter">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+            <div className="py-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-inter">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77] dark:text-[#7fb2e3]" />
               <span>Checking AI review...</span>
             </div>
           ) : analysis?.status === "failed" ? (
             <div className="space-y-1.5 font-inter">
-              <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Review Status
               </h3>
-              <div className="border border-slate-200 rounded-lg p-3 text-xs text-[#991b1b] flex items-center justify-between gap-3">
+              <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs text-status-rejected-text flex items-center justify-between gap-3">
                 <span>Analysis failed: {analysis.error_message || "An unexpected error occurred."}</span>
                 <button
                   type="button"
@@ -452,38 +452,38 @@ export function DocumentInspectorDrawer({
           ) : (
             <div className="space-y-1.5 font-inter">
               <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Rule Citations &amp; Findings ({findings.length})
                 </h3>
               </div>
 
               {findings.length === 0 ? (
-                <div className="border border-slate-200 rounded-lg p-3 text-xs text-slate-600 font-inter">
+                <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs text-slate-600 dark:text-slate-400 font-inter">
                   No compliance violations detected under SEC / FINRA rules.
                 </div>
               ) : (
-                <div className="border border-slate-200 rounded-lg overflow-x-auto">
+                <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-x-auto">
                   <table className="w-full text-xs text-left border-collapse font-inter min-w-[420px]">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium text-[11px]">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium text-[11px]">
                       <tr>
                         <th className="py-2 px-3 font-medium w-36">Rule / Standard</th>
                         <th className="py-2 px-3 font-medium w-20">Severity</th>
                         <th className="py-2 px-3 font-medium">Flagged Text &amp; Requirement</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 text-slate-700">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                       {findings.map((flag, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50">
-                          <td className="py-2.5 px-3 align-top font-medium text-slate-900">
+                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                          <td className="py-2.5 px-3 align-top font-medium text-slate-900 dark:text-slate-100">
                             {flag.rule}
                           </td>
                           <td className="py-2.5 px-3 align-top">
                             <span
                               className={cn(
                                 "font-medium text-[11px] uppercase tracking-wide",
-                                flag.severity.toLowerCase() === "high" && "text-[#991b1b]",
-                                flag.severity.toLowerCase() === "medium" && "text-[#92400e]",
-                                flag.severity.toLowerCase() === "low" && "text-slate-600"
+                                flag.severity.toLowerCase() === "high" && "text-status-rejected-text",
+                                flag.severity.toLowerCase() === "medium" && "text-status-revision-text",
+                                flag.severity.toLowerCase() === "low" && "text-slate-600 dark:text-slate-400"
                               )}
                             >
                               {flag.severity}
@@ -491,11 +491,11 @@ export function DocumentInspectorDrawer({
                           </td>
                           <td className="py-2.5 px-3 align-top space-y-1.5">
                             {flag.passage && (
-                              <p className="font-mono text-[11px] text-slate-800 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded">
+                              <p className="font-mono text-[11px] text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 px-2 py-1 rounded">
                                 &ldquo;{flag.passage}&rdquo;
                               </p>
                             )}
-                            <p className="text-[11.5px] text-slate-600 leading-relaxed font-normal">
+                            <p className="text-[11.5px] text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
                               {flag.explanation}
                             </p>
                           </td>
@@ -511,33 +511,33 @@ export function DocumentInspectorDrawer({
           {/* Section 4: Revision History in a Clean Table */}
           {thread && thread.length > 0 && (
             <div className="space-y-1.5 font-inter">
-              <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Revision History ({thread.length})
               </h3>
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
                 <table className="w-full text-xs text-left border-collapse font-inter">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium text-[11px]">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium text-[11px]">
                     <tr>
                       <th className="py-2 px-3 font-medium">Version</th>
                       <th className="py-2 px-3 font-medium">Date</th>
                       <th className="py-2 px-3 font-medium text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                     {thread.map((entry, idx) => (
                       <tr
                         key={entry.document_id}
                         className={cn(
-                          entry.document_id === doc.id ? "bg-slate-50 font-medium" : "hover:bg-slate-50/40"
+                          entry.document_id === doc.id ? "bg-slate-50 dark:bg-slate-800/60 font-medium" : "hover:bg-slate-50/40 dark:hover:bg-slate-800/30"
                         )}
                       >
-                        <td className="py-2 px-3 text-slate-800">
+                        <td className="py-2 px-3 text-slate-800 dark:text-slate-200">
                           v{idx + 1}
                           {entry.document_id === doc.id && (
-                            <span className="ml-1 text-[10px] text-slate-400 font-normal">(current)</span>
+                            <span className="ml-1 text-[10px] text-slate-400 dark:text-slate-500 font-normal">(current)</span>
                           )}
                         </td>
-                        <td className="py-2 px-3 text-slate-500 font-numbers">
+                        <td className="py-2 px-3 text-slate-500 dark:text-slate-400 font-numbers">
                           {formatDate(entry.uploaded_at)}
                         </td>
                         <td className="py-2 px-3 text-right">
@@ -554,24 +554,24 @@ export function DocumentInspectorDrawer({
           {/* Section 5: Audit Trail in a Clean Table */}
           {audit && audit.length > 0 && (
             <div className="space-y-1.5 font-inter">
-              <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Audit Trail ({audit.length})
               </h3>
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
                 <table className="w-full text-xs text-left border-collapse font-inter">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium text-[11px]">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium text-[11px]">
                     <tr>
                       <th className="py-2 px-3 font-medium">Action</th>
                       <th className="py-2 px-3 font-medium text-right">Timestamp</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
                     {audit.map((event) => (
-                      <tr key={event.id} className="hover:bg-slate-50/40">
-                        <td className="py-2 px-3 text-slate-700 capitalize">
+                      <tr key={event.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/30">
+                        <td className="py-2 px-3 text-slate-700 dark:text-slate-300 capitalize">
                           {event.action.replace(/_/g, " ")}
                         </td>
-                        <td className="py-2 px-3 text-right text-slate-400 font-numbers text-[11px]">
+                        <td className="py-2 px-3 text-right text-slate-400 dark:text-slate-500 font-numbers text-[11px]">
                           {formatDate(event.timestamp)}
                         </td>
                       </tr>
@@ -586,21 +586,21 @@ export function DocumentInspectorDrawer({
 
         {/* Action Footer */}
         {downloadError && (
-          <div className="px-4 py-2 bg-rose-50 text-rose-700 text-xs border-t border-rose-200 font-inter">
+          <div className="px-4 py-2 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-xs border-t border-rose-200 dark:border-rose-900/50 font-inter">
             {downloadError}
           </div>
         )}
-        <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between gap-3 font-inter">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 font-inter">
           <button
             type="button"
             onClick={handleExportAudit}
             disabled={isExportingAudit}
             title="Export Audit Trail (CSV)"
             aria-label="Export Audit Trail (CSV)"
-            className="h-10 w-10 shrink-0 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
+            className="h-10 w-10 shrink-0 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
           >
             {isExportingAudit ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77] dark:text-[#7fb2e3]" />
             ) : (
               <FileDown className="h-3.5 w-3.5" />
             )}
@@ -610,10 +610,10 @@ export function DocumentInspectorDrawer({
             type="button"
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex-1 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
+            className="flex-1 h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 font-inter"
           >
             {isDownloading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e4c77] dark:text-[#7fb2e3]" />
             ) : (
               <Download className="h-3.5 w-3.5" />
             )}
@@ -657,7 +657,7 @@ export function DocumentInspectorDrawer({
           )}
         </div>
         {reminderMessage && (
-          <div className="px-4 pb-3 -mt-1 text-[11px] text-slate-500 font-inter text-center">
+          <div className="px-4 pb-3 -mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-inter text-center">
             {reminderMessage}
           </div>
         )}

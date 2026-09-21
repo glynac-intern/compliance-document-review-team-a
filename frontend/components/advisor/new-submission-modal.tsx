@@ -93,21 +93,21 @@ export function NewSubmissionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 font-sans select-none animate-in fade-in duration-150">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-[#f8fafc]">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-[#f8fafc] dark:bg-slate-800/60">
           <div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
               New Compliance Submission
             </h3>
-            <p className="text-xs text-slate-500 font-roboto mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-roboto mt-0.5">
               Submit marketing materials or client communications for review
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
+            className="h-8 w-8 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -116,7 +116,7 @@ export function NewSubmissionModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-700">
+            <div className="flex items-center gap-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 px-3 py-2 text-xs text-rose-700 dark:text-rose-300">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -126,7 +126,7 @@ export function NewSubmissionModal({
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
-            className="border-2 border-dashed border-slate-200 hover:border-[#2575bc] rounded-2xl p-6 text-center bg-[#f8fafc] transition-colors cursor-pointer"
+            className="border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-[#2575bc] dark:hover:border-[#7fb2e3] rounded-2xl p-6 text-center bg-[#f8fafc] dark:bg-slate-800/40 transition-colors cursor-pointer"
             onClick={() => document.getElementById("file-upload")?.click()}
           >
             <input
@@ -136,22 +136,22 @@ export function NewSubmissionModal({
               className="hidden"
               onChange={handleFileChange}
             />
-            <div className="h-10 w-10 rounded-full bg-blue-50 text-[#1e4c77] flex items-center justify-center mx-auto mb-2">
+            <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-[#1e4c77]/20 text-[#1e4c77] dark:text-[#7fb2e3] flex items-center justify-center mx-auto mb-2">
               <UploadCloud className="h-5 w-5 stroke-[2.2]" />
             </div>
             {file ? (
               <div>
-                <p className="text-xs font-semibold text-slate-900">{file.name}</p>
-                <p className="text-[11px] text-slate-400 font-roboto mt-0.5">
+                <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{file.name}</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 font-roboto mt-0.5">
                   {(file.size / (1024 * 1024)).toFixed(2)} MB · Ready to scan
                 </p>
               </div>
             ) : (
               <div>
-                <p className="text-xs font-semibold text-slate-800">
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
                   Drop presentation, brochure, or client letter here
                 </p>
-                <p className="text-[11px] text-slate-400 font-roboto mt-0.5">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 font-roboto mt-0.5">
                   Supports PDF, DOCX, XLSX up to 10 MB
                 </p>
               </div>
@@ -161,19 +161,19 @@ export function NewSubmissionModal({
           {/* Upload progress -- visible during the real upload */}
           {isSubmitting && (
             <div className="space-y-1">
-              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                 <div
                   className="h-full bg-[#2575bc] transition-all duration-150"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-              <p className="text-[11px] text-slate-400 text-right">{uploadProgress}%</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 text-right">{uploadProgress}%</p>
             </div>
           )}
 
           {/* Document Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Document Title
             </label>
             <input
@@ -181,20 +181,20 @@ export function NewSubmissionModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Q3 High Yield Fund Strategy Deck"
-              className="w-full h-10 px-3 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#2575bc] focus:ring-2 focus:ring-[#2575bc]/15 transition-all"
+              className="w-full h-10 px-3 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#2575bc] dark:focus:border-[#7fb2e3] focus:ring-2 focus:ring-[#2575bc]/15 dark:focus:ring-[#7fb2e3]/20 transition-all"
             />
           </div>
 
           {/* Document Type & Audience */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Document Category
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as DocumentType)}
-                className="w-full h-10 px-3 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2575bc] transition-all"
+                className="w-full h-10 px-3 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#2575bc] dark:focus:border-[#7fb2e3] transition-all"
               >
                 <option value="Presentation / Deck">Presentation / Deck</option>
                 <option value="Client Letter">Client Letter</option>
@@ -205,13 +205,13 @@ export function NewSubmissionModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Target Audience
               </label>
               <select
                 value={audience}
                 onChange={(e) => setAudience(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:bg-white focus:border-[#2575bc] transition-all"
+                className="w-full h-10 px-3 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#2575bc] dark:focus:border-[#7fb2e3] transition-all"
               >
                 <option value="Retail Clients">Retail Clients (SEC Strict)</option>
                 <option value="Institutional">Institutional Investors</option>
@@ -222,7 +222,7 @@ export function NewSubmissionModal({
 
           {/* Advisor Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Notes for Reviewing Officer (Optional)
             </label>
             <textarea
@@ -230,7 +230,7 @@ export function NewSubmissionModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Highlight any special exemptions, existing disclosures, or target distribution date..."
               rows={2}
-              className="w-full p-2.5 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#2575bc] transition-all resize-none"
+              className="w-full p-2.5 rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#2575bc] dark:focus:border-[#7fb2e3] transition-all resize-none"
             />
           </div>
 
@@ -239,7 +239,7 @@ export function NewSubmissionModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 h-10 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
+              className="px-4 h-10 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
             >
               Cancel
             </button>

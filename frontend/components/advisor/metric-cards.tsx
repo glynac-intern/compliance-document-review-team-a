@@ -80,7 +80,7 @@ export function MetricCards({
               // Clickable hover behavior
               "hover:-translate-y-0.5 hover:border-white/30 hover:shadow-lg shadow-sm",
               "active:scale-[0.98]",
-              isActive && "ring-2 ring-white/80 ring-offset-2 ring-offset-[#f8fafc]"
+              isActive && "ring-2 ring-white/80 ring-offset-2 ring-offset-[#f8fafc] dark:ring-offset-slate-950"
             )}
           >
             {/* Top text: Non-bold elegant Inter font */}
