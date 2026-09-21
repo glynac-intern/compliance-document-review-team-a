@@ -80,8 +80,101 @@ jobs:
       - name: Run frontend tests
         run: npm test
 
+  test-e2e:
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Create .env for CI
+        run: |
+          cat > .env << 'EOF'
+          POSTGRES_USER=compliance_user
+          POSTGRES_PASSWORD=ci_test_password
+          POSTGRES_DB=compliance_db
+          DATABASE_URL=postgresql://compliance_user:ci_test_password@db:5432/compliance_db
+          LLM_PROVIDER=gemini
+          LLM_API_KEY=ci_dummy_key_not_used_by_tests
+          BACKEND_SECRET_KEY=ci_dummy_secret_for_testing_only
+          BACKEND_PORT=8000
+          NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+          EOF
+
+      - name: Build stack images
+        run: docker compose build backend frontend
+
+      - name: Run setup script (migrations)
+        run: SKIP_SEEDING=1 ./scripts/setup.sh
+
+      - name: Start frontend
+        run: docker compose up -d frontend
+
+      - name: Wait for service readiness
+        run: |
+          echo "Waiting for backend readiness on http://localhost:8000..."
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/docs | grep -q "200"; then
+              echo "Backend is ready"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "Backend failed to become ready"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          echo "Waiting for frontend readiness on http://localhost:3000..."
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/login | grep -q "200"; then
+              echo "Frontend is ready"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "Frontend failed to become ready"
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+          BACKEND_API_URL: http://localhost:8000
+          CI: "true"
+
+      - name: Upload Playwright report & traces
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
   deploy:
-    needs: [test, test-frontend]
+    needs: [test, test-frontend, test-e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
