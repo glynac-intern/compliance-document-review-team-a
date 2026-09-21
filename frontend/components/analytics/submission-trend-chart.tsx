@@ -39,17 +39,17 @@ export function SubmissionTrendChart({
   const hoveredPoint = hoveredIndex !== null ? data[hoveredIndex] : null;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs font-inter relative flex flex-col justify-between">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-2xs font-inter relative flex flex-col justify-between">
       {/* Header with Title and Minimalist Legend */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div>
-          <h2 className="text-sm font-medium text-slate-800 font-inter">
+          <h2 className="text-sm font-medium text-slate-800 dark:text-slate-100 font-inter">
             {title}
           </h2>
         </div>
 
         {/* Minimalist Legend strictly themed to brand blues */}
-        <div className="flex items-center gap-3.5 text-[11px] text-slate-500 font-inter self-start sm:self-auto">
+        <div className="flex items-center gap-3.5 text-[11px] text-slate-500 dark:text-slate-400 font-inter self-start sm:self-auto">
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-xs bg-[#2575bc]" />
             <span>Approved</span>
@@ -109,14 +109,14 @@ export function SubmissionTrendChart({
                   y1={y}
                   x2={svgWidth - paddingRight}
                   y2={y}
-                  stroke="#f1f5f9"
+                  className="stroke-slate-100 dark:stroke-slate-800"
                   strokeWidth="1"
                 />
                 <text
                   x={paddingLeft - 8}
                   y={y + 3.5}
                   textAnchor="end"
-                  className="fill-slate-400 text-[10px] font-numbers tabular-nums font-normal"
+                  className="fill-slate-400 dark:fill-slate-500 text-[10px] font-numbers tabular-nums font-normal"
                 >
                   {val}
                 </text>
@@ -218,8 +218,8 @@ export function SubmissionTrendChart({
                   textAnchor="middle"
                   className={
                     isHovered
-                      ? "fill-slate-900 font-medium text-[11px] font-inter"
-                      : "fill-slate-400 font-normal text-[10px] font-inter"
+                      ? "fill-slate-900 dark:fill-slate-100 font-medium text-[11px] font-inter"
+                      : "fill-slate-400 dark:fill-slate-500 font-normal text-[10px] font-inter"
                   }
                 >
                   {point.label}
@@ -232,7 +232,7 @@ export function SubmissionTrendChart({
         {/* Floating Tooltip */}
         {hoveredPoint && (
           <div
-            className="absolute z-20 pointer-events-none rounded-lg border border-slate-200 bg-white p-3 shadow-lg font-inter text-xs text-slate-800 transition-all duration-100"
+            className="absolute z-20 pointer-events-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-lg font-inter text-xs text-slate-800 dark:text-slate-100 transition-all duration-100"
             style={{
               top: 10,
               left: Math.min(
@@ -246,11 +246,11 @@ export function SubmissionTrendChart({
               ),
             }}
           >
-            <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-slate-100 mb-1.5">
-              <span className="font-medium text-slate-900">
+            <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-slate-100 dark:border-slate-700 mb-1.5">
+              <span className="font-medium text-slate-900 dark:text-slate-100">
                 {hoveredPoint.label} {hoveredPoint.sublabel}
               </span>
-              <span className="text-[11px] text-slate-500 font-numbers tabular-nums">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-numbers tabular-nums">
                 {hoveredPoint.total} filings
               </span>
             </div>
@@ -261,7 +261,7 @@ export function SubmissionTrendChart({
                   <span className="h-1.5 w-1.5 rounded-full bg-[#2575bc]" />
                   Approved
                 </span>
-                <span className="font-numbers tabular-nums text-slate-700">
+                <span className="font-numbers tabular-nums text-slate-700 dark:text-slate-300">
                   {hoveredPoint.approved} ({((hoveredPoint.approved / hoveredPoint.total) * 100).toFixed(0)}%)
                 </span>
               </div>
@@ -271,17 +271,17 @@ export function SubmissionTrendChart({
                   <span className="h-1.5 w-1.5 rounded-full bg-[#4a9ae1]" />
                   Needs Revision
                 </span>
-                <span className="font-numbers tabular-nums text-slate-700">
+                <span className="font-numbers tabular-nums text-slate-700 dark:text-slate-300">
                   {hoveredPoint.needsRevision} ({((hoveredPoint.needsRevision / hoveredPoint.total) * 100).toFixed(0)}%)
                 </span>
               </div>
 
               <div className="flex items-center justify-between gap-4">
-                <span className="text-[#0f2b48] flex items-center gap-1">
+                <span className="text-[#0f2b48] dark:text-slate-300 flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#0f2b48]" />
                   Rejected
                 </span>
-                <span className="font-numbers tabular-nums text-slate-700">
+                <span className="font-numbers tabular-nums text-slate-700 dark:text-slate-300">
                   {hoveredPoint.rejected} ({((hoveredPoint.rejected / hoveredPoint.total) * 100).toFixed(0)}%)
                 </span>
               </div>
@@ -292,7 +292,7 @@ export function SubmissionTrendChart({
                     <span className="h-1.5 w-1.5 rounded-full bg-[#93c5fd]" />
                     In Queue
                   </span>
-                  <span className="font-numbers tabular-nums text-slate-700">
+                  <span className="font-numbers tabular-nums text-slate-700 dark:text-slate-300">
                     {hoveredPoint.pending}
                   </span>
                 </div>

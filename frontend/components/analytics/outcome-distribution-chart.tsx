@@ -95,10 +95,10 @@ export function OutcomeDistributionChart({
   });
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
+    <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xs font-inter flex flex-col justify-between h-full">
       {/* Card Header */}
-      <div className="pb-3 border-b border-slate-100 mb-4">
-        <h2 className="text-sm sm:text-base font-medium text-slate-800 tracking-tight font-inter">
+      <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <h2 className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 tracking-tight font-inter">
           {title}
         </h2>
       </div>
@@ -118,7 +118,7 @@ export function OutcomeDistributionChart({
               cy={cy}
               r={(rInner + rOuterBase) / 2}
               fill="transparent"
-              stroke="#f1f5f9"
+              className="stroke-slate-100 dark:stroke-slate-800"
               strokeWidth={rOuterBase - rInner}
             />
 
@@ -156,14 +156,14 @@ export function OutcomeDistributionChart({
 
           {/* Donut Center Display */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-            <span className="text-2xl sm:text-[26px] font-bold text-slate-900 font-numbers tabular-nums leading-none">
+            <span className="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-slate-100 font-numbers tabular-nums leading-none">
               {hasReviewedDocs
                 ? activeSegment
                   ? segments.find((s) => s.id === activeSegment)?.count
                   : data.totalReviewed
                 : "00"}
             </span>
-            <span className="text-[10px] text-slate-400 font-inter uppercase tracking-wider mt-1">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-inter uppercase tracking-wider mt-1">
               {hasReviewedDocs
                 ? activeSegment
                   ? segments.find((s) => s.id === activeSegment)?.label
@@ -186,7 +186,7 @@ export function OutcomeDistributionChart({
                 onMouseLeave={() => setActiveSegment(null)}
                 className={cn(
                   "flex items-center justify-between py-1 px-2 rounded-lg transition-colors cursor-pointer text-xs",
-                  isHovered ? "bg-slate-50" : "hover:bg-slate-50/60"
+                  isHovered ? "bg-slate-50 dark:bg-slate-800/60" : "hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -194,14 +194,14 @@ export function OutcomeDistributionChart({
                     className="h-2 w-2 rounded-xs shrink-0"
                     style={{ backgroundColor: seg.color }}
                   />
-                  <span className="text-slate-700 font-normal">{seg.label}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-normal">{seg.label}</span>
                 </div>
 
                 <div className="flex items-center gap-2.5 font-numbers tabular-nums text-right">
-                  <span className="text-slate-400 text-[11px]">
+                  <span className="text-slate-400 dark:text-slate-500 text-[11px]">
                     {hasCount ? `${seg.count} docs` : "00 docs"}
                   </span>
-                  <span className="font-medium text-slate-900 w-12 text-right">
+                  <span className="font-medium text-slate-900 dark:text-slate-100 w-12 text-right">
                     {hasCount ? `${seg.percentage.toFixed(1)}%` : "No data"}
                   </span>
                 </div>
