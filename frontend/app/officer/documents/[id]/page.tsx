@@ -347,7 +347,7 @@ export default function OfficerDocumentReviewPage() {
           <span className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 font-inter max-w-[320px] truncate hidden sm:block">
             {displayTitle}
           </span>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono tabular-nums hidden md:block">
+          <span className="text-[11px] text-slate-500 dark:text-slate-300 font-mono tabular-nums hidden md:block">
             {documentId}
           </span>
         </div>
@@ -462,7 +462,7 @@ export default function OfficerDocumentReviewPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
                         <span>Advisor Revision Note</span>
-                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">· {displayAdvisor}</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-300 font-normal">· {displayAdvisor}</span>
                       </div>
                       <p className="text-slate-700 dark:text-slate-300 mt-0.5 leading-relaxed">
                         {doc?.revision_notes ?? mockQueueDoc?.revision_notes}
@@ -492,57 +492,57 @@ export default function OfficerDocumentReviewPage() {
                     <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 font-inter">
                       {displayTitle}
                     </h1>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">{documentId}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5">{documentId}</p>
                   </div>
                 </div>
 
                 {/* Metadata Grid */}
                 <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-slate-800">
                   <div className="flex items-start gap-2.5">
-                    <User className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                    <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Advisor</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Advisor</p>
                       <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{displayAdvisor}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <FileText className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                    <FileText className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Document Type</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Document Type</p>
                       <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{displayType}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                    <Calendar className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Submitted</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Submitted</p>
                       <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         {displayUploadedAt ? formatDateTime(displayUploadedAt) : "—"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Hash className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                    <Hash className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">File Size</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">File Size</p>
                       <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         {displaySize}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                    <Layers className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Version</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Version</p>
                       <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         v{displayVersion}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2.5">
-                    <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                    <Clock className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300 mt-0.5" />
                     <div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">Thread ID</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">Thread ID</p>
                       <p className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                         {doc?.thread_id ?? mockQueueDoc?.thread_id ?? "—"}
                       </p>
@@ -614,7 +614,7 @@ export default function OfficerDocumentReviewPage() {
                           className="flex items-center justify-between py-1.5 text-[11px]"
                         >
                           <span className="text-slate-700 dark:text-slate-300 font-medium">{event.action}</span>
-                          <span className="text-slate-400 dark:text-slate-500 tabular-nums">
+                          <span className="text-slate-500 dark:text-slate-300 tabular-nums">
                             {formatDateTime(event.timestamp)}
                           </span>
                         </div>
@@ -674,7 +674,7 @@ export default function OfficerDocumentReviewPage() {
                   </p>
                 )}
                 {recordedReview?.decided_at && (
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-300">
                     Decided at: {new Date(recordedReview.decided_at).toLocaleString()}
                   </p>
                 )}
@@ -730,7 +730,7 @@ export default function OfficerDocumentReviewPage() {
                   </button>
                 </div>
                 {isSubmittingDecision && (
-                  <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     <span>Recording decision...</span>
                   </div>

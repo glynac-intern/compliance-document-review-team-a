@@ -239,7 +239,7 @@ export function RecentActivity({
             {title || (isFullHistory ? "Activity Log" : "Recent Activity")}
           </h2>
           {isFullHistory && allActivities.length > 0 && (
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-numbers ml-1">
+            <span className="text-[11px] text-slate-600 dark:text-slate-300 font-numbers ml-1">
               ({filteredActivities.length} of {allActivities.length})
             </span>
           )}
@@ -250,10 +250,15 @@ export function RecentActivity({
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
             {/* Search filter for history */}
             <div className="relative">
+              <label htmlFor="advisor-history-search" className="sr-only">
+                Search history
+              </label>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
               <input
+                id="advisor-history-search"
                 type="text"
                 placeholder="Search history..."
+                aria-label="Search history"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full sm:w-48 h-8 pl-8 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#1e4c77] dark:focus:border-[#7fb2e3] focus:ring-1 focus:ring-[#1e4c77]/20 dark:focus:ring-[#7fb2e3]/25 transition-all font-inter"
@@ -324,14 +329,14 @@ export function RecentActivity({
           )}
         </div>
       ) : isLoading ? (
-        <div className="py-10 text-center text-slate-400 dark:text-slate-500 text-xs font-inter flex items-center justify-center gap-2">
+        <div className="py-10 text-center text-slate-600 dark:text-slate-300 text-xs font-inter flex items-center justify-center gap-2">
           <span className="h-4 w-4 rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-[#1e4c77] dark:border-t-[#7fb2e3] animate-spin" />
           <span>Loading activity...</span>
         </div>
       ) : displayActivities.length === 0 ? (
         <div className="py-10 text-center space-y-2 font-inter">
           <p className="text-xs font-medium text-slate-600 dark:text-slate-400">No activity records found</p>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+          <p className="text-[11px] text-slate-600 dark:text-slate-300">
             {searchQuery ? "No entries match your search query." : "Activity events will appear here."}
           </p>
           {searchQuery && (
@@ -374,7 +379,7 @@ export function RecentActivity({
 
               {/* Right: Timestamp & Prompt */}
               <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11.5px] text-slate-400 dark:text-slate-500 font-inter font-numbers tabular-nums font-normal">
+                <span className="text-[11.5px] text-slate-600 dark:text-slate-300 font-inter font-numbers tabular-nums font-normal">
                   {act.time}
                 </span>
                 {isFullHistory && (

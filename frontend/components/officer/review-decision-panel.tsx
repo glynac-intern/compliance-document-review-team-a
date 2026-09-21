@@ -122,7 +122,7 @@ export function ReviewDecisionPanel({
           <span>
             Determination recorded: <strong className="capitalize">{documentStatus}</strong>
           </span>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-medium tracking-wider">
+          <span className="text-[10px] text-slate-500 dark:text-slate-300 uppercase font-medium tracking-wider">
             Audit Locked
           </span>
         </div>

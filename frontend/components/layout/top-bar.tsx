@@ -175,19 +175,19 @@ export function TopBar({
                   <button
                     type="button"
                     onClick={crumb.onClick}
-                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer font-inter inline-flex items-center"
+                    className="text-slate-500 dark:text-slate-300 font-normal hover:text-slate-700 dark:hover:text-slate-100 transition-colors cursor-pointer font-inter inline-flex items-center"
                   >
                     {crumb.label}
                   </button>
                 ) : crumb.href ? (
                   <Link
                     href={crumb.href}
-                    className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-inter inline-flex items-center"
+                    className="text-slate-500 dark:text-slate-300 font-normal hover:text-slate-700 dark:hover:text-slate-100 transition-colors font-inter inline-flex items-center"
                   >
                     {crumb.label}
                   </Link>
                 ) : (
-                  <span className="text-slate-400 dark:text-slate-500 font-normal hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-inter">
+                  <span className="text-slate-500 dark:text-slate-300 font-normal hover:text-slate-700 dark:hover:text-slate-100 transition-colors font-inter">
                     {crumb.label}
                   </span>
                 )}
@@ -270,7 +270,7 @@ export function TopBar({
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto font-inter">
                   {notifications.length === 0 ? (
                     <div className="py-7 px-4 text-center font-inter">
-                      <p className="text-xs text-slate-400 dark:text-slate-500">No notifications</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-300">No notifications</p>
                     </div>
                   ) : (
                     notifications.map((item) => {
@@ -328,7 +328,7 @@ export function TopBar({
                               >
                                 {title}
                               </span>
-                              <span className="text-[10.5px] text-slate-400 dark:text-slate-500 shrink-0 font-normal font-numbers tabular-nums">
+                              <span className="text-[10.5px] text-slate-500 dark:text-slate-300 shrink-0 font-normal font-numbers tabular-nums">
                                 {formatNotificationTime(item.created_at)}
                               </span>
                             </div>

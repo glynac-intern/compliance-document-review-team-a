@@ -426,19 +426,30 @@ export default function OfficerDashboardPage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-sm">
+                  <label htmlFor="officer-queue-search" className="sr-only">
+                    Search pending documents, advisors, or IDs
+                  </label>
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
                   <input
+                    id="officer-queue-search"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search pending documents, advisors, or IDs..."
-                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-inter transition-all focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:bg-white dark:focus:bg-slate-800"
+                    aria-label="Search pending documents, advisors, or IDs"
+                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-inter transition-all focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:bg-white dark:focus:bg-slate-800"
                   />
                 </div>
 
                 {/* Document Type Filter */}
                 <div className="relative">
+                  <label htmlFor="officer-type-filter" className="sr-only">
+                    Filter by document type
+                  </label>
                   <select
+                    id="officer-type-filter"
+                    name="type"
+                    aria-label="Filter by document type"
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
                     className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 font-inter appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:border-transparent transition-all"
@@ -454,7 +465,13 @@ export default function OfficerDashboardPage() {
 
                 {/* Advisor Filter (TA-94) */}
                 <div className="relative">
+                  <label htmlFor="officer-advisor-filter" className="sr-only">
+                    Filter by advisor
+                  </label>
                   <select
+                    id="officer-advisor-filter"
+                    name="advisor"
+                    aria-label="Filter by advisor"
                     value={advisorFilter}
                     onChange={(e) => setAdvisorFilter(e.target.value)}
                     className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 font-inter appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:border-transparent transition-all"
@@ -470,7 +487,13 @@ export default function OfficerDashboardPage() {
 
                 {/* Sort */}
                 <div className="relative">
+                  <label htmlFor="officer-sort-by" className="sr-only">
+                    Sort reviews
+                  </label>
                   <select
+                    id="officer-sort-by"
+                    name="sort"
+                    aria-label="Sort reviews"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 font-inter appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1e4c77] dark:focus:ring-[#7fb2e3]/40 focus:border-transparent transition-all"
@@ -526,7 +549,7 @@ export default function OfficerDashboardPage() {
                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-inter">
                           All caught up!
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto font-inter">
+                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 max-w-sm mx-auto font-inter">
                           There are no pending submissions in the review queue.
                         </p>
                       </>
@@ -535,7 +558,7 @@ export default function OfficerDashboardPage() {
                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-inter">
                           No matching submissions
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-inter">
+                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 font-inter">
                           Try adjusting your search query or filters.
                         </p>
                       </>
@@ -608,7 +631,7 @@ export default function OfficerDashboardPage() {
                                 <div
                                   className={cn(
                                     "flex items-center gap-1 mt-1 text-[10px] font-inter",
-                                    doc.advisor_viewed_decision ? "text-slate-400 dark:text-slate-500" : "text-[#1e4c77] dark:text-[#7fb2e3]"
+                                    doc.advisor_viewed_decision ? "text-slate-500 dark:text-slate-300" : "text-[#1e4c77] dark:text-[#7fb2e3]"
                                   )}
                                 >
                                   {doc.advisor_viewed_decision ? (
@@ -641,7 +664,7 @@ export default function OfficerDashboardPage() {
                                   <p
                                     className={cn(
                                       "text-[10px] mt-0.5 font-numbers tabular-nums",
-                                      days >= 3 ? "text-[#92400e] dark:text-amber-400" : "text-slate-400 dark:text-slate-500"
+                                      days >= 3 ? "text-[#92400e] dark:text-amber-400" : "text-slate-500 dark:text-slate-300"
                                     )}
                                   >
                                     {days}d in queue
@@ -659,13 +682,13 @@ export default function OfficerDashboardPage() {
 
               {/* Results count */}
               {!isLoading && filteredDocuments.length > 0 && (
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-3 font-inter">
+                <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-3 font-inter">
                   Showing{" "}
-                  <span className="font-numbers tabular-nums font-medium text-slate-500 dark:text-slate-400">
+                  <span className="font-numbers tabular-nums font-medium text-slate-700 dark:text-slate-200">
                     {filteredDocuments.length}
                   </span>{" "}
                   of{" "}
-                  <span className="font-numbers tabular-nums font-medium text-slate-500 dark:text-slate-400">
+                  <span className="font-numbers tabular-nums font-medium text-slate-700 dark:text-slate-200">
                     {documents.length}
                   </span>{" "}
                   submissions

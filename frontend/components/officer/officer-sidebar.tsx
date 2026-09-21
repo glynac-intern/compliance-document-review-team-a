@@ -108,7 +108,7 @@ export function OfficerSidebar({
           <button
             type="button"
             onClick={onCloseMobile}
-            className="lg:hidden h-8 w-8 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+            className="lg:hidden h-8 w-8 rounded-lg text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
           >
             <X className="h-4 w-4" />
           </button>
@@ -132,7 +132,7 @@ export function OfficerSidebar({
         {/* Workspace Navigation Group */}
         <div className="mt-5">
           {!isCollapsed && (
-            <p className="px-2.5 text-xs text-slate-400 dark:text-slate-500 font-normal font-inter mb-1.5 tracking-normal">
+            <p className="px-2.5 text-xs text-slate-500 dark:text-slate-300 font-normal font-inter mb-1.5 tracking-normal">
               Workspace
             </p>
           )}
@@ -205,7 +205,7 @@ export function OfficerSidebar({
                     <span className="text-[13px] font-normal text-slate-800 dark:text-slate-200 truncate block font-inter">
                       {displayName}
                     </span>
-                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 truncate block font-inter">
+                    <span className="text-[10px] font-normal text-slate-500 dark:text-slate-300 truncate block font-inter">
                       Compliance Officer
                     </span>
                   </div>
@@ -224,7 +224,7 @@ export function OfficerSidebar({
             title="Settings"
             aria-label="Settings"
             className={cn(
-              "h-7 w-7 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 flex items-center justify-center transition-colors cursor-pointer shrink-0",
+              "h-7 w-7 rounded-lg text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 flex items-center justify-center transition-colors cursor-pointer shrink-0",
               activeView === "settings" && "text-[#1e4c77] dark:text-[#7fb2e3] bg-slate-200/60 dark:bg-slate-700/60",
               isCollapsed && "mt-1"
             )}

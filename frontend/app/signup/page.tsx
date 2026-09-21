@@ -78,52 +78,87 @@ export default function SignupPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-            <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500"><User className="h-4 w-4" /></div>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => { setName(e.target.value); setError(null); }}
-              placeholder="Full name"
-              className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
-              disabled={isLoading}
-            />
+          <div>
+            <label htmlFor="signup-name" className="sr-only">
+              Full name
+            </label>
+            <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
+              <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400"><User className="h-4 w-4" /></div>
+              <input
+                id="signup-name"
+                name="name"
+                type="text"
+                aria-label="Full name"
+                value={name}
+                onChange={(e) => { setName(e.target.value); setError(null); }}
+                placeholder="Full name"
+                className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
-          <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-            <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500"><Mail className="h-4 w-4" /></div>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(null); }}
-              placeholder="Email"
-              className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
-              disabled={isLoading}
-            />
+          <div>
+            <label htmlFor="signup-email" className="sr-only">
+              Email address
+            </label>
+            <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
+              <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400"><Mail className="h-4 w-4" /></div>
+              <input
+                id="signup-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                aria-label="Email address"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                placeholder="Email"
+                className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
-          <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-            <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500"><Lock className="h-4 w-4" /></div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(null); }}
-              placeholder="Password"
-              className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
-              disabled={isLoading}
-            />
+          <div>
+            <label htmlFor="signup-password" className="sr-only">
+              Password
+            </label>
+            <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
+              <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400"><Lock className="h-4 w-4" /></div>
+              <input
+                id="signup-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                aria-label="Password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                placeholder="Password"
+                className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
-          <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-            <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500"><Lock className="h-4 w-4" /></div>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
-              placeholder="Confirm password"
-              className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
-              disabled={isLoading}
-            />
+          <div>
+            <label htmlFor="signup-confirm-password" className="sr-only">
+              Confirm password
+            </label>
+            <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
+              <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400"><Lock className="h-4 w-4" /></div>
+              <input
+                id="signup-confirm-password"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                aria-label="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
+                placeholder="Confirm password"
+                className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none font-inter"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           {/* Role selection */}
@@ -238,7 +273,7 @@ export default function SignupPage() {
           <button
             type="button"
             onClick={() => router.push("/login")}
-            className="font-semibold text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline font-inter cursor-pointer"
+            className="font-semibold text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline font-inter cursor-pointer"
           >
             Sign in
           </button>

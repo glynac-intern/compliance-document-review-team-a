@@ -396,7 +396,7 @@ export function AiAssistPanel({
               <h2 className="text-[12px] font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
                 Verity AI
               </h2>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">Compliance Review</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-300">Compliance Review</span>
             </div>
 
             {onRetry && (
@@ -479,7 +479,7 @@ export function AiAssistPanel({
                         <button
                           type="button"
                           onClick={() => handleCopy(msg.id, msg.content)}
-                          className="flex items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
                         >
                           {copiedId === msg.id ? (
                             <Check className="h-3 w-3 text-emerald-500" />
@@ -525,7 +525,7 @@ export function AiAssistPanel({
 
             {/* Typing indicator */}
             {isGenerating && (
-              <div className="flex items-center gap-2 py-2 px-3 text-[11px] text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60 w-fit">
+              <div className="flex items-center gap-2 py-2 px-3 text-[11px] text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60 w-fit">
                 <div className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.3s]" />
                   <span className="h-1.5 w-1.5 rounded-full bg-[#1e4c77] animate-bounce [animation-delay:-0.15s]" />

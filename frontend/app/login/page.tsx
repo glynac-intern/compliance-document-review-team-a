@@ -125,7 +125,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 overflow-hidden font-inter">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#1a5f9e] bg-gradient-to-br from-[#2f83c9] via-[#2575bc] to-[#1a5f9e] p-4 sm:p-6 overflow-hidden font-inter">
       {/* Soft background ambient radial lighting */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
 
@@ -146,7 +146,7 @@ function LoginForm() {
 
         {/* LEFT PANEL — Artistic Blue Panel with 3D Spheres & Swipable Cards */}
         <div
-          className="relative lg:w-[48%] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none font-inter"
+          className="relative lg:w-[48%] bg-[#124c82] bg-gradient-to-br from-[#2878bd] via-[#2370b3] to-[#18558c] text-white p-7 sm:p-9 flex flex-col justify-between overflow-hidden cursor-grab active:cursor-grabbing select-none font-inter"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onTouchStart={handleTouchStart}
@@ -211,7 +211,7 @@ function LoginForm() {
                     </h2>
 
                     {/* Shortened, elegant descriptive paragraph */}
-                    <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-blue-50/90 font-inter font-normal max-w-[340px]">
+                    <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-white font-inter font-normal max-w-[340px]">
                       {card.description}
                     </p>
                   </div>
@@ -245,7 +245,7 @@ function LoginForm() {
                 type="button"
                 onClick={prevSlide}
                 aria-label="Previous card"
-                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
+                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -253,7 +253,7 @@ function LoginForm() {
                 type="button"
                 onClick={nextSlide}
                 aria-label="Next card"
-                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white/90 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
+                className="h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 active:bg-white/35 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -278,7 +278,7 @@ function LoginForm() {
             <div className="lg:hidden mb-6">
               <VerityLogo
                 size={22}
-                markClassName="text-[#2575bc]"
+                markClassName="text-[#1e4c77] dark:text-[#7fb2e3]"
                 wordmarkClassName="text-slate-900 dark:text-slate-100 text-[14px] tracking-[0.2em]"
               />
             </div>
@@ -308,21 +308,26 @@ function LoginForm() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Email Input */}
               <div>
+                <label htmlFor="email" className="sr-only">
+                  Email address
+                </label>
                 <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-                  <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500">
+                  <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400">
                     <Mail className="h-4 w-4" />
                   </div>
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     autoComplete="email"
+                    aria-label="Email address"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setError(null);
                     }}
                     placeholder="Email"
-                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-3.5 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                 </div>
@@ -330,28 +335,33 @@ function LoginForm() {
 
               {/* Password Input */}
               <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
                 <div className="relative flex items-center rounded-xl bg-[#f4f6f8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors focus-within:border-[#2575bc] dark:focus-within:border-[#7fb2e3] focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-[#2575bc]/20 dark:focus-within:ring-[#7fb2e3]/25">
-                  <div className="pl-3.5 pr-2 text-slate-400 dark:text-slate-500">
+                  <div className="pl-3.5 pr-2 text-slate-500 dark:text-slate-400">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
+                    aria-label="Password"
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
                       setError(null);
                     }}
                     placeholder="Password"
-                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none font-inter"
+                    className="w-full h-11 bg-transparent pr-2 text-[13px] text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-400 focus:outline-none font-inter"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] transition-colors shrink-0 cursor-pointer select-none font-inter"
-                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="pr-3.5 text-[11px] font-semibold tracking-wide text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] transition-colors shrink-0 cursor-pointer select-none font-inter"
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
@@ -360,20 +370,22 @@ function LoginForm() {
 
               {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between pt-0.5">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer select-none">
                   <input
+                    id="remember-me"
+                    name="remember"
                     type="checkbox"
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
                     className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 text-[#1e4c77] dark:text-[#7fb2e3] focus:ring-[#2575bc] dark:focus:ring-[#7fb2e3]"
                     disabled={isLoading}
                   />
-                  <span className="text-[12px] text-slate-600 dark:text-slate-400 font-inter">Remember Me</span>
+                  <span className="text-[12px] text-slate-700 dark:text-slate-300 font-inter">Remember Me</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => alert("Password reset link sent to registered enterprise email.")}
-                  className="text-[12px] font-medium text-[#2575bc] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline transition-colors font-inter"
+                  className="text-[12px] font-medium text-[#1e4c77] dark:text-[#7fb2e3] hover:text-[#185386] dark:hover:text-[#a6cdf0] hover:underline transition-colors font-inter"
                 >
                   Forgot Password?
                 </button>
@@ -397,7 +409,7 @@ function LoginForm() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                 </div>
-                <div className="relative bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-400 dark:text-slate-500 tracking-wider font-medium font-inter">
+                <div className="relative bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-600 dark:text-slate-300 tracking-wider font-medium font-inter">
                   Or
                 </div>
               </div>
