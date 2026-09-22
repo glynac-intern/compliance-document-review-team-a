@@ -9,12 +9,33 @@ updates:
     directory: "/backend"
     schedule:
       interval: "weekly"
+    ignore:
+      # bcrypt 4.1+ breaks passlib 1.7.4's bcrypt backend-detection
+      # self-test (it reads bcrypt's now-removed __about__ module and
+      # raises instead of the old silent-truncate behavior on its
+      # internal >72-byte test payload) -- confirmed by a real failing
+      # CI run on the PR this bump opened. Pinned at 4.0.1 deliberately;
+      # see the comment next to the pin in backend/requirements.txt.
+      - dependency-name: "bcrypt"
+        update-types: ["version-update:semver-major"]
 
   # frontend/package.json (the app itself)
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    groups:
+      # react and react-dom must be the exact same version (React
+      # enforces this at runtime) -- without this, Dependabot opens
+      # them as two separate PRs, and merging either alone breaks the
+      # app. Confirmed: two such PRs failed CI this way before this
+      # rule existed.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
 
   # root package.json -- Playwright e2e suite (test-e2e job), a
   # separate manifest/lockfile from frontend/'s
