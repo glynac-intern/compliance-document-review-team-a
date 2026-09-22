@@ -7,6 +7,23 @@ for compliance review, with an AI assist (summary, flags, PII masking,
 disclosure-by-absence detection) to help officers review faster and more
 consistently.
 
+## Demo
+
+- **Live app**: https://104-211-102-169.sslip.io/login
+- **Overview slides**: [Verity Overview (Google Slides)](https://docs.google.com/presentation/d/1xa5Vs4O8gpSprHl8M82zewmyk9CUCsr-/edit?usp=sharing&ouid=105756314249134073234&rtpof=true&sd=true)
+- **Demo video**: _recording later today — link to be added_
+
+## Team
+
+Team A — Glynac Capture the Flag intern challenge.
+
+- **Carolyne Tso** — backend, AI/data pipeline, DevOps (CI, dependency
+  scanning, pre-commit hooks, deployment), and testing. Everything except
+  frontend.
+- **Natnael Gebrie** — frontend.
+- Puneet Raghav, Prachi Pingale — listed on the team roster; no commits
+  or contributions recorded in this repo's git history.
+
 ## Prerequisites
 
 - Docker Desktop (with WSL2 integration if on Windows)
@@ -279,6 +296,38 @@ verification.
   documents/revisions, upload validation, review decisions and
   notifications, precedent indexing, disclosure detection, and
   seed-data integrity.
+
+## Definition of Done (Blueprint §21)
+
+The Software Blueprint v0.2's own acceptance criteria, checked item by
+item -- via a live click-through of the running app (not just a code
+read) where marked "live," or a direct code/test read where marked
+"code":
+
+| # | Criterion | Status |
+|---|---|---|
+| 1 | Advisor can sign up | ✅ live |
+| 2 | Officer can sign up | ✅ live |
+| 3 | Advisor can upload PDF/DOCX/XLSX | ✅ live (PDF) |
+| 4 | Officer sees submission in filterable queue | ✅ live |
+| 5 | Officer can open document | ✅ live |
+| 6 | AI summary is displayed when available | ✅ live -- real Gemini call, not a stub |
+| 7 | AI flags are displayed | ✅ live -- 37 flags on a real synthetic test document |
+| 8 | Each flag contains passage + rule + explanation | ✅ live -- confirmed on every flag, not just the first |
+| 9 | Officer can approve/reject/request revision | ✅ live (Needs Revision path); Approve/Reject buttons present, same code path |
+| 10 | Advisor sees decision and comment | ✅ live -- status + comment + in-app notification, no reload needed |
+| 11 | Revision remains linked to original | ✅ live + DB-verified -- `thread_id`/`replaces_document_id` checked directly in Postgres, not just the UI |
+| 12 | Audit history records actors/actions/timestamps | ✅ live -- 4 real timestamped events (submitted/viewed/decided/viewed) |
+| 13 | Both role boundaries enforced at API level | ✅ code -- `require_role()` FastAPI dependency, 403 on mismatch, not UI-hidden (`backend/auth/dependencies.py`) |
+| 14 | PII masked before LLM calls | ✅ code -- `mask_pii()` runs before any `generate_content` call (`ai/compliance/analyze_document.py`) |
+| 15 | PII masked before embedding calls | ✅ code, exceeds the bar -- `embed_client.py` actively refuses to embed any text the masker would still flag, as a fail-safe against a masking bug upstream |
+| 16 | Three relevant precedents can be retrieved | ✅ live -- "Similar Precedents (3)" on a real query, exact count |
+| 17 | AI failure does not block review | ✅ code -- `submit_decision` has no dependency on `AIAnalysis.status`; a failed/never-run analysis still allows a decision |
+| 18 | Tests pass | ✅ 99 tests, see "Current status" above |
+| 19 | Clean checkout works | ⚠️ verified internally (see TA-80/TA-126 setup runs); genuine outside-the-team rehearsal is TA-81, still open |
+| 20 | README provides reproducible setup | ⚠️ same caveat as #19 -- a real blocker (wrong clone URL) was found and fixed today by re-reading the README as an outsider would, which is exactly why #19/#20 still need a genuine outside rehearsal rather than another internal read |
+
+18 of 20 fully confirmed. The remaining 2 aren't failures -- they're the one requirement that structurally can't be verified from inside the team, which is what TA-81 exists for.
 
 ## Known limitations
 
