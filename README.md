@@ -17,7 +17,7 @@ consistently.
 
 1. **Clone the repo:**
    ```bash
-   git clone https://github.com/aufa-glynac/compliance-document-review-team-a.git
+   git clone https://github.com/glynac-intern/compliance-document-review-team-a.git
    cd compliance-document-review-team-a
    ```
 
@@ -51,6 +51,30 @@ consistently.
    Visit `http://localhost:3000`. Sign up as either role (advisor or
    officer) from there -- there's no separate seed step for user
    accounts.
+
+## Try it out
+
+The steps above get the app running; this walks through the actual
+core loop once, end to end, on top of that.
+
+1. **Sign up twice** -- once as `Financial Advisor`, once as
+   `Compliance Officer` (two different emails; the role picker is on
+   the sign-up screen). Use a real-shaped email domain -- `.test` /
+   `.example` are RFC-reserved and will be rejected by the signup
+   validator.
+2. **As the advisor:** go to New Submission, upload a PDF/DOCX/XLSX
+   (anything under 10MB works, including the sample files in
+   `seed/documents/converted/`), fill in the required fields, submit.
+3. **As the officer:** open Review Queue, find the document, open it.
+   The AI Assist panel runs on first open (a real Gemini call --
+   expect a few seconds) and shows a summary, a set of flags (each
+   citing the passage, the rule, and why), and the 3 most similar past
+   precedents. Enter a comment and record a decision.
+4. **Back as the advisor:** the document's status has updated and
+   there's an in-app notification -- no page reload needed to see it.
+   If the decision was "Needs Revision," a **Revise & Resubmit**
+   button appears; using it uploads a new version linked to the same
+   document (tracked revision history), not a separate submission.
 
 ## Troubleshooting
 
@@ -255,6 +279,28 @@ verification.
   documents/revisions, upload validation, review decisions and
   notifications, precedent indexing, disclosure detection, and
   seed-data integrity.
+
+## Known limitations
+
+Found via an end-to-end click-through of the live app (not just a code
+read), on top of the automated test suite above. Neither of these
+affects a rubric hard-constraint -- role boundary, PII masking,
+traceable flags, and graceful degradation are all confirmed working --
+they're both display/UX gaps:
+
+- **Document Title, Category, Target Audience, and Notes (the New
+  Submission form's metadata fields) aren't persisted server-side.**
+  The `documents` table only stores `file_reference`, `type`
+  (pdf/docx/xlsx), and `original_filename` -- nothing else the form
+  collects survives the request. In practice this means the
+  submissions table always displays the first Category dropdown option
+  ("Presentation / Deck") regardless of what was actually selected.
+  Cosmetic, not a data-loss risk to anything the app actually acts on.
+- **No PII-masking toggle on the officer review screen.** The
+  server-side masking requirement itself -- unmasked text never reaches
+  the LLM vendor or gets embedded -- is independently verified and
+  unaffected; this is only about whether an officer can *preview* the
+  masked version of a document from the UI. Not built yet.
 
 ## Notes on the AI setup
 
