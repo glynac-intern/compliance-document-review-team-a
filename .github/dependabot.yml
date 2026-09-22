@@ -1,0 +1,42 @@
+# TA-127: keeps dependency updates arriving as reviewable PRs on a
+# schedule, instead of a manual sweep nobody remembers to run. Each
+# ecosystem entry matches a lockfile/manifest actually in this repo --
+# see the directory comments below for what lives where.
+version: 2
+updates:
+  # backend/requirements.txt
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+
+  # frontend/package.json (the app itself)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+
+  # root package.json -- Playwright e2e suite (test-e2e job), a
+  # separate manifest/lockfile from frontend/'s
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # backend/Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+
+  # frontend/Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+
+  # .github/workflows/tests.yml's actions/*, appleboy/ssh-action, etc.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

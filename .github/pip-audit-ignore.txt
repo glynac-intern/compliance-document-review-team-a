@@ -1,0 +1,91 @@
+# TA-127: vulnerability IDs pip-audit reports against backend/requirements.txt
+# that are deliberately accepted rather than fixed. See SECURITY.md for the
+# reasoning and severity behind each group. One ID per line; blank lines and
+# lines starting with # are ignored by the dependency-scan job's parsing.
+#
+# Adding an ID here without a corresponding SECURITY.md entry defeats the
+# point of the scanner -- don't.
+
+# ecdsa (transitive, via python-jose) -- Minerva timing attack, no fix
+# upstream, unreachable (app is HS256-only, never does ECDSA ops)
+PYSEC-2026-1325
+
+# pyasn1 (transitive, via python-jose/rsa) -- DoS via deeply nested ASN.1
+# recursion. Unreachable for the same reason as ecdsa above, and blocked
+# from upgrading anyway: python-jose 3.4.0 pins pyasn1<0.5.0, one full
+# major version behind the 0.6.3 fix.
+PYSEC-2026-2263
+PYSEC-2026-3455
+PYSEC-2026-3456
+PYSEC-2026-3457
+
+# pytest -- dev/CI tool only, never processes attacker-supplied input.
+# Fix is a major-version (9.x) bump with real plugin-compatibility risk
+# for no security benefit.
+PYSEC-2026-1845
+
+# starlette (transitive, via fastapi) -- the most severe finding
+# (PYSEC-2026-1943, CVSS 8.7, unbounded multipart buffering) is FIXED as
+# part of this ticket. These remain, all needing a starlette version
+# fastapi's current pin (<0.42.0) doesn't allow yet -- tracked as a
+# follow-up ticket alongside the pypdf major-version bump below.
+# PYSEC-2026-1942 is the one to prioritize in that follow-up: CVSS 7.5,
+# reachable via this app's own /documents/{id}/file download endpoint
+# (uses FileResponse, which is what the vulnerable Range-header parsing
+# is in).
+PYSEC-2026-161
+PYSEC-2026-1941
+PYSEC-2026-1942
+PYSEC-2026-2280
+PYSEC-2026-2281
+PYSEC-2026-248
+PYSEC-2026-249
+
+# pypdf -- DoS-class only (infinite loops / memory exhaustion on a
+# crafted PDF; nothing RCE or info-disclosure found across everything
+# sampled during triage), but this app parses arbitrary user-uploaded
+# PDFs, so it's real attack surface, not a low priority. Fix is a
+# 5.x -> 6.x major-version bump needing a dedicated regression pass
+# against every PdfReader/PdfWriter call site -- tracked as a follow-up
+# ticket, not folded into this one.
+CVE-2026-57204
+PYSEC-2026-1827
+PYSEC-2026-1828
+PYSEC-2026-1829
+PYSEC-2026-1830
+PYSEC-2026-1831
+PYSEC-2026-1832
+PYSEC-2026-1833
+PYSEC-2026-3004
+PYSEC-2026-3005
+PYSEC-2026-3006
+PYSEC-2026-3007
+PYSEC-2026-3009
+PYSEC-2026-3010
+PYSEC-2026-3011
+PYSEC-2026-3012
+PYSEC-2026-3013
+PYSEC-2026-3014
+PYSEC-2026-3015
+PYSEC-2026-3016
+PYSEC-2026-3017
+PYSEC-2026-3018
+PYSEC-2026-3019
+PYSEC-2026-3020
+PYSEC-2026-3021
+PYSEC-2026-3022
+PYSEC-2026-3023
+PYSEC-2026-3024
+PYSEC-2026-3025
+PYSEC-2026-3026
+PYSEC-2026-3027
+PYSEC-2026-3610
+PYSEC-2026-3611
+PYSEC-2026-3612
+PYSEC-2026-3613
+PYSEC-2026-3655
+PYSEC-2026-3656
+PYSEC-2026-3910
+PYSEC-2026-3911
+PYSEC-2026-3912
+PYSEC-2026-3913

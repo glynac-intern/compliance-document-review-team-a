@@ -163,6 +163,110 @@ jobs:
           cat coverage-report.txt
           exit $STATUS
 
+  # TA-127: its own job, not extra steps bolted onto `test`/`test-frontend`
+  # -- a scanner finding then fails a distinctly-named job in the Actions
+  # UI ("dependency-scan") instead of showing up as one more red step
+  # inside a job called "test", which is exactly what the ticket's
+  # "distinguishable from test failures" acceptance criterion is about.
+  dependency-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env for CI
+        run: |
+          cat > .env << 'EOF'
+          POSTGRES_USER=compliance_user
+          POSTGRES_PASSWORD=ci_test_password
+          POSTGRES_DB=compliance_db
+          DATABASE_URL=postgresql://compliance_user:ci_test_password@db:5432/compliance_db
+          LLM_PROVIDER=gemini
+          LLM_API_KEY=ci_dummy_key_not_used_by_tests
+          BACKEND_SECRET_KEY=ci_dummy_secret_for_testing_only
+          BACKEND_PORT=8000
+          NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+          EOF
+
+      - name: Build backend image
+        run: docker compose build backend
+
+      # TA-127: any finding not explicitly ignored fails the build --
+      # deliberate, not the tool default left unexamined (pip-audit has
+      # no severity field reliable enough across the Python advisory
+      # data to threshold on the way npm's --audit-level can). Ignored
+      # IDs and the reasoning behind each live in
+      # .github/pip-audit-ignore.txt and SECURITY.md, not inline here,
+      # so a new accepted risk doesn't mean editing workflow YAML.
+      - name: Dependency vulnerability scan -- backend (pip-audit)
+        if: always()
+        run: |
+          set +e
+          IGNORE_FLAGS=$(grep -vE '^\s*(#|$)' .github/pip-audit-ignore.txt | sed 's/^/--ignore-vuln /' | tr '\n' ' ')
+          docker compose run --rm backend sh -c "pip install --quiet pip-audit && pip-audit -r backend/requirements.txt $IGNORE_FLAGS" > pip-audit-report.txt
+          STATUS=$?
+          set -e
+          {
+            echo "### Dependency scan: backend (pip-audit)"
+            echo '```'
+            cat pip-audit-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat pip-audit-report.txt
+          exit $STATUS
+
+      - name: Tear down backend
+        if: always()
+        run: docker compose down -v
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # TA-127: --audit-level=high is the deliberate threshold per the
+      # ticket -- moderate-and-below findings still print in the job
+      # summary/log below, they just don't fail the build.
+      - name: Dependency vulnerability scan -- frontend (npm audit)
+        if: always()
+        working-directory: frontend
+        run: |
+          set +e
+          npm ci
+          npm audit --audit-level=high > npm-audit-report.txt
+          STATUS=$?
+          set -e
+          {
+            echo "### Dependency scan: frontend (npm audit)"
+            echo '```'
+            cat npm-audit-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat npm-audit-report.txt
+          exit $STATUS
+
+      # TA-127: the root package.json/package-lock.json is the
+      # Playwright e2e suite (test-e2e job) -- a separate manifest from
+      # frontend/'s, so it needs its own audit rather than being
+      # assumed covered by the frontend one above.
+      - name: Dependency vulnerability scan -- e2e suite (npm audit)
+        if: always()
+        run: |
+          set +e
+          npm ci
+          npm audit --audit-level=high > npm-audit-e2e-report.txt
+          STATUS=$?
+          set -e
+          {
+            echo "### Dependency scan: e2e suite (npm audit)"
+            echo '```'
+            cat npm-audit-e2e-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat npm-audit-e2e-report.txt
+          exit $STATUS
+
   test-e2e:
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
@@ -257,7 +361,7 @@ jobs:
         run: docker compose down -v
 
   deploy:
-    needs: [test, test-frontend, test-e2e]
+    needs: [test, test-frontend, dependency-scan, test-e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
