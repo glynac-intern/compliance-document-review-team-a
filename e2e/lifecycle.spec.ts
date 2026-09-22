@@ -97,8 +97,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       const createSubmissionResponse = advisorPage.waitForResponse((response) => {
         return (
           response.request().method() === "POST" &&
-          response.url().includes("/documents") &&
-          response.ok()
+          response.url().includes("/documents")
         );
       });
 
@@ -106,7 +105,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         .getByRole("button", { name: /submit for review/i })
         .click();
 
-      await createSubmissionResponse;
+      const submissionResp = await createSubmissionResponse;
+      expect(submissionResp.ok(), `POST /documents failed with ${submissionResp.status()}`).toBeTruthy();
 
       // Verify appearance on advisor dashboard
       await expect(
@@ -152,8 +152,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       const revisionDecisionResponse = officerPage.waitForResponse((response) => {
         return (
           response.request().method() === "POST" &&
-          response.url().includes("/decision") &&
-          response.ok()
+          response.url().includes("/decision")
         );
       });
 
@@ -161,7 +160,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         .getByRole("button", { name: /^revision$/i })
         .click();
 
-      await revisionDecisionResponse;
+      const revisionResp = await revisionDecisionResponse;
+      expect(revisionResp.ok(), `POST /decision failed with ${revisionResp.status()}`).toBeTruthy();
 
       // Assert decision is recorded on the officer screen
       await expect(
@@ -228,8 +228,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       const createRevisionResponse = advisorPage.waitForResponse((response) => {
         return (
           response.request().method() === "POST" &&
-          response.url().includes("/revisions") &&
-          response.ok()
+          response.url().includes("/revisions")
         );
       });
 
@@ -237,7 +236,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         .getByRole("button", { name: /submit revision/i })
         .click();
 
-      await createRevisionResponse;
+      const revisionSubmitResp = await createRevisionResponse;
+      expect(revisionSubmitResp.ok(), `POST /revisions failed with ${revisionSubmitResp.status()}`).toBeTruthy();
 
       // Modal closes automatically on success
       await expect(
@@ -274,8 +274,7 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
       const approvalDecisionResponse = officerPage.waitForResponse((response) => {
         return (
           response.request().method() === "POST" &&
-          response.url().includes("/decision") &&
-          response.ok()
+          response.url().includes("/decision")
         );
       });
 
@@ -283,7 +282,8 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         .getByRole("button", { name: /approve/i })
         .click();
 
-      await approvalDecisionResponse;
+      const approvalResp = await approvalDecisionResponse;
+      expect(approvalResp.ok(), `POST /decision (approve) failed with ${approvalResp.status()}`).toBeTruthy();
 
       // Assert approval recorded
       await expect(
