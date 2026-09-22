@@ -43,14 +43,23 @@ jobs:
       - name: Run setup script
         run: SKIP_SEEDING=1 ./scripts/setup.sh
 
+      # TA-126: --cov-fail-under=0 overrides pyproject.toml's fail_under
+      # for THIS step only -- pytest-cov checks fail_under against
+      # whatever it's measured so far every time --cov runs a report,
+      # so without the override the unit-only slice (~40%) would fail
+      # the build on its own before the integration step ever adds its
+      # share. The real threshold is enforced once, against the true
+      # combined total, in the dedicated "Coverage report" step below.
       - name: Run unit test suite
-        run: docker compose run --rm backend pytest -m unit -v --cov
+        run: docker compose run --rm backend pytest -m unit -v --cov --cov-fail-under=0
 
       # TA-126: --cov-append onto the same .coverage file the unit run
       # just wrote -- the bind mount (docker-compose.yml's `.:/app` on
       # the backend service) is what makes that file visible to this
-      # separate `docker compose run` invocation at all; source/omit/
-      # fail_under all come from pyproject.toml, not flags here.
+      # separate `docker compose run` invocation at all; source/omit
+      # come from pyproject.toml, not flags here. --cov-fail-under=0
+      # for the same reason as the unit step: this slice alone is still
+      # short of the full combined total.
       #
       # Tests marked `large_upload` are deliberately excluded here: two
       # tests in test_ta85_upload_boundaries.py push a real ~10MB
@@ -66,7 +75,7 @@ jobs:
       # stay exercised every CI run. See the `large_upload` marker's
       # own docstring in pyproject.toml.
       - name: Run integration test suite
-        run: docker compose run --rm backend pytest -m "integration and not large_upload" -v --cov --cov-append
+        run: docker compose run --rm backend pytest -m "integration and not large_upload" -v --cov --cov-append --cov-fail-under=0
 
       # TA-126: the large_upload-marked tests excluded above, run
       # normally (no --cov) so they're still verified every CI run.
