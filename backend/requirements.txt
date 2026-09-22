@@ -28,7 +28,7 @@ passlib[bcrypt]==1.7.4
 # bcrypt backend detection reads bcrypt's now-removed `__about__`
 # module and breaks against bcrypt>=4.1. Revisit if passlib is updated
 # (or replaced) to drop that dependency on removed internals.
-bcrypt==4.0.1
+bcrypt==5.0.0
 # TA-127: 3.4.0 fixes every known finding against python-jose itself
 # (PYSEC-2024-232/233 JWS algorithm-confusion, and PYSEC-2025-185's JWE
 # decompression-bomb DoS -- its advisory range tops out at 3.3.0).
