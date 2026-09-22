@@ -9,7 +9,7 @@
 # a transitive pin and this file pins everything exactly.
 fastapi==0.115.6
 starlette==0.41.3
-uvicorn[standard]==0.30.6
+uvicorn[standard]==0.53.0
 pydantic==2.9.2
 pydantic[email]==2.9.2
 sqlalchemy==2.0.35
