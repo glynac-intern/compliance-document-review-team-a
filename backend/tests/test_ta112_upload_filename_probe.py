@@ -64,12 +64,32 @@ def test_null_byte_in_filename_does_not_crash_upload(client, advisor_token):
     assert resp.status_code != 500, resp.text
 
 
-def test_extremely_long_filename_does_not_crash_upload_and_is_truncated(client, advisor_token):
+def test_long_filename_within_header_limit_is_accepted_and_truncated(client, advisor_token):
+    """A filename well past the app's own 255-char display cap, but
+    still comfortably under python-multipart's per-header-line limit
+    (see the next test) -- confirms _save_upload's own [:255] slicing
+    still does its job for filenames that make it that far."""
+    long_filename = ("A" * 500) + ".pdf"
+    resp = _upload(client, advisor_token, long_filename)
+    assert resp.status_code == 201, resp.text
+    assert len(resp.json()["original_filename"]) <= 255
+
+
+def test_extremely_long_filename_is_rejected_cleanly_not_a_crash(client, advisor_token):
+    """TA-127: python-multipart 0.0.31 caps a single multipart header
+    line at DEFAULT_MAX_HEADER_SIZE (4096 + 128 bytes) -- one of the
+    DoS-hardening fixes that version bump was for. A 5000-char filename
+    blows past that inside the Content-Disposition header line, so the
+    request is now rejected as a malformed body (400) before it ever
+    reaches _save_upload's own truncation logic, rather than being
+    parsed and truncated at the app layer (0.0.9's behavior, and what
+    this test asserted before TA-127). Still a clean failure either
+    way -- the thing this test actually guards is "never a 500", which
+    still holds."""
     huge_filename = ("A" * 5000) + ".pdf"
     resp = _upload(client, advisor_token, huge_filename)
     assert resp.status_code != 500, resp.text
-    assert resp.status_code == 201, resp.text
-    assert len(resp.json()["original_filename"]) <= 255
+    assert resp.status_code == 400, resp.text
 
 
 def test_download_endpoint_filename_is_also_never_client_derived(client, db_session, advisor_token):

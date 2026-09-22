@@ -1,21 +1,64 @@
-fastapi==0.115.0
+# TA-127: fastapi bumped 0.115.0 -> 0.115.6 (patch-level, same minor)
+# specifically to raise its allowed starlette ceiling from <0.39.0 to
+# <0.42.0 -- starlette<0.40.0 has a CVSS 8.7 DoS (PYSEC-2026-1943:
+# unbounded in-memory buffering of non-file multipart form fields).
+# This app's document-upload endpoint is exactly that code path, and
+# self-signup means any registered user can reach it, not just an
+# already-compromised account. starlette pinned explicitly (below) at
+# the latest version fastapi 0.115.6 allows, since it's otherwise only
+# a transitive pin and this file pins everything exactly.
+fastapi==0.115.6
+starlette==0.41.3
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
 pydantic[email]==2.9.2
 sqlalchemy==2.0.35
 alembic==1.13.2
 psycopg2-binary==2.9.9
-python-dotenv==1.0.1
-python-multipart==0.0.9
+# TA-127: PYSEC-2026-2270, fixed 1.2.2.
+python-dotenv==1.2.2
+# TA-127: PYSEC-2026-1851/1852/3036-3040, all fixed by 0.0.31. Same
+# reasoning as the starlette bump above -- this parses the same
+# document-upload request body.
+python-multipart==0.0.31
 pgvector==0.3.4
 passlib[bcrypt]==1.7.4
+# TA-127: reviewed -- pip-audit reports no known vulnerability against
+# bcrypt 4.0.1 itself. Held at 4.0.1 deliberately: passlib 1.7.4's
+# bcrypt backend detection reads bcrypt's now-removed `__about__`
+# module and breaks against bcrypt>=4.1. Revisit if passlib is updated
+# (or replaced) to drop that dependency on removed internals.
 bcrypt==4.0.1
-python-jose[cryptography]==3.3.0
+# TA-127: 3.4.0 fixes every known finding against python-jose itself
+# (PYSEC-2024-232/233 JWS algorithm-confusion, and PYSEC-2025-185's JWE
+# decompression-bomb DoS -- its advisory range tops out at 3.3.0).
+# pip-audit confirms zero findings against 3.4.0. Two of its transitive
+# deps (ecdsa, pyasn1) still carry accepted-risk findings -- see
+# SECURITY.md; both are unreachable here since this app only ever calls
+# jose.jwt.encode/decode with a single hardcoded HS256 algorithm
+# (backend/auth/security.py), never an ECDSA operation or ASN.1 parse.
+python-jose[cryptography]==3.4.0
 google-genai==1.3.0
+# TA-127: 41 known findings against 5.1.0, all DoS-class (infinite
+# loop / memory exhaustion on a crafted PDF; nothing RCE or
+# info-disclosure across everything sampled during triage), fixed
+# piecemeal up through 6.16.1. Left at 5.1.0 for this ticket: fixing
+# means a 5.x -> 6.x major-version bump, which needs its own regression
+# pass against every code path that touches PdfReader/PdfWriter
+# (backend/documents/router.py's analysis pipeline handles arbitrary
+# user-uploaded PDFs, so this is real attack surface -- not a low
+# priority, just too large a change to fold into a scanning-setup
+# ticket). See SECURITY.md; tracked as a follow-up ticket.
 pypdf==5.1.0
 python-docx==1.1.2
 openpyxl==3.1.5
 reportlab==4.2.5
+# TA-127: PYSEC-2026-1845, fixed 9.0.3 -- a major version bump of the
+# test runner itself. Accepted at 8.3.3: pytest only ever processes
+# code this team wrote and controls (never attacker-supplied input),
+# so there's no realistic path to exploiting it, and a major-version
+# bump risks breaking collection/plugin compatibility (pytest-cov,
+# pytest-anyio) for no security benefit. Revisit opportunistically.
 pytest==8.3.3
 httpx==0.28.1
 jsonschema==4.23.0
