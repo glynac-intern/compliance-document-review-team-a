@@ -89,6 +89,37 @@ Docker Compose. It can still happen if you're running the backend
 outside Docker with a hand-written `DATABASE_URL` that doesn't match
 those three values -- keep them in sync.
 
+## Git hooks (TA-128)
+
+`./scripts/setup.sh` installs and activates these automatically. To set
+up by hand instead:
+
+```bash
+pip install pre-commit
+pre-commit install --install-hooks
+```
+
+Two stages, kept deliberately separate:
+
+- **pre-commit** (every commit, a few seconds): ruff lint + format,
+  trailing-whitespace/EOF/large-file/merge-conflict/YAML/TOML hygiene,
+  `detect-secrets`, and the frontend's `npm run lint` / `npm run
+  type-check` when a `frontend/` file is staged. Same tools and same
+  config files CI uses (`pyproject.toml`'s `[tool.ruff]`,
+  `frontend/eslint.config.*`, `frontend/tsconfig.json`) -- not a second,
+  separately-drifting rule set.
+- **pre-push** (before a push, slower): `pytest -m unit` -- the fast,
+  DB/Docker-free subset (see "Running tests" below).
+
+Skipping hooks locally (`git commit --no-verify`) doesn't skip
+enforcement -- CI runs the identical pre-commit hook set as its own
+`pre-commit` job.
+
+`.secrets.baseline` records findings already triaged as false positives
+(alembic revision hex IDs, docker-compose's test-only DB creds in
+`tests.yml`). `backend/tests/` is excluded from the secrets scan
+entirely -- see the comment in `.pre-commit-config.yaml`.
+
 ## Retrieval quality evaluation (TA-60)
 
 Records a baseline measuring whether retrieval finds the right rule,
@@ -266,4 +297,3 @@ unedited placeholder when it was added.
   relies on the deployment environment (e.g. a reverse proxy or load
   balancer) to provide it. The current Azure VM deployment serves plain
   HTTP directly.
-
