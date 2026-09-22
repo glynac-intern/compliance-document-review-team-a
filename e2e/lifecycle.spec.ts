@@ -377,8 +377,10 @@ test.describe("Full Compliance Review Lifecycle (TA-131)", () => {
         ).toBeVisible();
       }
     } finally {
-      await advisorContext.close();
-      await officerContext.close();
+      // Guard against "Target page, context or browser has been closed" —
+      // Playwright's runner may close the browser before finally executes.
+      await advisorContext.close().catch(() => {});
+      await officerContext.close().catch(() => {});
     }
   });
 });
