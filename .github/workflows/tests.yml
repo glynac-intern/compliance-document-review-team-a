@@ -44,10 +44,55 @@ jobs:
         run: SKIP_SEEDING=1 ./scripts/setup.sh
 
       - name: Run unit test suite
-        run: docker compose run --rm backend pytest -m unit -v
+        run: docker compose run --rm backend pytest -m unit -v --cov
 
+      # TA-126: --cov-append onto the same .coverage file the unit run
+      # just wrote -- the bind mount (docker-compose.yml's `.:/app` on
+      # the backend service) is what makes that file visible to this
+      # separate `docker compose run` invocation at all; source/omit/
+      # fail_under all come from pyproject.toml, not flags here.
+      #
+      # Tests marked `large_upload` are deliberately excluded here: two
+      # tests in test_ta85_upload_boundaries.py push a real ~10MB
+      # payload through the full ASGI TestClient stack, and BOTH
+      # reproducibly HANG under --cov (confirmed: ran 10+ minutes with
+      # zero progress, only exited once the container was force-killed
+      # at the Docker daemon level -- a real hang, not just slow).
+      # Every other test using the identical threaded `client` fixture
+      # runs fine under --cov, and these exact tests run fine WITHOUT
+      # --cov (verified repeatedly this session) -- a coverage-tooling/
+      # threading interaction under load, not an app bug. Run
+      # separately, uninstrumented, in the next step instead, so they
+      # stay exercised every CI run. See the `large_upload` marker's
+      # own docstring in pyproject.toml.
       - name: Run integration test suite
-        run: docker compose run --rm backend pytest -m integration -v
+        run: docker compose run --rm backend pytest -m "integration and not large_upload" -v --cov --cov-append
+
+      # TA-126: the large_upload-marked tests excluded above, run
+      # normally (no --cov) so they're still verified every CI run.
+      - name: Run large-upload boundary tests (uninstrumented)
+        run: docker compose run --rm backend pytest -m large_upload -v
+
+      # TA-126: fails the job if under pyproject.toml's fail_under --
+      # deliberately not passed again here, so there's exactly one
+      # place the threshold is set. Always writes the job summary
+      # (even on failure) so the number is visible without opening the
+      # raw log, per the ticket's acceptance criteria.
+      - name: Coverage report
+        if: always()
+        run: |
+          set +e
+          docker compose run --rm backend coverage report -m > coverage-report.txt
+          STATUS=$?
+          set -e
+          {
+            echo "### Backend coverage"
+            echo '```'
+            cat coverage-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat coverage-report.txt
+          exit $STATUS
 
       - name: Tear down
         if: always()
@@ -88,6 +133,26 @@ jobs:
 
       - name: Run frontend tests
         run: npm test
+
+      # TA-126: thresholds live in vitest.config.ts's coverage block,
+      # not duplicated as a flag here. Same always-write-the-summary
+      # shape as the backend's coverage step, so a regression is
+      # visible without opening the raw log either way.
+      - name: Coverage report
+        if: always()
+        run: |
+          set +e
+          npm run test:coverage > coverage-report.txt 2>&1
+          STATUS=$?
+          set -e
+          {
+            echo "### Frontend coverage"
+            echo '```'
+            tail -8 coverage-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat coverage-report.txt
+          exit $STATUS
 
   test-e2e:
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
