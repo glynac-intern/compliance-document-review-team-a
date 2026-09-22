@@ -140,6 +140,7 @@ export function FileTypeIcon({
       )}
       style={{ width: dim.box, height: dim.box }}
       title={`${themeConfig.badgeText} Document`}
+      role="img"
       aria-label={`${themeConfig.badgeText} Document`}
     >
       <svg

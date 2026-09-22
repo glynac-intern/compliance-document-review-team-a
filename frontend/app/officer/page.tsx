@@ -569,19 +569,19 @@ export default function OfficerDashboardPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-inter">
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-500 dark:text-slate-400 tracking-normal">
                           Document
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-500 dark:text-slate-400 tracking-normal">
                           Advisor
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-500 dark:text-slate-400 tracking-normal">
                           Status
                         </th>
-                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
+                        <th className="text-left py-3 px-4 text-[12px] font-normal text-slate-500 dark:text-slate-400 tracking-normal">
                           Type
                         </th>
-                        <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-400 dark:text-slate-400 tracking-normal">
+                        <th className="text-right py-3 px-4 text-[12px] font-normal text-slate-500 dark:text-slate-400 tracking-normal">
                           Submitted
                         </th>
                       </tr>
