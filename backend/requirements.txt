@@ -7,7 +7,7 @@
 # already-compromised account. starlette pinned explicitly (below) at
 # the latest version fastapi 0.115.6 allows, since it's otherwise only
 # a transitive pin and this file pins everything exactly.
-fastapi==0.115.6
+fastapi==0.141.1
 starlette==0.41.3
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
