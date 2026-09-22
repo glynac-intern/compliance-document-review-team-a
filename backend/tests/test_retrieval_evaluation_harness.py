@@ -3,6 +3,7 @@ Tests for TA-60: the retrieval-quality evaluation harness lives in
 data_pipeline/evaluation/, covers all three retrieval jobs, and a
 baseline has genuinely been recorded (not just claimed).
 """
+
 import json
 from pathlib import Path
 import pytest

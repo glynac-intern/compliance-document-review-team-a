@@ -8,6 +8,7 @@ real LLM pipeline entirely) so this test is fast, deterministic, and
 doesn't need a real Gemini API key -- it's testing the response schema,
 not the AI logic itself (which is covered separately, manually).
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration

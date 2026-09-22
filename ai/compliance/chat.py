@@ -10,6 +10,7 @@ Grounds the model in the document's own (masked) text plus its existing
 summary/flags, and instructs it to answer the SPECIFIC question rather
 than default to generic regulatory language.
 """
+
 import json
 import time
 
@@ -43,8 +44,7 @@ def _format_flags_block(flags: list[dict]) -> str:
     if not flags:
         return "(No flags -- no compliance issues detected.)"
     return "\n".join(
-        f"- [{f['severity'].upper()}] {f.get('rule_id') or 'Flag'}: {f['explanation']}"
-        for f in flags
+        f"- [{f['severity'].upper()}] {f.get('rule_id') or 'Flag'}: {f['explanation']}" for f in flags
     )
 
 
@@ -94,7 +94,7 @@ def generate_chat_reply(
         except Exception:
             if attempt == 2:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(2**attempt)
 
     try:
         parsed = json.loads(response.text)

@@ -15,6 +15,7 @@ model supports a disabled state, cover that too") doesn't apply here;
 documented rather than invented. Deletion is the only account-removal
 path that exists.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -25,9 +26,15 @@ FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 
 def _signup_and_login(client, email, role="advisor"):
-    signup = client.post("/auth/signup", json={
-        "name": "Soon Deleted", "email": email, "password": "testpass123", "role": role,
-    })
+    signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Soon Deleted",
+            "email": email,
+            "password": "testpass123",
+            "role": role,
+        },
+    )
     assert signup.status_code == 201, signup.text
     login = client.post("/auth/login", json={"email": email, "password": "testpass123"})
     assert login.status_code == 200, login.text

@@ -12,9 +12,21 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import (
-    Document, DocumentType, DocumentStatus, AuditEvent, AuditAction, User, UserRole,
-    AIAnalysis, Flag, Review, PIIMapping, AnalysisStatus, DocumentChunk,
-    PrecedentIndex, Notification,
+    Document,
+    DocumentType,
+    DocumentStatus,
+    AuditEvent,
+    AuditAction,
+    User,
+    UserRole,
+    AIAnalysis,
+    Flag,
+    Review,
+    PIIMapping,
+    AnalysisStatus,
+    DocumentChunk,
+    PrecedentIndex,
+    Notification,
 )
 from audit_utils import record_view_if_new
 from auth.dependencies import get_current_user, require_role
@@ -45,6 +57,7 @@ def _csv_safe(value: str) -> str:
     if value.startswith(_CSV_FORMULA_TRIGGERS):
         return f"'{value}"
     return value
+
 
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "/app/uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -119,7 +132,7 @@ def _save_upload(file: UploadFile, document_id: uuid.UUID) -> tuple[str, Documen
         raise HTTPException(
             status_code=400,
             detail="Unsupported or unrecognized file type. The file's signature "
-                   "does not match PDF, DOCX, or XLSX.",
+            "does not match PDF, DOCX, or XLSX.",
         )
 
     declared_type = ALLOWED_CONTENT_TYPES.get(file.content_type)
@@ -127,8 +140,8 @@ def _save_upload(file: UploadFile, document_id: uuid.UUID) -> tuple[str, Documen
         raise HTTPException(
             status_code=400,
             detail=f"Declared content type ({file.content_type}) does not match "
-                   f"the file's actual signature (detected: {detected_type.value}). "
-                   f"Refusing to store a mislabelled file.",
+            f"the file's actual signature (detected: {detected_type.value}). "
+            f"Refusing to store a mislabelled file.",
         )
 
     # Filename is ALWAYS server-derived: document_id (a UUID we generated)
@@ -192,31 +205,37 @@ def _execute_analysis(db: Session, document: Document, analysis: AIAnalysis) -> 
     db.query(PIIMapping).filter(PIIMapping.document_id == document.id).delete()
 
     for f in flags_data:
-        db.add(Flag(
-            analysis_id=analysis.id,
-            passage_excerpt=f["passage"],
-            matched_rule_id=f["rule_id"],
-            explanation=f["explanation"],
-            severity=f["severity"],
-        ))
+        db.add(
+            Flag(
+                analysis_id=analysis.id,
+                passage_excerpt=f["passage"],
+                matched_rule_id=f["rule_id"],
+                explanation=f["explanation"],
+                severity=f["severity"],
+            )
+        )
 
     # Replace any prior chunks for this document -- re-analysing must
     # never accumulate stale rows alongside fresh ones (TA-51).
     db.query(DocumentChunk).filter(DocumentChunk.document_id == document.id).delete()
     for chunk_data in chunks_data:
-        db.add(DocumentChunk(
-            document_id=document.id,
-            chunk_index=chunk_data["chunk_index"],
-            masked_text=chunk_data["masked_text"],
-            embedding=chunk_data["embedding"],
-        ))
+        db.add(
+            DocumentChunk(
+                document_id=document.id,
+                chunk_index=chunk_data["chunk_index"],
+                masked_text=chunk_data["masked_text"],
+                embedding=chunk_data["embedding"],
+            )
+        )
 
     for placeholder, original_value in mapping.items():
-        db.add(PIIMapping(
-            document_id=document.id,
-            placeholder=placeholder,
-            original_value=original_value,
-        ))
+        db.add(
+            PIIMapping(
+                document_id=document.id,
+                placeholder=placeholder,
+                original_value=original_value,
+            )
+        )
 
     db.commit()
     db.refresh(analysis)
@@ -319,13 +338,11 @@ def submit_revision(
     if original.advisor_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to revise this document")
     if original.status != DocumentStatus.needs_revision:
-        raise HTTPException(status_code=400, detail="Only documents marked 'needs_revision' can be resubmitted")
+        raise HTTPException(
+            status_code=400, detail="Only documents marked 'needs_revision' can be resubmitted"
+        )
 
-    existing_revision = (
-        db.query(Document)
-        .filter(Document.replaces_document_id == original.id)
-        .first()
-    )
+    existing_revision = db.query(Document).filter(Document.replaces_document_id == original.id).first()
     if existing_revision is not None:
         raise HTTPException(status_code=400, detail="This document has already been revised")
 
@@ -404,11 +421,13 @@ def send_reminder(
     for officer in officers:
         if not officer.in_app_notifications_enabled:
             continue
-        db.add(Notification(
-            user_id=officer.id,
-            document_id=document_id,
-            message=f'{current_user.name} sent a reminder: "{filename}" is still awaiting review.',
-        ))
+        db.add(
+            Notification(
+                user_id=officer.id,
+                document_id=document_id,
+                message=f'{current_user.name} sent a reminder: "{filename}" is still awaiting review.',
+            )
+        )
         notified_count += 1
 
     db.commit()
@@ -572,30 +591,38 @@ def export_document_audit(
     actor_ids = {e.actor_id for e in events}
     actors = {u.id: u for u in db.query(User).filter(User.id.in_(actor_ids)).all()}
     reviews_by_document = {
-        r.document_id: r
-        for r in db.query(Review).filter(Review.document_id.in_(thread_document_ids)).all()
+        r.document_id: r for r in db.query(Review).filter(Review.document_id.in_(thread_document_ids)).all()
     }
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow([
-        "timestamp", "actor_name", "actor_role", "action",
-        "document_id", "decision_status", "decision_comment",
-    ])
+    writer.writerow(
+        [
+            "timestamp",
+            "actor_name",
+            "actor_role",
+            "action",
+            "document_id",
+            "decision_status",
+            "decision_comment",
+        ]
+    )
     for e in events:
         actor = actors.get(e.actor_id)
         # Only a 'decided' event has a matching Review to enrich with --
         # every other action's decision columns are left blank.
         review = reviews_by_document.get(e.document_id) if e.action == AuditAction.decided else None
-        writer.writerow([
-            e.timestamp.isoformat(),
-            _csv_safe(actor.name) if actor else "Unknown",
-            actor.role.value if actor else "",
-            e.action.value,
-            str(e.document_id),
-            review.status.value if review else "",
-            _csv_safe(review.comment) if review and review.comment else "",
-        ])
+        writer.writerow(
+            [
+                e.timestamp.isoformat(),
+                _csv_safe(actor.name) if actor else "Unknown",
+                actor.role.value if actor else "",
+                e.action.value,
+                str(e.document_id),
+                review.status.value if review else "",
+                _csv_safe(review.comment) if review and review.comment else "",
+            ]
+        )
 
     return Response(
         content=output.getvalue(),
@@ -618,10 +645,7 @@ def get_document_reviews(
     ]
 
     reviews = (
-        db.query(Review)
-        .filter(Review.document_id.in_(thread_document_ids))
-        .order_by(Review.decided_at)
-        .all()
+        db.query(Review).filter(Review.document_id.in_(thread_document_ids)).order_by(Review.decided_at).all()
     )
     return reviews
 
@@ -656,13 +680,15 @@ def get_document_thread(
     entries = []
     for doc in thread_documents:
         review = db.query(Review).filter(Review.document_id == doc.id).first()
-        entries.append({
-            "document_id": doc.id,
-            "status": doc.status,
-            "type": doc.type,
-            "uploaded_at": doc.uploaded_at,
-            "replaces_document_id": doc.replaces_document_id,
-            "revision_notes": doc.revision_notes,
-            "review": review,
-        })
+        entries.append(
+            {
+                "document_id": doc.id,
+                "status": doc.status,
+                "type": doc.type,
+                "uploaded_at": doc.uploaded_at,
+                "replaces_document_id": doc.replaces_document_id,
+                "revision_notes": doc.revision_notes,
+                "review": review,
+            }
+        )
     return entries

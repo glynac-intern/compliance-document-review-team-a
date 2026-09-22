@@ -8,6 +8,7 @@ tables are truncated so the next test starts from empty. Simpler and more
 robust to get right than nested-transaction isolation, and sufficient for
 this project's scope.
 """
+
 import os
 from pathlib import Path
 
@@ -100,9 +101,15 @@ def client(db_session):
 
 
 def _signup_and_login(client, email, password, role):
-    signup_resp = client.post("/auth/signup", json={
-        "name": "Test User", "email": email, "password": password, "role": role,
-    })
+    signup_resp = client.post(
+        "/auth/signup",
+        json={
+            "name": "Test User",
+            "email": email,
+            "password": password,
+            "role": role,
+        },
+    )
     assert signup_resp.status_code == 201, f"Signup failed: {signup_resp.status_code} {signup_resp.text}"
 
     login_resp = client.post("/auth/login", json={"email": email, "password": password})

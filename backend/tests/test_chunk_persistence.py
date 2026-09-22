@@ -3,6 +3,7 @@ Tests for TA-51: chunk embeddings are persisted (document_id, chunk_index,
 masked_text, embedding), reusable by retrieval without re-embedding, and
 replaced (not accumulated) when a document is re-analysed.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -50,14 +51,24 @@ def test_unique_constraint_prevents_duplicate_index_per_document(client, db_sess
     )
     doc_id = submit.json()["id"]
 
-    db_session.add(DocumentChunk(
-        document_id=doc_id, chunk_index=0, masked_text="First.", embedding=[0.1] * 768,
-    ))
+    db_session.add(
+        DocumentChunk(
+            document_id=doc_id,
+            chunk_index=0,
+            masked_text="First.",
+            embedding=[0.1] * 768,
+        )
+    )
     db_session.commit()
 
-    db_session.add(DocumentChunk(
-        document_id=doc_id, chunk_index=0, masked_text="Duplicate index.", embedding=[0.2] * 768,
-    ))
+    db_session.add(
+        DocumentChunk(
+            document_id=doc_id,
+            chunk_index=0,
+            masked_text="Duplicate index.",
+            embedding=[0.2] * 768,
+        )
+    )
     try:
         db_session.commit()
         assert False, "expected a unique constraint violation"
@@ -83,7 +94,10 @@ def test_stored_chunk_embedding_is_reusable_for_retrieval(client, db_session, ad
     db_session.flush()
 
     chunk = DocumentChunk(
-        document_id=doc_id, chunk_index=0, masked_text="Test chunk.", embedding=[0.5] * 768,
+        document_id=doc_id,
+        chunk_index=0,
+        masked_text="Test chunk.",
+        embedding=[0.5] * 768,
     )
     db_session.add(chunk)
     db_session.commit()

@@ -3,6 +3,7 @@ Tests for TA-57: the disclosure corpus is expanded to a few dozen
 entries, lives in its own dedicated seed location, and is reachable
 through the same seeding path as the rest of the rules.
 """
+
 import json
 from pathlib import Path
 import pytest
@@ -42,4 +43,3 @@ def test_paraphrase_test_cases_reference_real_disclosure_ids():
     for p in paraphrases:
         assert p["disclosure_id"] in disclosure_ids
         assert p["paraphrased_text"] != p["canonical_text"]  # genuinely different wording
-

@@ -11,6 +11,7 @@ changes in masker.py this same commit touches). Where it's a genuine,
 harder limitation, it's asserted as a documented miss -- not silently
 left unasserted -- and folded into masker.py's KNOWN_LIMITATIONS.
 """
+
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -19,6 +20,7 @@ from ai.masking.masker import mask_pii
 
 
 # --- Unicode ---
+
 
 def test_unicode_accented_name_is_masked():
     """Real names routinely have accented characters. [A-Z][a-z]+ is
@@ -52,6 +54,7 @@ def test_unicode_in_surrounding_text_does_not_break_other_masking():
 
 # --- Split lines (PDF/DOCX extraction routinely wraps at arbitrary points) ---
 
+
 def test_email_split_across_a_line_break_is_not_masked():
     """Documented miss, not silently unasserted: EMAIL_RE has no
     whitespace tolerance, so a real line-wrapped email leaks. Extraction
@@ -72,6 +75,7 @@ def test_ssn_split_across_a_line_break_is_not_masked():
 
 
 # --- Unusual formats ---
+
 
 def test_ssn_without_dashes_is_not_masked():
     """Documented miss: SSN_RE requires the dashed 123-45-6789 shape.
@@ -113,6 +117,7 @@ def test_po_box_address_is_not_masked():
 # --- Embedded PII in filename-shaped text: no sentence structure,
 # underscores/hyphens instead of spaces, exactly what mask_pii would see
 # if a filename were ever run through it. ---
+
 
 def test_ssn_embedded_in_filename_shaped_text_is_still_masked():
     """Found broken, fixed in this same pass: SSN_RE used \\b on both

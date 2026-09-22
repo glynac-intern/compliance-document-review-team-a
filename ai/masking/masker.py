@@ -20,9 +20,7 @@ from collections import defaultdict
 
 EMAIL_RE = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
-PHONE_RE = re.compile(
-    r"(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
-)
+PHONE_RE = re.compile(r"(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
 
 # TA-88: (?<!\d)...(?!\d), not \b on both ends -- \b treats underscore
 # as a word character, so it silently fails to match an SSN directly
@@ -33,14 +31,10 @@ PHONE_RE = re.compile(
 # allowing underscores, letters, or punctuation on either side.
 SSN_RE = re.compile(r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)")
 
-ACCOUNT_RE = re.compile(
-    r"\b(?:account|acct)\.?\s*#?\s*:?\s*(\d{6,17})\b", re.IGNORECASE
-)
+ACCOUNT_RE = re.compile(r"\b(?:account|acct)\.?\s*#?\s*:?\s*(\d{6,17})\b", re.IGNORECASE)
 
 STREET_SUFFIXES = r"(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl|Terrace|Ter|Circle|Cir)\.?"
-ADDRESS_RE = re.compile(
-    rf"\b\d{{1,5}}\s+(?:[A-Z][a-z]+\s){{1,3}}{STREET_SUFFIXES}\b"
-)
+ADDRESS_RE = re.compile(rf"\b\d{{1,5}}\s+(?:[A-Z][a-z]+\s){{1,3}}{STREET_SUFFIXES}\b")
 
 # TA-88: each name word requires an uppercase FIRST letter -- covering
 # ASCII (A-Z) and the Latin-1/Latin Extended-A accented uppercase range
@@ -104,6 +98,7 @@ def mask_pii(text: str) -> tuple[str, dict[str, str]]:
                 full_match = match.group(0)
                 return full_match.replace(value, placeholder, 1)
             return placeholder
+
         return pattern.sub(_sub, text_in)
 
     masked = text

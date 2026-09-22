@@ -8,6 +8,7 @@ Mocks the LLM client (google.genai), same approach as
 test_ta87_ai_outage_resilience.py -- these tests exercise the route's
 context-building and error handling, not the real model.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -49,10 +50,16 @@ def test_chat_answers_the_actual_question_not_boilerplate(client, db_session, ad
     analysis = db_session.query(AIAnalysis).filter(AIAnalysis.document_id == doc_id).first()
     analysis.status = AnalysisStatus.succeeded
     analysis.summary = "A marketing brochure for a growth fund."
-    db_session.add(DocumentChunk(document_id=doc_id, chunk_index=0, masked_text="This brochure is titled 'Growth Fund Overview'."))
+    db_session.add(
+        DocumentChunk(
+            document_id=doc_id, chunk_index=0, masked_text="This brochure is titled 'Growth Fund Overview'."
+        )
+    )
     db_session.commit()
 
-    stub = _StubGenAIClient(generate_text='{"reply": "The document is titled \\"Growth Fund Overview\\".", "suggested_decision_note": null}')
+    stub = _StubGenAIClient(
+        generate_text='{"reply": "The document is titled \\"Growth Fund Overview\\".", "suggested_decision_note": null}'
+    )
     with patch.object(reviews_router, "get_client", return_value=stub):
         resp = client.post(
             f"/review/documents/{doc_id}/chat",
@@ -74,7 +81,9 @@ def test_chat_unmasks_pii_placeholders_before_returning(client, db_session, advi
     db_session.add(PIIMapping(document_id=doc_id, placeholder="[CLIENT_1]", original_value="Jane Smith"))
     db_session.commit()
 
-    stub = _StubGenAIClient(generate_text='{"reply": "This document was prepared for [CLIENT_1].", "suggested_decision_note": "Approved for [CLIENT_1]."}')
+    stub = _StubGenAIClient(
+        generate_text='{"reply": "This document was prepared for [CLIENT_1].", "suggested_decision_note": "Approved for [CLIENT_1]."}'
+    )
     with patch.object(reviews_router, "get_client", return_value=stub):
         resp = client.post(
             f"/review/documents/{doc_id}/chat",

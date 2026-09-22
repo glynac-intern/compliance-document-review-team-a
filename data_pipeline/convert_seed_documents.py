@@ -13,6 +13,7 @@ explicitly forced into the selection for the privacy-wall demonstration.
 Run inside the backend container:
     docker compose run --rm backend python data_pipeline/convert_seed_documents.py
 """
+
 import json
 from pathlib import Path
 
@@ -83,8 +84,10 @@ def _write_xlsx(text: str, out_path: Path) -> None:
 def main():
     metadata = json.loads((SEED_DOCUMENTS_DIR / "metadata.json").read_text(encoding="utf-8"))
     selected = _select_representative_subset(metadata)
-    print(f"Selected {len(selected)} representative documents across "
-          f"{len(set(d['type'] for d in selected))} document types.")
+    print(
+        f"Selected {len(selected)} representative documents across "
+        f"{len(set(d['type'] for d in selected))} document types."
+    )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -105,14 +108,18 @@ def main():
             _write_xlsx(raw_text, out_path)
 
         is_pii_demo = doc_meta["filename"] == PII_DEMO_FILENAME
-        print(f"  {doc_meta['filename']} -> {out_path.name} "
-              f"[{doc_meta['type']}]{'  <-- PII demo doc' if is_pii_demo else ''}")
+        print(
+            f"  {doc_meta['filename']} -> {out_path.name} "
+            f"[{doc_meta['type']}]{'  <-- PII demo doc' if is_pii_demo else ''}"
+        )
 
-        converted_metadata.append({
-            **doc_meta,
-            "converted_filename": out_path.name,
-            "converted_format": fmt,
-        })
+        converted_metadata.append(
+            {
+                **doc_meta,
+                "converted_filename": out_path.name,
+                "converted_format": fmt,
+            }
+        )
 
     (OUTPUT_DIR / "converted_metadata.json").write_text(
         json.dumps(converted_metadata, indent=2), encoding="utf-8"

@@ -21,6 +21,7 @@ interleave window isn't fully guaranteed with only two threads, and 8
 makes it overwhelmingly likely at least two interleave before either
 commits, on unfixed code.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -49,7 +50,9 @@ def _submit(client, advisor_token):
     return resp.json()["id"]
 
 
-def test_concurrent_decisions_produce_at_most_one_review(client, test_db_engine, advisor_token, officer_token):
+def test_concurrent_decisions_produce_at_most_one_review(
+    client, test_db_engine, advisor_token, officer_token
+):
     doc_id = _submit(client, advisor_token)
 
     SessionLocalTest = sessionmaker(bind=test_db_engine)
@@ -89,9 +92,7 @@ def test_concurrent_decisions_produce_at_most_one_review(client, test_db_engine,
     finally:
         verify_session.close()
 
-    assert len(succeeded) + len(rejected) == CONCURRENCY, (
-        f"Unexpected status codes: {status_codes}"
-    )
+    assert len(succeeded) + len(rejected) == CONCURRENCY, f"Unexpected status codes: {status_codes}"
     assert len(succeeded) == 1, (
         f"Expected exactly 1 of {CONCURRENCY} concurrent decisions to succeed, got {len(succeeded)} "
         f"(status codes: {status_codes})"

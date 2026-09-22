@@ -16,6 +16,7 @@ duplicating.
 Run inside the backend container:
     docker compose run --rm backend python data_pipeline/embeddings/backfill_precedents.py
 """
+
 import json
 import uuid
 from pathlib import Path
@@ -25,8 +26,19 @@ from ai.masking.masker import mask_pii
 from data_pipeline.embeddings.embed_client import embed_texts_batch
 from database import SessionLocal
 from models import (
-    Document, DocumentType, DocumentStatus, PrecedentIndex, User, UserRole,
-    AuditEvent, Review, AIAnalysis, Flag, PIIMapping, DocumentChunk, Notification,
+    Document,
+    DocumentType,
+    DocumentStatus,
+    PrecedentIndex,
+    User,
+    UserRole,
+    AuditEvent,
+    Review,
+    AIAnalysis,
+    Flag,
+    PIIMapping,
+    DocumentChunk,
+    Notification,
 )
 from auth.security import hash_password
 
@@ -81,17 +93,34 @@ def main():
             # violation -- exactly what a naive re-seed on a
             # previously-used checkout hits.
             existing_analysis_ids = [
-                a.id for a in db.query(AIAnalysis.id).filter(AIAnalysis.document_id.in_(existing_doc_ids)).all()
+                a.id
+                for a in db.query(AIAnalysis.id).filter(AIAnalysis.document_id.in_(existing_doc_ids)).all()
             ]
             if existing_analysis_ids:
-                db.query(Flag).filter(Flag.analysis_id.in_(existing_analysis_ids)).delete(synchronize_session=False)
-            db.query(AIAnalysis).filter(AIAnalysis.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
-            db.query(Review).filter(Review.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
-            db.query(AuditEvent).filter(AuditEvent.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
-            db.query(PIIMapping).filter(PIIMapping.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
-            db.query(DocumentChunk).filter(DocumentChunk.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
-            db.query(Notification).filter(Notification.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
-            db.query(PrecedentIndex).filter(PrecedentIndex.document_id.in_(existing_doc_ids)).delete(synchronize_session=False)
+                db.query(Flag).filter(Flag.analysis_id.in_(existing_analysis_ids)).delete(
+                    synchronize_session=False
+                )
+            db.query(AIAnalysis).filter(AIAnalysis.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(Review).filter(Review.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(AuditEvent).filter(AuditEvent.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(PIIMapping).filter(PIIMapping.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(DocumentChunk).filter(DocumentChunk.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(Notification).filter(Notification.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(PrecedentIndex).filter(PrecedentIndex.document_id.in_(existing_doc_ids)).delete(
+                synchronize_session=False
+            )
             # A document can reference ANOTHER document in this same
             # set via replaces_document_id -- clear that self-reference
             # before deleting, or the delete can fail on itself too.
@@ -108,12 +137,14 @@ def main():
             masked_text, _mapping = mask_pii(raw_text)  # only masked_text ever stored/embedded
             decision, comment = _derive_decision_and_comment(doc_meta)
             masked_texts.append(masked_text)
-            prepared.append({
-                "filename": doc_meta["filename"],
-                "masked_text": masked_text,
-                "decision": decision,
-                "comment": comment,
-            })
+            prepared.append(
+                {
+                    "filename": doc_meta["filename"],
+                    "masked_text": masked_text,
+                    "decision": decision,
+                    "comment": comment,
+                }
+            )
 
         print(f"Embedding all {len(masked_texts)} documents in one batch call...")
         embeddings = embed_texts_batch(masked_texts)
@@ -133,20 +164,26 @@ def main():
             db.add(document)
             db.flush()
 
-            db.add(PrecedentIndex(
-                document_id=doc_id,
-                masked_text=item["masked_text"],
-                decision=item["decision"],
-                comment=item["comment"],
-                embedding=embedding,
-            ))
+            db.add(
+                PrecedentIndex(
+                    document_id=doc_id,
+                    masked_text=item["masked_text"],
+                    decision=item["decision"],
+                    comment=item["comment"],
+                    embedding=embedding,
+                )
+            )
 
         db.commit()
-        final_count = db.query(PrecedentIndex).filter(
-            PrecedentIndex.document_id.in_(
-                db.query(Document.id).filter(Document.advisor_id == seed_advisor.id)
+        final_count = (
+            db.query(PrecedentIndex)
+            .filter(
+                PrecedentIndex.document_id.in_(
+                    db.query(Document.id).filter(Document.advisor_id == seed_advisor.id)
+                )
             )
-        ).count()
+            .count()
+        )
         print(f"\nDone. {final_count} precedent entries backfilled from the seed corpus.")
     finally:
         db.close()

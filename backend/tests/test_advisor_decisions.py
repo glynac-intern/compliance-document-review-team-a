@@ -40,14 +40,23 @@ def test_other_advisor_cannot_read_someone_elses_decision(client, advisor_token,
         json={"status": "approved", "comment": "Looks good."},
     )
 
-    other_signup = client.post("/auth/signup", json={
-        "name": "Other Advisor", "email": "other-advisor@rolefixture.io",
-        "password": "testpass123", "role": "advisor",
-    })
+    other_signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Other Advisor",
+            "email": "other-advisor@rolefixture.io",
+            "password": "testpass123",
+            "role": "advisor",
+        },
+    )
     assert other_signup.status_code == 201
-    other_login = client.post("/auth/login", json={
-        "email": "other-advisor@rolefixture.io", "password": "testpass123",
-    })
+    other_login = client.post(
+        "/auth/login",
+        json={
+            "email": "other-advisor@rolefixture.io",
+            "password": "testpass123",
+        },
+    )
     other_token = other_login.json()["access_token"]
 
     resp = client.get(

@@ -45,6 +45,7 @@ Cost-awareness (given repeated free-tier rate limits hit tonight):
 Run inside the backend container:
     docker compose run --rm backend python data_pipeline/evaluation/retrieval_quality_harness.py
 """
+
 import json
 from pathlib import Path
 
@@ -104,7 +105,7 @@ def _batch_embed_all_chunks(sample: list[dict]) -> tuple[list[list[list[float]]]
     idx = 0
     for chunks in chunks_per_doc:
         n = len(chunks)
-        per_doc_chunk_embeddings.append(flat_chunk_embeddings[idx:idx + n])
+        per_doc_chunk_embeddings.append(flat_chunk_embeddings[idx : idx + n])
         idx += n
 
     print(f"  Embedding {len(sample)} whole-document variants in ONE more batch call...")
@@ -115,15 +116,21 @@ def _batch_embed_all_chunks(sample: list[dict]) -> tuple[list[list[list[float]]]
 
 # --- 1. Rule lookup ---------------------------------------------------
 
-def evaluate_rule_lookup(db, sample: list[dict], per_doc_chunk_embeddings: list, top_k_values: list[int]) -> dict:
+
+def evaluate_rule_lookup(
+    db, sample: list[dict], per_doc_chunk_embeddings: list, top_k_values: list[int]
+) -> dict:
     print(f"\nRule lookup: evaluating {len(sample)} documents")
 
     top_k_results = {}
     for top_k in top_k_values:
         hits = 0
         for doc_meta, chunk_embeddings in zip(sample, per_doc_chunk_embeddings):
-            relevant_types = {i for i in doc_meta["injected_issues"]
-                               if i in ("prohibited_claim", "performance_standard_violation")}
+            relevant_types = {
+                i
+                for i in doc_meta["injected_issues"]
+                if i in ("prohibited_claim", "performance_standard_violation")
+            }
             found = False
             for chunk_emb in chunk_embeddings:
                 candidates = retrieve_candidate_rules(db, chunk_emb, top_k=top_k)
@@ -139,16 +146,23 @@ def evaluate_rule_lookup(db, sample: list[dict], per_doc_chunk_embeddings: list,
     return top_k_results
 
 
-def evaluate_chunk_size_comparison(db, sample: list[dict], per_doc_chunk_embeddings: list,
-                                    whole_doc_embeddings: list) -> dict:
-    rules = db.query(Rule).filter(Rule.type.in_(("prohibited_claim", "performance_standard")),
-                                   Rule.is_active).all()
+def evaluate_chunk_size_comparison(
+    db, sample: list[dict], per_doc_chunk_embeddings: list, whole_doc_embeddings: list
+) -> dict:
+    rules = (
+        db.query(Rule)
+        .filter(Rule.type.in_(("prohibited_claim", "performance_standard")), Rule.is_active)
+        .all()
+    )
 
     def _accuracy(embeddings_per_doc, top_k=3):
         hits = 0
         for doc_meta, doc_embs in zip(sample, embeddings_per_doc):
-            relevant_types = {i for i in doc_meta["injected_issues"]
-                               if i in ("prohibited_claim", "performance_standard_violation")}
+            relevant_types = {
+                i
+                for i in doc_meta["injected_issues"]
+                if i in ("prohibited_claim", "performance_standard_violation")
+            }
             # doc_embs is either a list-of-chunk-embeddings or a single
             # whole-doc embedding -- normalize to a list either way.
             embs = doc_embs if isinstance(doc_embs[0], list) else [doc_embs]
@@ -165,22 +179,30 @@ def evaluate_chunk_size_comparison(db, sample: list[dict], per_doc_chunk_embeddi
     paragraph_accuracy = _accuracy(per_doc_chunk_embeddings)
     whole_doc_accuracy = _accuracy(whole_doc_embeddings)
 
-    print(f"\nChunk-size comparison (top_k=3): paragraph-level={paragraph_accuracy*100:.1f}%, "
-          f"whole-document={whole_doc_accuracy*100:.1f}%")
+    print(
+        f"\nChunk-size comparison (top_k=3): paragraph-level={paragraph_accuracy*100:.1f}%, "
+        f"whole-document={whole_doc_accuracy*100:.1f}%"
+    )
 
     return {"paragraph_level": paragraph_accuracy, "whole_document": whole_doc_accuracy}
 
 
 def evaluate_distance_metric_comparison(db, sample: list[dict], per_doc_chunk_embeddings: list) -> dict:
-    rules = db.query(Rule).filter(Rule.type.in_(("prohibited_claim", "performance_standard")),
-                                   Rule.is_active).all()
+    rules = (
+        db.query(Rule)
+        .filter(Rule.type.in_(("prohibited_claim", "performance_standard")), Rule.is_active)
+        .all()
+    )
 
     results = {}
     for metric_name, metric_fn in DISTANCE_METRICS.items():
         hits = 0
         for doc_meta, chunk_embeddings in zip(sample, per_doc_chunk_embeddings):
-            relevant_types = {i for i in doc_meta["injected_issues"]
-                               if i in ("prohibited_claim", "performance_standard_violation")}
+            relevant_types = {
+                i
+                for i in doc_meta["injected_issues"]
+                if i in ("prohibited_claim", "performance_standard_violation")
+            }
             found = False
             for chunk_emb in chunk_embeddings:
                 ranked = sorted(rules, key=lambda r: metric_fn(chunk_emb, r.embedding))[:3]
@@ -198,8 +220,10 @@ def evaluate_distance_metric_comparison(db, sample: list[dict], per_doc_chunk_em
 
 # --- 2. Disclosure absence --------------------------------------------
 
-def evaluate_disclosure_absence(db, sample: list[dict], per_doc_chunk_embeddings: list,
-                                 thresholds: list[float]) -> dict:
+
+def evaluate_disclosure_absence(
+    db, sample: list[dict], per_doc_chunk_embeddings: list, thresholds: list[float]
+) -> dict:
     print(f"\nDisclosure absence: evaluating {len(sample)} documents")
 
     disclosure_rules = db.query(Rule).filter(Rule.type == "disclosure", Rule.is_active).all()
@@ -217,10 +241,7 @@ def evaluate_disclosure_absence(db, sample: list[dict], per_doc_chunk_embeddings
 
     results = {}
     for threshold in thresholds:
-        correct = sum(
-            1 for r in doc_results
-            if (r["min_distance"] > threshold) == r["ground_truth_missing"]
-        )
+        correct = sum(1 for r in doc_results if (r["min_distance"] > threshold) == r["ground_truth_missing"])
         accuracy = correct / len(doc_results) if doc_results else 0
         results[threshold] = accuracy
         print(f"  threshold={threshold:.2f}: {correct}/{len(doc_results)} correct ({accuracy*100:.1f}%)")
@@ -230,12 +251,15 @@ def evaluate_disclosure_absence(db, sample: list[dict], per_doc_chunk_embeddings
 
 # --- 3. Precedent relevance --------------------------------------------
 
+
 def evaluate_precedent_relevance(db, top_k: int = 3) -> dict:
     """Zero new API calls -- reuses embeddings already stored in
     precedent_index (TA-59's backfill). Full 100-document scale."""
     all_precedents = db.query(PrecedentIndex).all()
-    print(f"\nPrecedent relevance: evaluating {len(all_precedents)} precedent entries "
-          f"(zero new API calls -- reuses stored embeddings)")
+    print(
+        f"\nPrecedent relevance: evaluating {len(all_precedents)} precedent entries "
+        f"(zero new API calls -- reuses stored embeddings)"
+    )
 
     agree_majority = 0
     for query in all_precedents:
@@ -249,8 +273,10 @@ def evaluate_precedent_relevance(db, top_k: int = 3) -> dict:
             agree_majority += 1
 
     accuracy = agree_majority / len(all_precedents) if all_precedents else 0
-    print(f"  {agree_majority}/{len(all_precedents)} queries had majority-agreeing "
-          f"precedents ({accuracy*100:.1f}%)")
+    print(
+        f"  {agree_majority}/{len(all_precedents)} queries had majority-agreeing "
+        f"precedents ({accuracy*100:.1f}%)"
+    )
 
     return {"majority_agreement_rate": accuracy}
 
@@ -264,21 +290,29 @@ def main():
 
     metadata = json.loads((SEED_DOCUMENTS_DIR / "metadata.json").read_text())
     rule_related = [
-        d for d in metadata
-        if any(issue in ("prohibited_claim", "performance_standard_violation") for issue in d["injected_issues"])
+        d
+        for d in metadata
+        if any(
+            issue in ("prohibited_claim", "performance_standard_violation") for issue in d["injected_issues"]
+        )
     ]
     sample = rule_related[:SAMPLE_SIZE]
-    print(f"\nUsing a shared sample of {len(sample)} documents "
-          f"(from {len(rule_related)} with rule-relevant issues) for rule lookup, "
-          f"chunk-size, distance-metric, and disclosure-absence evaluations.\n")
+    print(
+        f"\nUsing a shared sample of {len(sample)} documents "
+        f"(from {len(rule_related)} with rule-relevant issues) for rule lookup, "
+        f"chunk-size, distance-metric, and disclosure-absence evaluations.\n"
+    )
 
     per_doc_chunk_embeddings, whole_doc_embeddings = _batch_embed_all_chunks(sample)
 
     rule_lookup_results = evaluate_rule_lookup(db, sample, per_doc_chunk_embeddings, top_k_values=[1, 3, 5])
-    chunk_size_results = evaluate_chunk_size_comparison(db, sample, per_doc_chunk_embeddings, whole_doc_embeddings)
+    chunk_size_results = evaluate_chunk_size_comparison(
+        db, sample, per_doc_chunk_embeddings, whole_doc_embeddings
+    )
     distance_metric_results = evaluate_distance_metric_comparison(db, sample, per_doc_chunk_embeddings)
-    disclosure_results = evaluate_disclosure_absence(db, sample, per_doc_chunk_embeddings,
-                                                       thresholds=[0.10, 0.15, 0.20, 0.25, 0.30])
+    disclosure_results = evaluate_disclosure_absence(
+        db, sample, per_doc_chunk_embeddings, thresholds=[0.10, 0.15, 0.20, 0.25, 0.30]
+    )
     precedent_results = evaluate_precedent_relevance(db, top_k=3)
 
     baseline = {
@@ -291,7 +325,7 @@ def main():
             "sample_size": SAMPLE_SIZE,
             "sample_criterion": "documents with prohibited_claim or performance_standard_violation issues",
             "ground_truth_granularity": "category-level (prohibited_claim/performance_standard/disclosure), "
-                                         "not specific rule id -- corpus was not built to support finer matching",
+            "not specific rule id -- corpus was not built to support finer matching",
             "precedent_evaluation_scale": "full 100-document corpus (zero new API cost, reuses stored embeddings)",
         },
     }

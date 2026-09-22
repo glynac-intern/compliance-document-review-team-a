@@ -10,6 +10,7 @@ advisor_token fixture ever existed.
 Whatever fails here is a real hole: fixed in the same commit, not
 silently patched without a record of what broke.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -93,6 +94,7 @@ def test_no_session_rejected_on_mark_notification_read(client):
 
 # --- Wrong role: officer-only endpoints hit by an advisor, and vice versa ---
 
+
 def test_advisor_cannot_hit_officer_only_get_review_document(client, advisor_token, officer_token):
     doc_id = _submit_document(client, advisor_token).json()["id"]
     resp = client.get(f"/review/documents/{doc_id}", headers=_auth(advisor_token))
@@ -120,6 +122,7 @@ def test_officer_cannot_submit_revision(client, advisor_token, officer_token):
 # document-scoped endpoint, probed with a SECOND advisor's token against
 # the FIRST advisor's document. ---
 
+
 @pytest.fixture()
 def other_advisors_document(client, advisor_token):
     return _submit_document(client, advisor_token).json()["id"]
@@ -141,7 +144,9 @@ def test_cross_advisor_cannot_get_analysis(client, other_advisors_document, seco
 
 
 def test_cross_advisor_cannot_retry_analysis(client, other_advisors_document, second_advisor_token):
-    resp = client.post(f"/documents/{other_advisors_document}/analysis/retry", headers=_auth(second_advisor_token))
+    resp = client.post(
+        f"/documents/{other_advisors_document}/analysis/retry", headers=_auth(second_advisor_token)
+    )
     assert resp.status_code == 403
 
 
@@ -151,7 +156,9 @@ def test_cross_advisor_cannot_get_audit(client, other_advisors_document, second_
 
 
 def test_cross_advisor_cannot_export_audit(client, other_advisors_document, second_advisor_token):
-    resp = client.get(f"/documents/{other_advisors_document}/audit/export", headers=_auth(second_advisor_token))
+    resp = client.get(
+        f"/documents/{other_advisors_document}/audit/export", headers=_auth(second_advisor_token)
+    )
     assert resp.status_code == 403
 
 
@@ -179,7 +186,9 @@ def test_cross_advisor_cannot_send_reminder(client, other_advisors_document, sec
     assert resp.status_code == 403
 
 
-def test_cross_advisor_document_not_in_second_advisors_list(client, other_advisors_document, second_advisor_token):
+def test_cross_advisor_document_not_in_second_advisors_list(
+    client, other_advisors_document, second_advisor_token
+):
     resp = client.get("/documents", headers=_auth(second_advisor_token))
     assert resp.status_code == 200
     ids = [d["id"] for d in resp.json()]
@@ -189,7 +198,10 @@ def test_cross_advisor_document_not_in_second_advisors_list(client, other_adviso
 # --- Notifications: cross-user probe (not advisor-vs-advisor specifically,
 # but the same "does the ownership check actually hold" question) ---
 
-def test_cross_advisor_cannot_mark_someone_elses_notification_read(client, advisor_token, second_advisor_token, officer_token):
+
+def test_cross_advisor_cannot_mark_someone_elses_notification_read(
+    client, advisor_token, second_advisor_token, officer_token
+):
     doc_id = _submit_document(client, advisor_token).json()["id"]
     client.post(
         f"/review/documents/{doc_id}/decision",

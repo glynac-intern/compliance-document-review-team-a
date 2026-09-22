@@ -15,6 +15,7 @@ what the frontend already renders distinct badges for) are derived
 here from the related Review, the same way documents/router.py's
 audit CSV export enriches 'decided' events with the Review row.
 """
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
 
@@ -96,24 +97,27 @@ def get_officer_audit_log(
     # away from pending as part of the same transaction, so a document
     # can never be decided twice.
     reviews_by_document = {
-        r.document_id: r
-        for r in db.query(Review).filter(Review.document_id.in_(document_ids)).all()
+        r.document_id: r for r in db.query(Review).filter(Review.document_id.in_(document_ids)).all()
     }
 
     entries = []
     for e in events:
         actor = actors.get(e.actor_id)
         document = e.document
-        filename = document.original_filename if document and document.original_filename else "an untitled document"
+        filename = (
+            document.original_filename if document and document.original_filename else "an untitled document"
+        )
         review = reviews_by_document.get(e.document_id) if e.action == AuditAction.decided else None
-        entries.append(AuditLogEntryResponse(
-            id=str(e.id),
-            timestamp=e.timestamp,
-            actor_name=actor.name if actor else "Unknown user",
-            actor_role=actor.role.value if actor else "unknown",
-            action_type=_action_type(e, review),
-            document_id=str(e.document_id),
-            document_title=filename,
-            details=_details(e, filename, document.revision_notes if document else None, review),
-        ))
+        entries.append(
+            AuditLogEntryResponse(
+                id=str(e.id),
+                timestamp=e.timestamp,
+                actor_name=actor.name if actor else "Unknown user",
+                actor_role=actor.role.value if actor else "unknown",
+                action_type=_action_type(e, review),
+                document_id=str(e.document_id),
+                document_title=filename,
+                details=_details(e, filename, document.revision_notes if document else None, review),
+            )
+        )
     return entries

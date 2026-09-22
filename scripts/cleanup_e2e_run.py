@@ -62,10 +62,7 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
     # Find documents owned by test users or matching prefix
     test_docs = (
         db.query(Document)
-        .filter(
-            (Document.advisor_id.in_(user_ids))
-            | (Document.original_filename.ilike(pattern))
-        )
+        .filter((Document.advisor_id.in_(user_ids)) | (Document.original_filename.ilike(pattern)))
         .all()
         if user_ids
         else db.query(Document).filter(Document.original_filename.ilike(pattern)).all()
@@ -74,11 +71,7 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
 
     # Find any precedent index rows matching test docs or test advisor names
     stray_precedents = (
-        db.query(PrecedentIndex)
-        .filter(PrecedentIndex.document_id.in_(doc_ids))
-        .all()
-        if doc_ids
-        else []
+        db.query(PrecedentIndex).filter(PrecedentIndex.document_id.in_(doc_ids)).all() if doc_ids else []
     )
 
     stats = {
@@ -142,11 +135,7 @@ def cleanup_e2e_run(db, prefix: str = "e2e_", verify_only: bool = False) -> dict
 
     if user_ids:
         # Notifications for test users
-        notifications = (
-            db.query(Notification)
-            .filter(Notification.user_id.in_(user_ids))
-            .all()
-        )
+        notifications = db.query(Notification).filter(Notification.user_id.in_(user_ids)).all()
         for n in notifications:
             db.delete(n)
 
@@ -202,7 +191,9 @@ def main():
     try:
         stats = cleanup_e2e_run(db, prefix=args.prefix, verify_only=args.verify_only)
         action = "Found" if args.verify_only else "Cleaned up"
-        print(f"[E2E Cleanup] {action}: {stats['users']} users, {stats['documents']} documents, {stats['stray_precedents']} precedent index entries.")
+        print(
+            f"[E2E Cleanup] {action}: {stats['users']} users, {stats['documents']} documents, {stats['stray_precedents']} precedent index entries."
+        )
 
         is_clean = verify_precedent_index_clean(db, prefix=args.prefix)
         if not is_clean:

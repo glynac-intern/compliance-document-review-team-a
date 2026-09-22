@@ -71,9 +71,9 @@ def test_can_mark_notification_read(client, advisor_token, officer_token):
         headers={"Authorization": f"Bearer {officer_token}"},
         json={"status": "approved", "comment": "Looks good."},
     )
-    notif_id = client.get(
-        "/notifications", headers={"Authorization": f"Bearer {advisor_token}"}
-    ).json()[0]["id"]
+    notif_id = client.get("/notifications", headers={"Authorization": f"Bearer {advisor_token}"}).json()[0][
+        "id"
+    ]
 
     resp = client.post(
         f"/notifications/{notif_id}/read",
@@ -95,9 +95,9 @@ def test_other_user_cannot_mark_someone_elses_notification_read(client, advisor_
         headers={"Authorization": f"Bearer {officer_token}"},
         json={"status": "approved", "comment": "Looks good."},
     )
-    notif_id = client.get(
-        "/notifications", headers={"Authorization": f"Bearer {advisor_token}"}
-    ).json()[0]["id"]
+    notif_id = client.get("/notifications", headers={"Authorization": f"Bearer {advisor_token}"}).json()[0][
+        "id"
+    ]
 
     resp = client.post(
         f"/notifications/{notif_id}/read",
@@ -114,14 +114,23 @@ def test_advisor_never_sees_another_advisors_notifications(client, advisor_token
         json={"status": "approved", "comment": "Looks good."},
     )
 
-    other_signup = client.post("/auth/signup", json={
-        "name": "Other Advisor", "email": "ta29-other@rolefixture.io",
-        "password": "testpass123", "role": "advisor",
-    })
+    other_signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Other Advisor",
+            "email": "ta29-other@rolefixture.io",
+            "password": "testpass123",
+            "role": "advisor",
+        },
+    )
     assert other_signup.status_code == 201
-    other_login = client.post("/auth/login", json={
-        "email": "ta29-other@rolefixture.io", "password": "testpass123",
-    })
+    other_login = client.post(
+        "/auth/login",
+        json={
+            "email": "ta29-other@rolefixture.io",
+            "password": "testpass123",
+        },
+    )
     other_token = other_login.json()["access_token"]
 
     resp = client.get("/notifications", headers={"Authorization": f"Bearer {other_token}"})

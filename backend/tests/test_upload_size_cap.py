@@ -3,6 +3,7 @@ Tests for TA-24: the 10MB cap must be enforced WHILE STREAMING, not
 after the whole file is buffered. Reading must stop once the cap is
 exceeded, not continue draining the rest of an oversized upload.
 """
+
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -13,6 +14,7 @@ from documents.router import _read_upload_with_cap, MAX_FILE_SIZE
 class _FakeUploadFile:
     """Wraps a plain file-like object the way FastAPI's UploadFile does
     (exposes .file), so _read_upload_with_cap can be tested directly."""
+
     def __init__(self, file_obj):
         self.file = file_obj
 
@@ -27,6 +29,7 @@ class _InfiniteStream:
     this -- it would hang or OOM -- so completing at all, with a small
     bytes_served count, is real proof of early termination.
     """
+
     def __init__(self):
         self.bytes_served = 0
 
@@ -58,6 +61,7 @@ def test_reading_stops_once_cap_exceeded_not_after_full_buffer():
 
 def test_file_exactly_at_the_limit_succeeds():
     import io
+
     exact_size_content = b"x" * MAX_FILE_SIZE
     fake_file = _FakeUploadFile(io.BytesIO(exact_size_content))
 
@@ -67,6 +71,7 @@ def test_file_exactly_at_the_limit_succeeds():
 
 def test_file_one_byte_over_the_limit_is_rejected():
     import io
+
     over_by_one = b"x" * (MAX_FILE_SIZE + 1)
     fake_file = _FakeUploadFile(io.BytesIO(over_by_one))
 

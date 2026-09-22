@@ -13,6 +13,7 @@ here. This file covers what TA-86's acceptance criteria call out as
 missing: transition guards (valid + invalid), the duplicate-revision
 guard, a full multi-hop cycle, and audit trail content/ordering.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration

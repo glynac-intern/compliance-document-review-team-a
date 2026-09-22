@@ -4,6 +4,7 @@ available as real PDF/DOCX/XLSX files, extractable by the app's own
 extract_text(), with at least one document carrying a fake name,
 email, and account number together.
 """
+
 import json
 from pathlib import Path
 import pytest
@@ -63,6 +64,5 @@ def test_extraction_works_against_all_three_real_formats():
         text = extract_text(str(file_path), fmt)
         assert len(text) > 0, f"extraction produced no text for {fmt}"
         checked_formats.add(fmt)
-
 
     assert checked_formats == {"pdf", "docx", "xlsx"}

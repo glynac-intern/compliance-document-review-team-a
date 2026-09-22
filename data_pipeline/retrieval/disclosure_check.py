@@ -78,11 +78,13 @@ def main():
         )
 
         ground_truth_missing = "missing_required_disclosure" in doc_meta["injected_issues"]
-        results.append({
-            "filename": filename,
-            "min_distance": min_distance,
-            "ground_truth_missing": ground_truth_missing,
-        })
+        results.append(
+            {
+                "filename": filename,
+                "min_distance": min_distance,
+                "ground_truth_missing": ground_truth_missing,
+            }
+        )
 
         # Pace requests to stay comfortably under the free tier's
         # 100 embed-requests-per-minute ceiling -- 100 documents means
@@ -103,12 +105,16 @@ def main():
 
     present_distances = [r["min_distance"] for r in results if not r["ground_truth_missing"]]
     missing_distances = [r["min_distance"] for r in results if r["ground_truth_missing"]]
-    print(f"\nDisclosure PRESENT docs ({len(present_distances)}): "
-          f"min={min(present_distances):.3f} max={max(present_distances):.3f} "
-          f"avg={sum(present_distances)/len(present_distances):.3f}")
-    print(f"Disclosure MISSING docs ({len(missing_distances)}): "
-          f"min={min(missing_distances):.3f} max={max(missing_distances):.3f} "
-          f"avg={sum(missing_distances)/len(missing_distances):.3f}")
+    print(
+        f"\nDisclosure PRESENT docs ({len(present_distances)}): "
+        f"min={min(present_distances):.3f} max={max(present_distances):.3f} "
+        f"avg={sum(present_distances)/len(present_distances):.3f}"
+    )
+    print(
+        f"Disclosure MISSING docs ({len(missing_distances)}): "
+        f"min={min(missing_distances):.3f} max={max(missing_distances):.3f} "
+        f"avg={sum(missing_distances)/len(missing_distances):.3f}"
+    )
 
 
 if __name__ == "__main__":

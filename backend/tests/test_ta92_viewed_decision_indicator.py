@@ -50,11 +50,14 @@ def test_advisor_viewed_decision_is_false_before_advisor_views_it(client, adviso
 
 def test_advisor_viewed_decision_is_true_after_advisor_views_it(client, advisor_token, officer_token):
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Looks good."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Looks good."},
+        ).status_code
+        == 201
+    )
 
     # advisor opens their own document, recording a 'viewed' audit event
     view_resp = client.get(
@@ -74,16 +77,22 @@ def test_a_view_before_the_decision_does_not_count(client, advisor_token, office
     doc_id = _submit(client, advisor_token)
 
     # advisor views the document while it's still pending_review
-    assert client.get(
-        f"/documents/{doc_id}",
-        headers={"Authorization": f"Bearer {advisor_token}"},
-    ).status_code == 200
+    assert (
+        client.get(
+            f"/documents/{doc_id}",
+            headers={"Authorization": f"Bearer {advisor_token}"},
+        ).status_code
+        == 200
+    )
 
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Looks good."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Looks good."},
+        ).status_code
+        == 201
+    )
 
     entry = _queue_entry(client, officer_token, doc_id)
     assert entry["advisor_viewed_decision"] is False

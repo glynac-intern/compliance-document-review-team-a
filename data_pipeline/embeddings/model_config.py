@@ -8,6 +8,7 @@ All values are overridable via environment variables (documented in
 .env.example) so CI, a developer's machine, and production can differ
 without editing source.
 """
+
 import os
 
 # --- Embeddings ---

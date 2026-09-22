@@ -28,6 +28,7 @@ if the committed fixture is stale -- this is what the pytest test uses
 under the hood, exposed standalone for convenience:
     docker compose run --rm backend python scripts/export_contract_fixtures.py --check
 """
+
 import argparse
 import json
 import sys

@@ -4,6 +4,7 @@ sitting in pending_review. The brief fixes "any officer can act on any
 document; there is no per-officer routing" -- there's no single officer
 to notify, so a reminder must reach every officer, not one.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -22,10 +23,15 @@ def _submit(client, advisor_token):
 
 
 def _signup(client, email, role):
-    signup = client.post("/auth/signup", json={
-        "name": "Second Officer" if role == "officer" else "Second User",
-        "email": email, "password": "testpass123", "role": role,
-    })
+    signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Second Officer" if role == "officer" else "Second User",
+            "email": email,
+            "password": "testpass123",
+            "role": role,
+        },
+    )
     assert signup.status_code == 201
     login = client.post("/auth/login", json={"email": email, "password": "testpass123"})
     return login.json()["access_token"]
@@ -67,10 +73,13 @@ def test_reminder_reaches_every_officer_not_just_one(client, advisor_token, offi
 
 def test_reminder_records_a_reminder_sent_audit_event(client, advisor_token, officer_token):
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/documents/{doc_id}/reminder",
-        headers={"Authorization": f"Bearer {advisor_token}"},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/documents/{doc_id}/reminder",
+            headers={"Authorization": f"Bearer {advisor_token}"},
+        ).status_code
+        == 201
+    )
 
     audit = client.get(
         f"/documents/{doc_id}/audit",
@@ -82,11 +91,14 @@ def test_reminder_records_a_reminder_sent_audit_event(client, advisor_token, off
 
 def test_reminder_rejected_on_a_document_not_pending_review(client, advisor_token, officer_token):
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Fine."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Fine."},
+        ).status_code
+        == 201
+    )
 
     resp = client.post(
         f"/documents/{doc_id}/reminder",

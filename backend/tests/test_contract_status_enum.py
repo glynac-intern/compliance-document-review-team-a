@@ -18,6 +18,7 @@ No DB or Docker needed: app.openapi() is pure schema introspection,
 and main.py's routers no longer touch the database at import time
 (see database.py's DATABASE_URL guard).
 """
+
 import pytest
 
 pytestmark = pytest.mark.unit

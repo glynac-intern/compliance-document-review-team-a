@@ -16,6 +16,7 @@ email-sending code anywhere in this backend (grepped for smtp/
 sendgrid/send_email/mailer, no matches), so there is nothing to gate.
 See the ticket for that toggle's disposition.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -34,9 +35,15 @@ def _submit(client, advisor_token):
 
 
 def _signup(client, email, role):
-    signup = client.post("/auth/signup", json={
-        "name": "Second Officer", "email": email, "password": "testpass123", "role": role,
-    })
+    signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Second Officer",
+            "email": email,
+            "password": "testpass123",
+            "role": role,
+        },
+    )
     assert signup.status_code == 201
     login = client.post("/auth/login", json={"email": email, "password": "testpass123"})
     return login.json()["access_token"]

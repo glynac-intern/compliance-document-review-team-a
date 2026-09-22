@@ -3,9 +3,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import (
-    Column, String, Text, DateTime, ForeignKey, Enum, UniqueConstraint, Boolean, Integer
-)
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Enum, UniqueConstraint, Boolean, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -107,6 +105,7 @@ class Document(Base):
             e.actor_id == self.advisor_id and e.action == AuditAction.viewed and e.timestamp > decided_at
             for e in self.audit_events
         )
+
     file_reference = Column(String, nullable=False)
     # Pure display metadata (TA-25) -- NEVER used to construct any
     # filesystem path (that stays fully server-derived, per TA-23).
@@ -231,10 +230,9 @@ class DocumentChunk(Base):
     re-embedding against a rate-limited free tier every time (TA-51).
     Also the prerequisite for the semantic-diff stretch goal.
     """
+
     __tablename__ = "document_chunks"
-    __table_args__ = (
-        UniqueConstraint("document_id", "chunk_index", name="uq_chunk_document_index"),
-    )
+    __table_args__ = (UniqueConstraint("document_id", "chunk_index", name="uq_chunk_document_index"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)

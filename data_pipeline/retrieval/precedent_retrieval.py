@@ -3,6 +3,7 @@ Retrieves the most similar past decided documents (precedents) for a
 given document embedding -- matching the same pgvector-based approach
 already used for rule retrieval (TA-52), not a manual Python loop.
 """
+
 import uuid
 
 from sqlalchemy.orm import Session
@@ -26,9 +27,4 @@ def retrieve_similar_precedents(
     if exclude_document_ids:
         query = query.filter(PrecedentIndex.document_id.notin_(exclude_document_ids))
 
-    return (
-        query
-        .order_by(PrecedentIndex.embedding.cosine_distance(document_embedding))
-        .limit(top_k)
-        .all()
-    )
+    return query.order_by(PrecedentIndex.embedding.cosine_distance(document_embedding)).limit(top_k).all()

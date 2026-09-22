@@ -23,21 +23,21 @@ and precedent_retrieval.py exclusively call .cosine_distance(). A
 mismatched opclass would mean the index silently never gets used by
 the query planner, even though it exists.
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 
 
-revision: str = 'ta53_ann_index'
-down_revision: Union[str, None] = 'd74f6a286d02'
+revision: str = "ta53_ann_index"
+down_revision: Union[str, None] = "d74f6a286d02"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     op.execute(
-        "CREATE INDEX ix_rules_embedding_hnsw_cosine "
-        "ON rules USING hnsw (embedding vector_cosine_ops)"
+        "CREATE INDEX ix_rules_embedding_hnsw_cosine " "ON rules USING hnsw (embedding vector_cosine_ops)"
     )
     op.execute(
         "CREATE INDEX ix_precedent_index_embedding_hnsw_cosine "

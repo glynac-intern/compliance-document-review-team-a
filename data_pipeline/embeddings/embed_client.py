@@ -83,7 +83,7 @@ def embed_texts_batch(texts: list[str], retries: int = 3) -> list[list[float]]:
         except Exception:
             if attempt == retries - 1:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(2**attempt)
 
 
 def embed_text(text: str, retries: int = 3) -> list[float]:

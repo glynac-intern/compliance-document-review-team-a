@@ -36,9 +36,15 @@ def _submit(client, token, file=FAKE_PDF):
 
 
 def _signup_advisor(client, email):
-    signup = client.post("/auth/signup", json={
-        "name": "Second Advisor", "email": email, "password": "testpass123", "role": "advisor",
-    })
+    signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Second Advisor",
+            "email": email,
+            "password": "testpass123",
+            "role": "advisor",
+        },
+    )
     assert signup.status_code == 201
     login = client.post("/auth/login", json={"email": email, "password": "testpass123"})
     return login.json()["access_token"]
@@ -85,11 +91,14 @@ def test_status_advisor_and_type_filters_combine_as_and(client, advisor_token, o
     # Same advisor, two documents: one pdf (left pending), one docx (decided)
     pending_pdf = _submit(client, advisor_token, FAKE_PDF)
     decided_docx = _submit(client, advisor_token, FAKE_DOCX)
-    assert client.post(
-        f"/review/documents/{decided_docx}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Fine."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{decided_docx}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Fine."},
+        ).status_code
+        == 201
+    )
 
     # A second advisor's pending pdf must never leak into the results below
     second_token = _signup_advisor(client, "ta94-and-check@rolefixture.io")

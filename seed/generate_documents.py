@@ -24,19 +24,38 @@ OUTPUT_DIR = Path(__file__).parent / "documents"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ADVISOR_NAMES = [
-    "Rachel Kim", "Marcus Bell", "Priya Anand", "Tom Whitfield", "Sofia Reyes",
-    "David Chen", "Angela Foster", "James Okafor", "Nina Petrov", "Chris Dalton",
+    "Rachel Kim",
+    "Marcus Bell",
+    "Priya Anand",
+    "Tom Whitfield",
+    "Sofia Reyes",
+    "David Chen",
+    "Angela Foster",
+    "James Okafor",
+    "Nina Petrov",
+    "Chris Dalton",
 ]
 
 CLIENT_NAMES = [
-    "John Carter", "Linda Park", "Robert Hayes", "Maria Gonzalez", "Kevin Lu",
-    "Susan Bright", "Michael Torres", "Emily Novak", "George Patel", "Diane Ross",
+    "John Carter",
+    "Linda Park",
+    "Robert Hayes",
+    "Maria Gonzalez",
+    "Kevin Lu",
+    "Susan Bright",
+    "Michael Torres",
+    "Emily Novak",
+    "George Patel",
+    "Diane Ross",
 ]
 
 PRODUCTS = [
-    "the Balanced Growth Portfolio", "our Retirement Income Strategy",
-    "the Tax-Advantaged Bond Fund", "our Managed ETF Program",
-    "the Legacy Wealth Plan", "our Dividend Focus Strategy",
+    "the Balanced Growth Portfolio",
+    "our Retirement Income Strategy",
+    "the Tax-Advantaged Bond Fund",
+    "our Managed ETF Program",
+    "the Legacy Wealth Plan",
+    "our Dividend Focus Strategy",
 ]
 
 REQUIRED_DISCLOSURE = (
@@ -181,9 +200,7 @@ def generate_corpus(n=100):
         # Distribution: ~40% fully compliant, ~60% with at least one issue
         include_disclosure = random.random() > 0.35
         include_claim = random.random() < 0.25
-        perf_style = random.choices(
-            ["none", "compliant", "violation"], weights=[0.3, 0.4, 0.3]
-        )[0]
+        perf_style = random.choices(["none", "compliant", "violation"], weights=[0.3, 0.4, 0.3])[0]
         with_pii = random.random() < 0.4
 
         generator = GENERATORS[doc_type]
@@ -204,17 +221,17 @@ def generate_corpus(n=100):
         if perf_style == "violation":
             issues.append("performance_standard_violation")
 
-        metadata.append({
-            "filename": filename,
-            "type": doc_type,
-            "injected_issues": issues,
-            "is_clean": len(issues) == 0,
-            "contains_pii": with_pii,
-        })
+        metadata.append(
+            {
+                "filename": filename,
+                "type": doc_type,
+                "injected_issues": issues,
+                "is_clean": len(issues) == 0,
+                "contains_pii": with_pii,
+            }
+        )
 
-    (OUTPUT_DIR / "metadata.json").write_text(
-        json.dumps(metadata, indent=2), encoding="utf-8"
-    )
+    (OUTPUT_DIR / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return metadata
 
 

@@ -7,6 +7,7 @@ Operates on raw text and a DB session, independent of the Document model,
 so it can be tested standalone (see test_pipeline.py) before being wired
 into the FastAPI endpoint's persistence layer.
 """
+
 from ai.masking.masker import mask_pii, unmask_for_display
 from data_pipeline.chunking.chunker import chunk_paragraphs
 from data_pipeline.retrieval.rule_retrieval import retrieve_candidate_rules
@@ -52,12 +53,14 @@ def detect_missing_disclosures(db, chunk_embeddings: list, disclosure_rules: lis
     for rule_id, distance in min_distance_per_rule.items():
         if distance > DISCLOSURE_ABSENCE_THRESHOLD:
             rule = rules_by_id[rule_id]
-            missing_flags.append({
-                "passage": "(No matching disclosure language found anywhere in this document.)",
-                "rule_id": str(rule.id),
-                "explanation": f"Required disclosure not found: \"{rule.text}\"",
-                "severity": "high",
-            })
+            missing_flags.append(
+                {
+                    "passage": "(No matching disclosure language found anywhere in this document.)",
+                    "rule_id": str(rule.id),
+                    "explanation": f'Required disclosure not found: "{rule.text}"',
+                    "severity": "high",
+                }
+            )
     return missing_flags
 
 
@@ -91,12 +94,14 @@ def analyze_text(db, raw_text: str) -> tuple[str, list[dict], dict, list[dict]]:
         candidates = retrieve_candidate_rules(db, chunk_emb)
         chunk_flags = generate_flags_for_chunk(client, chunk, candidates)
         for cf in chunk_flags:
-            all_flags.append({
-                "passage": chunk,
-                "rule_id": cf["rule_id"],
-                "explanation": cf["explanation"],
-                "severity": cf["severity"],
-            })
+            all_flags.append(
+                {
+                    "passage": chunk,
+                    "rule_id": cf["rule_id"],
+                    "explanation": cf["explanation"],
+                    "severity": cf["severity"],
+                }
+            )
 
     # Disclosure-by-absence: each required disclosure is evaluated
     # INDEPENDENTLY (see detect_missing_disclosures) -- a document with one

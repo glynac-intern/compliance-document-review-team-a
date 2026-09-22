@@ -82,4 +82,3 @@ export function initThemeListener(): () => void {
   mq.addEventListener("change", handler);
   return () => mq.removeEventListener("change", handler);
 }
-
