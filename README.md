@@ -17,9 +17,8 @@ consistently.
 
 Team A — Glynac Capture the Flag intern challenge.
 
-- **Carolyne Tso** — backend, AI/data pipeline, DevOps (CI, dependency
-  scanning, pre-commit hooks, deployment), and testing. Everything except
-  frontend.
+- **HY Carolyne Tso** — backend, AI/data pipeline, DevOps (CI, dependency
+  scanning, pre-commit hooks, deployment), and testing. 
 - **Natnael Gebrie** — frontend.
 - Puneet Raghav, Prachi Pingale — listed on the team roster; no commits
   or contributions recorded in this repo's git history.
