@@ -109,6 +109,7 @@ def test_unrecognized_format_is_rejected(client, advisor_token):
     assert "unsupported or unrecognized" in resp.json()["detail"].lower()
 
 
+@pytest.mark.large_upload
 def test_file_exactly_at_the_size_cap_is_accepted_through_the_real_endpoint(client, advisor_token):
     content = b"%PDF-" + b"0" * (MAX_FILE_SIZE - 5)
     assert len(content) == MAX_FILE_SIZE
@@ -121,6 +122,7 @@ def test_file_exactly_at_the_size_cap_is_accepted_through_the_real_endpoint(clie
     assert resp.status_code == 201, resp.text
 
 
+@pytest.mark.large_upload
 def test_file_one_byte_over_the_size_cap_is_rejected_through_the_real_endpoint(client, advisor_token):
     content = b"%PDF-" + b"0" * (MAX_FILE_SIZE - 5 + 1)
     assert len(content) == MAX_FILE_SIZE + 1

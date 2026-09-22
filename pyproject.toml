@@ -26,6 +26,32 @@ extend-exclude = [".agents"]
 # package, not an ordering mistake.
 "scripts/cleanup_e2e_run.py" = ["E402"]
 
+[tool.coverage.run]
+# TA-126: the app packages actually under test -- not backend/tests
+# itself (that would count test code executing its own lines as
+# "coverage") and not alembic/versions (migration files pytest never
+# runs; counting them would just be a permanent, meaningless drag on
+# the number).
+source = ["backend", "ai", "data_pipeline"]
+omit = [
+    "backend/tests/*",
+    "backend/alembic/versions/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]
+# TA-126: measured baseline on commit c91d8d9, 2026-09-22 (clean run,
+# db volume reset first -- see the ticket): 1696 stmts, 595 miss, 64.92%
+# total. Set just below that so the current suite passes but any future
+# drop fails the build. A ratchet, not a target -- raise it as real
+# coverage goes up; lowering it needs a stated reason.
+fail_under = 64
+
 [tool.pytest.ini_options]
 # TA-79: makes the suite resolve first-party imports the same way
 # outside Docker as the Dockerfile's ENV PYTHONPATH does inside it --
@@ -38,5 +64,6 @@ addopts = "--strict-markers"
 markers = [
     "unit: fast unit tests with no DB or Docker dependency",
     "integration: tests requiring database and FastAPI TestClient",
+    "large_upload: integration tests that push a real ~10MB payload through the endpoint -- confirmed to hang indefinitely under `pytest --cov` (a coverage/threading interaction, not an app bug; every other test using the same threaded TestClient fixture is unaffected). Run without --cov, in a separate CI step, per TA-126.",
 ]
 

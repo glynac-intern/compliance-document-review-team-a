@@ -7,3 +7,8 @@ uploads/
 .auth/
 playwright-report/
 test-results/
+.coverage
+.coverage.*
+htmlcov/
+coverage-report.txt
+frontend/coverage/
