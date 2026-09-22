@@ -18,7 +18,7 @@ consistently.
 Team A — Glynac Capture the Flag intern challenge.
 
 - **HY Carolyne Tso** — backend, AI/data pipeline, DevOps (CI, dependency
-  scanning, pre-commit hooks, deployment), and testing. 
+  scanning, pre-commit hooks, deployment), and testing.
 - **Natnael Gebrie** — frontend.
 - Puneet Raghav, Prachi Pingale — listed on the team roster; no commits
   or contributions recorded in this repo's git history.
@@ -236,6 +236,11 @@ frontend/           Next.js frontend
 ```
 
 ## Architecture, for a reader who hasn't seen the blueprint
+
+(The original planning document is included at
+[`docs/software-blueprint-v0.2.docx`](docs/software-blueprint-v0.2.docx)
+— this section describes the system as actually built, which is what
+matters if the two ever disagree.)
 
 **The core loop:** an advisor submits a client-facing document → it's
 text-extracted, chunked, and PII-masked → the masked text is sent
