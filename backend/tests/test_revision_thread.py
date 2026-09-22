@@ -117,14 +117,23 @@ def test_other_advisor_cannot_access_someone_elses_thread(client, advisor_token)
     )
     doc_id = submit.json()["id"]
 
-    other_signup = client.post("/auth/signup", json={
-        "name": "Other Advisor", "email": "ta22-other@rolefixture.io",
-        "password": "testpass123", "role": "advisor",
-    })
+    other_signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Other Advisor",
+            "email": "ta22-other@rolefixture.io",
+            "password": "testpass123",
+            "role": "advisor",
+        },
+    )
     assert other_signup.status_code == 201
-    other_login = client.post("/auth/login", json={
-        "email": "ta22-other@rolefixture.io", "password": "testpass123",
-    })
+    other_login = client.post(
+        "/auth/login",
+        json={
+            "email": "ta22-other@rolefixture.io",
+            "password": "testpass123",
+        },
+    )
     other_token = other_login.json()["access_token"]
 
     resp = client.get(

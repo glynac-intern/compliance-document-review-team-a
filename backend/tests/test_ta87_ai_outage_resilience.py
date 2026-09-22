@@ -17,6 +17,7 @@ lookup is anchored to the module it's DEFINED in, not the module that
 imported it, so both must be patched for one fake client to reach both
 call sites consistently.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -33,7 +34,9 @@ class _StubGenAIClient:
     modes for the embedding call vs. the generation call, matching the
     real client's shape (client.models.embed_content / .generate_content)."""
 
-    def __init__(self, embed_error=None, generate_error=None, embed_dim=768, generate_text="A short summary."):
+    def __init__(
+        self, embed_error=None, generate_error=None, embed_dim=768, generate_text="A short summary."
+    ):
         self._embed_error = embed_error
         self._generate_error = generate_error
         self._embed_dim = embed_dim
@@ -86,11 +89,13 @@ def _submit_docx(client, advisor_token, text="This is a plain client-facing docu
     resp = client.post(
         "/documents",
         headers={"Authorization": f"Bearer {advisor_token}"},
-        files={"file": (
-            "test.docx",
-            _real_docx_bytes(text),
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )},
+        files={
+            "file": (
+                "test.docx",
+                _real_docx_bytes(text),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
     )
     assert resp.status_code == 201, resp.text
     return resp.json()["id"]
@@ -102,8 +107,10 @@ def test_missing_api_key_document_and_queue_endpoints_still_succeed(client, advi
     construct a client (the real failure when LLM_API_KEY is unset)."""
     doc_id = _submit_docx(client, advisor_token)
 
-    with patch.object(embed_client, "get_client", side_effect=KeyError("LLM_API_KEY")), \
-         patch.object(analyze_document, "get_client", side_effect=KeyError("LLM_API_KEY")):
+    with (
+        patch.object(embed_client, "get_client", side_effect=KeyError("LLM_API_KEY")),
+        patch.object(analyze_document, "get_client", side_effect=KeyError("LLM_API_KEY")),
+    ):
         doc_resp = client.get(
             f"/documents/{doc_id}",
             headers={"Authorization": f"Bearer {advisor_token}"},
@@ -120,8 +127,10 @@ def test_missing_api_key_document_and_queue_endpoints_still_succeed(client, advi
 def test_missing_api_key_analysis_fails_cleanly_as_503(client, db_session, advisor_token):
     doc_id = _submit_docx(client, advisor_token)
 
-    with patch.object(embed_client, "get_client", side_effect=KeyError("LLM_API_KEY")), \
-         patch.object(analyze_document, "get_client", side_effect=KeyError("LLM_API_KEY")):
+    with (
+        patch.object(embed_client, "get_client", side_effect=KeyError("LLM_API_KEY")),
+        patch.object(analyze_document, "get_client", side_effect=KeyError("LLM_API_KEY")),
+    ):
         resp = client.get(
             f"/documents/{doc_id}/analysis",
             headers={"Authorization": f"Bearer {advisor_token}"},
@@ -226,17 +235,21 @@ def test_failed_retry_leaves_previous_successful_analysis_intact(client, db_sess
     analysis.summary = "Original summary from a prior successful run."
     db_session.flush()
 
-    db_session.add(Flag(
-        analysis_id=analysis.id,
-        passage_excerpt="This investment guarantees returns.",
-        matched_rule_id=rule.id,
-        explanation="Claims a guaranteed return, which is prohibited.",
-        severity="high",
-    ))
+    db_session.add(
+        Flag(
+            analysis_id=analysis.id,
+            passage_excerpt="This investment guarantees returns.",
+            matched_rule_id=rule.id,
+            explanation="Claims a guaranteed return, which is prohibited.",
+            severity="high",
+        )
+    )
     db_session.commit()
 
-    with patch.object(embed_client, "get_client", side_effect=KeyError("LLM_API_KEY")), \
-         patch.object(analyze_document, "get_client", side_effect=KeyError("LLM_API_KEY")):
+    with (
+        patch.object(embed_client, "get_client", side_effect=KeyError("LLM_API_KEY")),
+        patch.object(analyze_document, "get_client", side_effect=KeyError("LLM_API_KEY")),
+    ):
         retry_resp = client.post(
             f"/documents/{doc_id}/analysis/retry",
             headers={"Authorization": f"Bearer {advisor_token}"},

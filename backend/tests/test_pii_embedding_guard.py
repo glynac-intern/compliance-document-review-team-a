@@ -10,6 +10,7 @@ proof of the invariant (not just "an exception happened somewhere").
 If the guard is ever removed or bypassed, test_raw_pii_never_reaches_the_api
 below will fail, since the mocked API would then actually get called.
 """
+
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -64,9 +65,7 @@ def test_clean_text_with_no_pii_is_allowed():
     fake_client = _fake_client_returning([0.1] * EMBEDDING_DIM)
 
     with patch.object(embed_client, "get_client", return_value=fake_client):
-        result = embed_text(
-            "Advisors may not state or imply a guaranteed rate of return."
-        )
+        result = embed_text("Advisors may not state or imply a guaranteed rate of return.")
 
     assert len(result) == EMBEDDING_DIM
     assert fake_client.models.embed_content.call_count == 1
@@ -78,9 +77,11 @@ def test_rules_corpus_script_uses_the_same_guarded_embed_text():
     separate copy that could bypass the guard. This is what makes the
     rules-corpus path covered as well as the document path."""
     import data_pipeline.embeddings.embed_rules as embed_rules
+
     assert embed_rules.embed_texts_batch is embed_client.embed_texts_batch
 
 
 def test_disclosure_check_script_uses_the_same_guarded_embed_text():
     import data_pipeline.retrieval.disclosure_check as disclosure_check
+
     assert disclosure_check.embed_texts_batch is embed_client.embed_texts_batch

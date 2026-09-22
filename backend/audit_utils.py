@@ -4,6 +4,7 @@ own-document view) and reviews/router.py (officer's review view) -- TA-28
 requires BOTH sides to log views, and to do so deliberately rather than
 flooding the trail on every request.
 """
+
 import uuid
 
 from sqlalchemy.orm import Session
@@ -32,11 +33,7 @@ def record_view_if_new(db: Session, actor_id: uuid.UUID, document_id: uuid.UUID)
         .order_by(AuditEvent.timestamp.desc())
         .first()
     )
-    if (
-        last_event is not None
-        and last_event.action == AuditAction.viewed
-        and last_event.actor_id == actor_id
-    ):
+    if last_event is not None and last_event.action == AuditAction.viewed and last_event.actor_id == actor_id:
         return  # this same actor's immediately-preceding action was already a view
 
     db.add(AuditEvent(actor_id=actor_id, document_id=document_id, action=AuditAction.viewed))

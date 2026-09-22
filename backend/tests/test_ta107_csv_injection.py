@@ -17,6 +17,7 @@ trigger characters must be neutralized (a leading `'` is the standard
 approach -- it forces Excel to treat the cell as text) before being
 written, not passed through raw.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -49,9 +50,9 @@ def _assert_neutralized(raw_value: str, trigger: str):
     """A neutralized cell must not still open with a live trigger char --
     e.g. prefixed with a leading `'`, or the trigger char stripped/escaped.
     Whatever the scheme, re-reading it must not hand Excel a formula."""
-    assert not raw_value.startswith(trigger), (
-        f"CSV cell still starts with formula-trigger {trigger!r} unsanitized: {raw_value!r}"
-    )
+    assert not raw_value.startswith(
+        trigger
+    ), f"CSV cell still starts with formula-trigger {trigger!r} unsanitized: {raw_value!r}"
 
 
 def test_decision_comment_with_formula_trigger_is_neutralized_in_export(client, advisor_token, officer_token):
@@ -59,7 +60,7 @@ def test_decision_comment_with_formula_trigger_is_neutralized_in_export(client, 
         # A fresh document per trigger -- a decision moves a document out
         # of pending_review, so it can only ever be decided once.
         doc_id = _submit(client, advisor_token)
-        payload = f"{trigger}HYPERLINK(\"http://evil.example\",\"click\")"
+        payload = f'{trigger}HYPERLINK("http://evil.example","click")'
         resp = client.post(
             f"/review/documents/{doc_id}/decision",
             headers={"Authorization": f"Bearer {officer_token}"},
@@ -67,10 +68,12 @@ def test_decision_comment_with_formula_trigger_is_neutralized_in_export(client, 
         )
         assert resp.status_code == 201, resp.text
 
-        rows = _parse_csv(client.get(
-            f"/documents/{doc_id}/audit/export",
-            headers={"Authorization": f"Bearer {advisor_token}"},
-        ))
+        rows = _parse_csv(
+            client.get(
+                f"/documents/{doc_id}/audit/export",
+                headers={"Authorization": f"Bearer {advisor_token}"},
+            )
+        )
         decided_row = next(r for r in rows if r["action"] == "decided")
         _assert_neutralized(decided_row["decision_comment"], trigger)
         # The payload's actual content must still be recoverable -- this is
@@ -80,29 +83,41 @@ def test_decision_comment_with_formula_trigger_is_neutralized_in_export(client, 
 
 def test_actor_name_with_formula_trigger_is_neutralized_in_export(client, advisor_token):
     malicious_name = "=cmd|'/c calc'!A0"
-    signup = client.post("/auth/signup", json={
-        "name": malicious_name,
-        "email": "formula-officer@rolefixture.io",
-        "password": "testpass123",
-        "role": "officer",
-    })
+    signup = client.post(
+        "/auth/signup",
+        json={
+            "name": malicious_name,
+            "email": "formula-officer@rolefixture.io",
+            "password": "testpass123",
+            "role": "officer",
+        },
+    )
     assert signup.status_code == 201, signup.text
-    login = client.post("/auth/login", json={
-        "email": "formula-officer@rolefixture.io", "password": "testpass123",
-    })
+    login = client.post(
+        "/auth/login",
+        json={
+            "email": "formula-officer@rolefixture.io",
+            "password": "testpass123",
+        },
+    )
     officer_token = login.json()["access_token"]
 
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Looks fine."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Looks fine."},
+        ).status_code
+        == 201
+    )
 
-    rows = _parse_csv(client.get(
-        f"/documents/{doc_id}/audit/export",
-        headers={"Authorization": f"Bearer {advisor_token}"},
-    ))
+    rows = _parse_csv(
+        client.get(
+            f"/documents/{doc_id}/audit/export",
+            headers={"Authorization": f"Bearer {advisor_token}"},
+        )
+    )
     decided_row = next(r for r in rows if r["action"] == "decided")
     _assert_neutralized(decided_row["actor_name"], "=")
     assert "cmd" in decided_row["actor_name"]
@@ -112,15 +127,20 @@ def test_plain_comment_without_trigger_is_untouched(client, advisor_token, offic
     """Neutralization must be narrowly scoped to the actual trigger
     characters -- an ordinary comment must round-trip byte-for-byte."""
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Looks compliant, approved."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Looks compliant, approved."},
+        ).status_code
+        == 201
+    )
 
-    rows = _parse_csv(client.get(
-        f"/documents/{doc_id}/audit/export",
-        headers={"Authorization": f"Bearer {advisor_token}"},
-    ))
+    rows = _parse_csv(
+        client.get(
+            f"/documents/{doc_id}/audit/export",
+            headers={"Authorization": f"Bearer {advisor_token}"},
+        )
+    )
     decided_row = next(r for r in rows if r["action"] == "decided")
     assert decided_row["decision_comment"] == "Looks compliant, approved."

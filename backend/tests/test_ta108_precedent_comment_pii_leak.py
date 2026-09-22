@@ -24,6 +24,7 @@ the comment through the masker at all) is meant to close. Keeping the
 test aligned with what mask_pii is documented to catch is what proves
 THIS fix specifically, without conflating it with that other gap.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -51,11 +52,13 @@ def _submit_docx(client, advisor_token, text="This is a real test document with 
     resp = client.post(
         "/documents",
         headers={"Authorization": f"Bearer {advisor_token}"},
-        files={"file": (
-            "test.docx",
-            _real_docx_bytes(text),
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )},
+        files={
+            "file": (
+                "test.docx",
+                _real_docx_bytes(text),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
     )
     assert resp.status_code == 201, resp.text
     return resp.json()["id"]
@@ -86,7 +89,10 @@ def test_precedent_comment_containing_pii_is_masked_before_storage(client, db_se
 
 
 def test_advisor_never_sees_another_advisors_client_pii_via_precedent_comment(
-    client, db_session, advisor_token, second_advisor_token,
+    client,
+    db_session,
+    advisor_token,
+    second_advisor_token,
 ):
     # Advisor A's document gets decided with a comment naming their client.
     doc_a = _submit_docx(client, advisor_token, "Advisor A's document.")
@@ -107,9 +113,14 @@ def test_advisor_never_sees_another_advisors_client_pii_via_precedent_comment(
     # give it a matching chunk embedding, same trick as
     # test_similar_precedents.py.
     doc_b = _submit_docx(client, second_advisor_token, "Advisor B's unrelated document.")
-    db_session.add(DocumentChunk(
-        document_id=doc_b, chunk_index=0, masked_text="Test chunk.", embedding=FAKE_EMBEDDING,
-    ))
+    db_session.add(
+        DocumentChunk(
+            document_id=doc_b,
+            chunk_index=0,
+            masked_text="Test chunk.",
+            embedding=FAKE_EMBEDDING,
+        )
+    )
     analysis_b = db_session.query(AIAnalysis).filter(AIAnalysis.document_id == doc_b).first()
     analysis_b.status = AnalysisStatus.succeeded
     analysis_b.summary = "Test summary."
@@ -131,7 +142,9 @@ def test_precedent_comment_without_pii_is_unaffected(client, db_session, advisor
     doc_id = _submit_docx(client, advisor_token)
     document = db_session.query(Document).filter(Document.id == doc_id).first()
 
-    review = Review(document_id=doc_id, officer_id=document.advisor_id, status="approved", comment="Looks compliant.")
+    review = Review(
+        document_id=doc_id, officer_id=document.advisor_id, status="approved", comment="Looks compliant."
+    )
     db_session.add(review)
     db_session.commit()
 

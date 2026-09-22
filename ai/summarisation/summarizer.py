@@ -13,6 +13,7 @@ Summary:"""
 def generate_summary(client, masked_text: str) -> str:
     prompt = SUMMARY_PROMPT_TEMPLATE.format(text=masked_text)
     import time
+
     for attempt in range(3):
         try:
             response = client.models.generate_content(
@@ -24,4 +25,4 @@ def generate_summary(client, masked_text: str) -> str:
         except Exception:
             if attempt == 2:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(2**attempt)

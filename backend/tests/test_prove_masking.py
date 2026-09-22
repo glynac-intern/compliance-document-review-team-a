@@ -12,6 +12,7 @@ faked. This is what makes the captured payload trustworthy: it's the
 literal string the real code would have sent, not a hand-constructed
 example.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -76,17 +77,21 @@ def test_outbound_payload_never_contains_seeded_real_pii(db_session):
     # chunk to trigger a real flagging call -- retrieve_candidate_rules
     # returns nothing from an empty rules table, and generate_flags_for_chunk
     # short-circuits (never calls the API) when there are no candidates.
-    db_session.add(Rule(
-        text="Advisors may not state or imply a guaranteed rate of return.",
-        type="prohibited_claim",
-        embedding=[0.1] * 768,
-    ))
+    db_session.add(
+        Rule(
+            text="Advisors may not state or imply a guaranteed rate of return.",
+            type="prohibited_claim",
+            embedding=[0.1] * 768,
+        )
+    )
     db_session.commit()
 
     fake_client = _make_fake_client()
 
-    with patch.object(analyze_document, "get_client", return_value=fake_client), \
-         patch.object(embed_client, "get_client", return_value=fake_client):
+    with (
+        patch.object(analyze_document, "get_client", return_value=fake_client),
+        patch.object(embed_client, "get_client", return_value=fake_client),
+    ):
         summary, flags, mapping, chunks_data = analyze_document.analyze_text(db_session, SEEDED_RAW_TEXT)
 
     captured_calls = fake_client.models.generate_content.call_args_list

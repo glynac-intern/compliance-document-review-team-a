@@ -5,6 +5,7 @@ CSV. The cross-advisor access-boundary test for this endpoint lives in
 test_ta88_authorization_probe.py, alongside every other document-scoped
 endpoint's role-boundary probe -- not duplicated here.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -32,11 +33,14 @@ def _parse_csv(response) -> list[dict]:
 
 def test_advisor_can_export_own_audit_trail_as_csv(client, advisor_token, officer_token):
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Looks good."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Looks good."},
+        ).status_code
+        == 201
+    )
 
     resp = client.get(
         f"/documents/{doc_id}/audit/export",
@@ -65,16 +69,21 @@ def test_officer_can_export_any_documents_audit_trail(client, advisor_token, off
 
 def test_decided_row_carries_status_and_comment_others_do_not(client, advisor_token, officer_token):
     doc_id = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc_id}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "needs_revision", "comment": "Fix the disclosure wording."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc_id}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "needs_revision", "comment": "Fix the disclosure wording."},
+        ).status_code
+        == 201
+    )
 
-    rows = _parse_csv(client.get(
-        f"/documents/{doc_id}/audit/export",
-        headers={"Authorization": f"Bearer {advisor_token}"},
-    ))
+    rows = _parse_csv(
+        client.get(
+            f"/documents/{doc_id}/audit/export",
+            headers={"Authorization": f"Bearer {advisor_token}"},
+        )
+    )
 
     submitted_row = next(r for r in rows if r["action"] == "submitted")
     decided_row = next(r for r in rows if r["action"] == "decided")
@@ -88,11 +97,14 @@ def test_decided_row_carries_status_and_comment_others_do_not(client, advisor_to
 
 def test_export_covers_the_whole_thread_across_revisions(client, advisor_token, officer_token):
     doc1 = _submit(client, advisor_token)
-    assert client.post(
-        f"/review/documents/{doc1}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "needs_revision", "comment": "Fix this."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc1}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "needs_revision", "comment": "Fix this."},
+        ).status_code
+        == 201
+    )
 
     revision = client.post(
         f"/documents/{doc1}/revisions",
@@ -102,19 +114,24 @@ def test_export_covers_the_whole_thread_across_revisions(client, advisor_token, 
     assert revision.status_code == 201
     doc2 = revision.json()["id"]
 
-    assert client.post(
-        f"/review/documents/{doc2}/decision",
-        headers={"Authorization": f"Bearer {officer_token}"},
-        json={"status": "approved", "comment": "Good now."},
-    ).status_code == 201
+    assert (
+        client.post(
+            f"/review/documents/{doc2}/decision",
+            headers={"Authorization": f"Bearer {officer_token}"},
+            json={"status": "approved", "comment": "Good now."},
+        ).status_code
+        == 201
+    )
 
     # requesting the export from EITHER document in the thread returns
     # the whole thread's events, same as the JSON /audit endpoint does
     for requesting_doc in (doc1, doc2):
-        rows = _parse_csv(client.get(
-            f"/documents/{requesting_doc}/audit/export",
-            headers={"Authorization": f"Bearer {advisor_token}"},
-        ))
+        rows = _parse_csv(
+            client.get(
+                f"/documents/{requesting_doc}/audit/export",
+                headers={"Authorization": f"Bearer {advisor_token}"},
+            )
+        )
         document_ids_seen = {r["document_id"] for r in rows}
         actions = [r["action"] for r in rows]
 

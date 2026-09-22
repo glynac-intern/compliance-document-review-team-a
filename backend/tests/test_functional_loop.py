@@ -14,6 +14,7 @@ This is that missing single trace, not a replacement for the
 mechanism-level tests above (which stay useful for their own, more
 targeted failure modes).
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -21,7 +22,9 @@ pytestmark = pytest.mark.integration
 FAKE_PDF = ("test.pdf", b"%PDF-1.4 minimal fake content", "application/pdf")
 
 
-def test_full_functional_loop_submit_find_in_queue_decide_advisor_sees_it(client, advisor_token, officer_token):
+def test_full_functional_loop_submit_find_in_queue_decide_advisor_sees_it(
+    client, advisor_token, officer_token
+):
     # 1. Advisor submits a real file.
     submit = client.post(
         "/documents",

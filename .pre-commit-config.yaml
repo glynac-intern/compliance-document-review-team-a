@@ -1,0 +1,99 @@
+# TA-128: catches what CI would catch anyway, before it's pushed --
+# same tools, same config files (pyproject.toml's [tool.ruff], frontend's
+# eslint/tsconfig), not a second hand-maintained rule set. Kept fast on
+# purpose: everything here runs on every commit, so the slow check
+# (pytest -m unit) is wired as a pre-push hook instead -- see the
+# `default_install_hook_types` note below and README's "Running tests".
+default_install_hook_types: [pre-commit, pre-push]
+
+# Same reasoning as pyproject.toml's ruff extend-exclude: .agents/ is
+# Claude Code's own skill tooling, not this project's source. seed/,
+# frontend/public/ (stock Next.js assets) and the two root-level JSON
+# files are script-generated output (see README's TA-60 section and
+# data_pipeline/evaluation/retrieval_quality_harness.py), not
+# hand-authored files these hooks have any business rewriting.
+exclude: |
+  (?x)^(
+    \.agents/|
+    seed/(documents|disclosures|rules)/|
+    frontend/public/|
+    data_pipeline/evaluation/baseline_results\.json|
+    masking_proof_demo\.json
+  )
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+
+  # Same ruff version pinned in backend/requirements.txt (0.8.4) --
+  # pre-commit installs its own isolated ruff, so a mismatched rev here
+  # would silently lint against different rules than CI enforces.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # This repo commits a real .env.example and CI writes an actual .env
+  # from CI secrets -- a hook that catches a credential heading for a
+  # commit is cheap insurance either way. .secrets.baseline records the
+  # pre-existing matches already triaged as false positives (alembic
+  # revision hex IDs, docker-compose's test-only DB creds in tests.yml).
+  # backend/tests/ is excluded outright, not just baselined: several
+  # fixtures reuse the same literal dummy password ("testpass123") at
+  # more than one line in the same file, which makes detect-secrets'
+  # incremental line-number tracking drift on every run (confirmed --
+  # each `pre-commit run` reported a *different* line for the same
+  # finding, never converging). Real secrets don't belong in test
+  # fixtures anyway; this scan is aimed at application code and config.
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: package-lock\.json$|^backend/tests/
+
+  # language: system, not a pre-commit-managed env -- these need the
+  # project's own installed node_modules (eslint plugin config, tsc's
+  # project-wide type graph), not a vendored copy. Assumes `npm install`
+  # has already been run in frontend/, same precondition the frontend
+  # test scripts (README's TA-122 section) already carry.
+  - repo: local
+    hooks:
+      - id: frontend-eslint
+        name: frontend eslint
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+      - id: frontend-typecheck
+        name: frontend tsc --noEmit
+        entry: bash -c 'cd frontend && npm run type-check'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      # Pre-push, not pre-commit -- the whole point of splitting stages
+      # (see the file header) is keeping every-commit checks down to a
+      # few seconds. Unit tests have no DB/Docker dependency (pyproject
+      # .toml's marker doc) and README's TA-79 section already documents
+      # running them this way outside Docker: `pip install -r
+      # backend/requirements.txt`, then plain `pytest -m unit` from the
+      # repo root.
+      - id: backend-unit-tests
+        name: backend unit tests (pytest -m unit)
+        entry: pytest -m unit
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

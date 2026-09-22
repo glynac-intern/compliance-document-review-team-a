@@ -4,6 +4,7 @@ documents as precedents, each with decision and comment. The document
 being reviewed is never its own precedent. An empty index degrades to
 an empty list, not an error.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -28,9 +29,14 @@ def _submit_with_chunks(client, db_session, advisor_token, embedding):
     )
     doc_id = resp.json()["id"]
 
-    db_session.add(DocumentChunk(
-        document_id=doc_id, chunk_index=0, masked_text="Test chunk.", embedding=embedding,
-    ))
+    db_session.add(
+        DocumentChunk(
+            document_id=doc_id,
+            chunk_index=0,
+            masked_text="Test chunk.",
+            embedding=embedding,
+        )
+    )
 
     analysis = db_session.query(AIAnalysis).filter(AIAnalysis.document_id == doc_id).first()
     analysis.status = AnalysisStatus.succeeded
@@ -67,13 +73,15 @@ def test_returns_up_to_three_most_similar_precedents(client, db_session, advisor
         )
         db_session.add(other_doc)
         db_session.flush()
-        db_session.add(PrecedentIndex(
-            document_id=other_doc.id,
-            masked_text=f"Precedent text {i}",
-            decision="approved" if i % 2 == 0 else "needs_revision",
-            comment=f"Comment {i}",
-            embedding=[0.5] * 768,  # identical vector -- all equally "similar"
-        ))
+        db_session.add(
+            PrecedentIndex(
+                document_id=other_doc.id,
+                masked_text=f"Precedent text {i}",
+                decision="approved" if i % 2 == 0 else "needs_revision",
+                comment=f"Comment {i}",
+                embedding=[0.5] * 768,  # identical vector -- all equally "similar"
+            )
+        )
     db_session.commit()
 
     doc_id = _submit_with_chunks(client, db_session, advisor_token, [0.5] * 768)
@@ -95,13 +103,15 @@ def test_document_is_never_its_own_precedent(client, db_session, advisor_token):
 
     # Manually give THIS document a precedent entry too, simulating it
     # having already been decided once before.
-    db_session.add(PrecedentIndex(
-        document_id=doc_id,
-        masked_text="Self text.",
-        decision="approved",
-        comment="Self comment.",
-        embedding=[0.5] * 768,
-    ))
+    db_session.add(
+        PrecedentIndex(
+            document_id=doc_id,
+            masked_text="Self text.",
+            decision="approved",
+            comment="Self comment.",
+            embedding=[0.5] * 768,
+        )
+    )
     db_session.commit()
 
     resp = client.get(

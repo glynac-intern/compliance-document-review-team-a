@@ -23,6 +23,7 @@ scoped:
 (NOT POST /documents/{id}/review -- that path doesn't exist; the
 review router is mounted at prefix /review in backend/main.py.)
 """
+
 import jsonschema
 import pytest
 

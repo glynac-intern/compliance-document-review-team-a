@@ -8,6 +8,7 @@ than synthetic FakeRule objects -- a real pgvector column requires
 genuine 768-dimension vectors, and the query itself needs real rows to
 run against.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -40,7 +41,9 @@ def test_mixed_case_one_present_others_absent(db_session):
     # Simulates a document paragraph that matches rule_present exactly.
     chunk_embeddings = [_vector_at(0)]
 
-    missing = detect_missing_disclosures(db_session, chunk_embeddings, [rule_present, rule_missing_1, rule_missing_2])
+    missing = detect_missing_disclosures(
+        db_session, chunk_embeddings, [rule_present, rule_missing_1, rule_missing_2]
+    )
 
     missing_ids = {f["rule_id"] for f in missing}
     assert str(rule_present.id) not in missing_ids, "the present disclosure must NOT be flagged"

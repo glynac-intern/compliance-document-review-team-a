@@ -11,6 +11,7 @@ enforced through the real endpoint (not just the helper function), or
 what happens to a file that looks like an allowed type but is corrupt
 once something actually tries to read it.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -72,11 +73,13 @@ def test_docx_is_accepted(client, advisor_token):
     resp = client.post(
         "/documents",
         headers={"Authorization": f"Bearer {advisor_token}"},
-        files={"file": (
-            "real.docx",
-            _real_docx_bytes(),
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )},
+        files={
+            "file": (
+                "real.docx",
+                _real_docx_bytes(),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
     )
     assert resp.status_code == 201, resp.text
     assert resp.json()["type"] == "docx"
@@ -86,11 +89,13 @@ def test_xlsx_is_accepted(client, advisor_token):
     resp = client.post(
         "/documents",
         headers={"Authorization": f"Bearer {advisor_token}"},
-        files={"file": (
-            "real.xlsx",
-            _real_xlsx_bytes(),
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )},
+        files={
+            "file": (
+                "real.xlsx",
+                _real_xlsx_bytes(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
     )
     assert resp.status_code == 201, resp.text
     assert resp.json()["type"] == "xlsx"
@@ -136,7 +141,9 @@ def test_file_one_byte_over_the_size_cap_is_rejected_through_the_real_endpoint(c
     assert "10mb" in resp.json()["detail"].lower()
 
 
-def test_corrupt_file_of_an_allowed_type_fails_analysis_cleanly_not_a_crash(client, db_session, advisor_token):
+def test_corrupt_file_of_an_allowed_type_fails_analysis_cleanly_not_a_crash(
+    client, db_session, advisor_token
+):
     """Upload validation only checks the file's magic-byte signature, not
     that it's a fully well-formed document -- so a corrupt file of an
     allowed type is accepted at upload time, same as every other test in

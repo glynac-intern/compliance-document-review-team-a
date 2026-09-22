@@ -53,6 +53,7 @@ def generate_flags_for_chunk(client, passage: str, candidate_rules) -> list[dict
     )
 
     import time
+
     for attempt in range(3):
         try:
             response = client.models.generate_content(
@@ -67,7 +68,7 @@ def generate_flags_for_chunk(client, passage: str, candidate_rules) -> list[dict
         except Exception:
             if attempt == 2:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(2**attempt)
 
     try:
         raw_flags = json.loads(response.text)
@@ -83,9 +84,11 @@ def generate_flags_for_chunk(client, passage: str, candidate_rules) -> list[dict
         if rule_id not in valid_rule_ids:
             continue  # model hallucinated a rule id not in the candidates -- drop it
         severity = f.get("severity") if f.get("severity") in ("low", "medium", "high") else "medium"
-        flags.append({
-            "rule_id": rule_id,
-            "explanation": f.get("explanation", "").strip() or "No explanation provided.",
-            "severity": severity,
-        })
+        flags.append(
+            {
+                "rule_id": rule_id,
+                "explanation": f.get("explanation", "").strip() or "No explanation provided.",
+                "severity": severity,
+            }
+        )
     return flags

@@ -11,6 +11,7 @@ correctly recognized as "present" despite different wording.
 Run inside the backend container:
     docker compose run --rm backend python data_pipeline/retrieval/paraphrase_similarity_check.py
 """
+
 import json
 from pathlib import Path
 
@@ -42,14 +43,15 @@ def main():
 
         distance = cosine_distance(paraphrase_emb, rule.embedding)
         recognized = distance <= THRESHOLD
-        results.append({
-            "disclosure_id": case["disclosure_id"],
-            "distance": distance,
-            "recognized_as_present": recognized,
-        })
+        results.append(
+            {
+                "disclosure_id": case["disclosure_id"],
+                "distance": distance,
+                "recognized_as_present": recognized,
+            }
+        )
         status = "PASS" if recognized else "FAIL"
-        print(f"  [{status}] {case['disclosure_id']}: distance={distance:.4f} "
-              f"(threshold={THRESHOLD})")
+        print(f"  [{status}] {case['disclosure_id']}: distance={distance:.4f} " f"(threshold={THRESHOLD})")
 
     passed = sum(1 for r in results if r["recognized_as_present"])
     print(f"\n{'='*60}")

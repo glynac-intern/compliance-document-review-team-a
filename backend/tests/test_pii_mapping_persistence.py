@@ -7,6 +7,7 @@ Inserts a cached analysis + mapping directly into the test DB, matching
 the pattern used for TA-40's flag test -- this checks the persistence
 and response-shape guarantees without needing a real LLM call.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -32,11 +33,13 @@ def test_mapping_persisted_and_never_in_response(client, db_session, advisor_tok
     analysis.summary = "Test summary."
     db_session.flush()
 
-    db_session.add(PIIMapping(
-        document_id=doc_id,
-        placeholder="[CLIENT_1]",
-        original_value="Jane Smith",
-    ))
+    db_session.add(
+        PIIMapping(
+            document_id=doc_id,
+            placeholder="[CLIENT_1]",
+            original_value="Jane Smith",
+        )
+    )
     db_session.commit()
 
     # Row genuinely exists in the DB

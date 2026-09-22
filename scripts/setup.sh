@@ -55,6 +55,22 @@ if grep -q "BACKEND_SECRET_KEY=changeme_generate_a_real_secret" .env; then
     rm -f .env.bak
 fi
 
+# --- Step 1b: install and activate git hooks (TA-128) ---
+# Just the `pre-commit` CLI itself here, not the full backend/requirements.txt --
+# it manages ruff/detect-secrets in their own isolated per-hook environments
+# regardless of what's on the host Python, so it doesn't need this project's
+# exact pinned versions (or even a matching Python version) to work. Skipped
+# in CI (SKIP_SEEDING=1): there's a dedicated `pre-commit` CI job (tests.yml)
+# enforcing the same hooks already, and CI has no git hooks to install into.
+if [ "${SKIP_SEEDING:-0}" != "1" ]; then
+    if command -v pre-commit >/dev/null 2>&1 || pip install --quiet pre-commit; then
+        info "Installing git hooks (pre-commit + pre-push)..."
+        pre-commit install --install-hooks || fail "pre-commit install failed"
+    else
+        warn "Could not install pre-commit -- skipping git hook setup. Install manually with: pip install pre-commit && pre-commit install --install-hooks"
+    fi
+fi
+
 # --- Step 2: start the database and backend ---
 info "Starting database and backend..."
 docker compose up -d db backend

@@ -10,10 +10,10 @@ with another existing user, and requiring authentication -- the same
 boundary validation the rest of auth/schemas.py already applies.
 """
 
-
 import pytest
 
 pytestmark = pytest.mark.integration
+
 
 def test_patch_me_updates_name(client, advisor_token):
     resp = client.patch(

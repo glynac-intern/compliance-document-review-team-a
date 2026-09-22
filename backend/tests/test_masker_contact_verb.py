@@ -6,6 +6,7 @@ e.g. "You can reach Maria Gonzalez at..." Fixed with a narrow,
 targeted heuristic (not a broad "any capitalized phrase" rule, which
 would wrongly mask product names like "Balanced Growth Portfolio").
 """
+
 import pytest
 
 pytestmark = pytest.mark.unit

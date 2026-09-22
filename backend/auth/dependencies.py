@@ -24,6 +24,7 @@ def get_current_user(
     user_id = payload["sub"]
     try:
         import uuid
+
         user_uuid = uuid.UUID(str(user_id))
     except (ValueError, AttributeError):
         user_uuid = user_id
@@ -45,4 +46,5 @@ def require_role(required_role: str):
                 detail=f"This action requires {required_role} role",
             )
         return current_user
+
     return role_checker

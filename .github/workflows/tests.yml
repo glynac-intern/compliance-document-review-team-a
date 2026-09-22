@@ -267,6 +267,56 @@ jobs:
           cat npm-audit-e2e-report.txt
           exit $STATUS
 
+  # TA-128: runs the exact same .pre-commit-config.yaml a contributor's
+  # local hooks use -- so skipping hooks locally (--no-verify, or just
+  # never having run `pre-commit install`) doesn't skip enforcement
+  # here. Deliberately its own job (same reasoning as dependency-scan
+  # above): a hygiene/formatting finding shows up as a distinctly-named
+  # failure, not one more red step buried inside "test" or
+  # "test-frontend". Only runs pre-commit-stage hooks (--all-files'
+  # default) -- the pre-push-stage unit-test hook is already covered by
+  # the `test` job's own (broader) pytest run, so re-running it here
+  # would just be redundant, not extra coverage.
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # frontend-eslint/frontend-typecheck are `language: system` local
+      # hooks (.pre-commit-config.yaml) -- they shell out to this
+      # project's own npm scripts against its own node_modules, not a
+      # pre-commit-managed environment, so node_modules has to already
+      # exist same as the test-frontend job above.
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install pre-commit
+        run: pip install --quiet pre-commit
+
+      - name: Cache pre-commit hook environments
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files --show-diff-on-failure
+
   test-e2e:
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
@@ -361,7 +411,7 @@ jobs:
         run: docker compose down -v
 
   deploy:
-    needs: [test, test-frontend, dependency-scan, test-e2e]
+    needs: [test, test-frontend, dependency-scan, pre-commit, test-e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 

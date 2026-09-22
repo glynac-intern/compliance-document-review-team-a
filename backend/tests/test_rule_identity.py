@@ -4,6 +4,7 @@ on rules.json's seed_id, so existing flags keep resolving to their
 rule. An edited rule updates in place; a removed rule is marked
 inactive, never deleted.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
@@ -90,8 +91,12 @@ def test_removed_rule_is_marked_inactive_not_deleted(db_session):
 def test_inactive_rule_excluded_from_retrieval(db_session):
     from data_pipeline.retrieval.rule_retrieval import retrieve_candidate_rules
 
-    active_rule = _upsert_rule(db_session, "active-rule", "Active rule text.", "prohibited_claim", [0.5] * 768)
-    inactive_rule = _upsert_rule(db_session, "inactive-rule", "Inactive rule text.", "prohibited_claim", [0.5] * 768)
+    active_rule = _upsert_rule(
+        db_session, "active-rule", "Active rule text.", "prohibited_claim", [0.5] * 768
+    )
+    inactive_rule = _upsert_rule(
+        db_session, "inactive-rule", "Inactive rule text.", "prohibited_claim", [0.5] * 768
+    )
     inactive_rule.is_active = False
     db_session.commit()
 

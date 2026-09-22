@@ -46,14 +46,23 @@ def test_officer_can_download_any_document(client, advisor_token, officer_token)
 def test_other_advisor_cannot_download_someone_elses_file(client, advisor_token):
     doc_id = _submit(client, advisor_token)
 
-    other_signup = client.post("/auth/signup", json={
-        "name": "Other Advisor", "email": "ta20-other@rolefixture.io",
-        "password": "testpass123", "role": "advisor",
-    })
+    other_signup = client.post(
+        "/auth/signup",
+        json={
+            "name": "Other Advisor",
+            "email": "ta20-other@rolefixture.io",
+            "password": "testpass123",
+            "role": "advisor",
+        },
+    )
     assert other_signup.status_code == 201
-    other_login = client.post("/auth/login", json={
-        "email": "ta20-other@rolefixture.io", "password": "testpass123",
-    })
+    other_login = client.post(
+        "/auth/login",
+        json={
+            "email": "ta20-other@rolefixture.io",
+            "password": "testpass123",
+        },
+    )
     other_token = other_login.json()["access_token"]
 
     resp = client.get(

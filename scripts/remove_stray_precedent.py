@@ -17,6 +17,7 @@ Run inside the backend container:
     docker compose run --rm backend python scripts/remove_stray_precedent.py --delete
     docker compose run --rm backend python scripts/remove_stray_precedent.py --search "some other term" --delete
 """
+
 import argparse
 
 from database import SessionLocal
@@ -39,9 +40,7 @@ def find_matching_precedents(db, search_terms: list[str]) -> list[PrecedentIndex
             db.query(PrecedentIndex)
             .join(Document, Document.id == PrecedentIndex.document_id)
             .join(User, User.id == Document.advisor_id)
-            .filter(
-                (User.name.ilike(pattern)) | (Document.original_filename.ilike(pattern))
-            )
+            .filter((User.name.ilike(pattern)) | (Document.original_filename.ilike(pattern)))
             .all()
         )
         for row in rows:
@@ -52,9 +51,11 @@ def find_matching_precedents(db, search_terms: list[str]) -> list[PrecedentIndex
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--search", action="append", dest="terms",
+        "--search",
+        action="append",
+        dest="terms",
         help="Search term to match against advisor name / document filename "
-             f"(case-insensitive substring). Repeatable. Default: {DEFAULT_SEARCH_TERMS}",
+        f"(case-insensitive substring). Repeatable. Default: {DEFAULT_SEARCH_TERMS}",
     )
     parser.add_argument("--delete", action="store_true", help="Actually delete the matched row(s).")
     args = parser.parse_args()
@@ -73,7 +74,9 @@ def main():
             advisor = db.query(User).filter(User.id == document.advisor_id).first() if document else None
             print(f"  precedent_index.id = {row.id}")
             print(f"    document_id       = {row.document_id}")
-            print(f"    document filename = {document.original_filename if document else '(document missing)'}")
+            print(
+                f"    document filename = {document.original_filename if document else '(document missing)'}"
+            )
             print(f"    advisor           = {advisor.name if advisor else '(advisor missing)'}")
             print(f"    decision          = {row.decision.value}")
             print(f"    comment           = {row.comment!r}")
@@ -86,8 +89,10 @@ def main():
         for row in matches:
             db.delete(row)
         db.commit()
-        print(f"Deleted {len(matches)} precedent_index row(s). "
-              "The advisor account, document, and review are untouched.")
+        print(
+            f"Deleted {len(matches)} precedent_index row(s). "
+            "The advisor account, document, and review are untouched."
+        )
     finally:
         db.close()
 

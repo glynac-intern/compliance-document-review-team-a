@@ -24,9 +24,12 @@ def main():
     # Find a document with BOTH a prohibited claim AND a missing disclosure --
     # the richest possible test case.
     target = next(
-        (m for m in metadata
-         if "prohibited_claim" in m["injected_issues"]
-         and "missing_required_disclosure" in m["injected_issues"]),
+        (
+            m
+            for m in metadata
+            if "prohibited_claim" in m["injected_issues"]
+            and "missing_required_disclosure" in m["injected_issues"]
+        ),
         None,
     )
     if target is None:

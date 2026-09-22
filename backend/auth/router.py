@@ -57,11 +57,7 @@ def update_me(
     db: Session = Depends(get_db),
 ):
     if payload.email is not None and payload.email != current_user.email:
-        existing = (
-            db.query(User)
-            .filter(User.email == payload.email, User.id != current_user.id)
-            .first()
-        )
+        existing = db.query(User).filter(User.email == payload.email, User.id != current_user.id).first()
         if existing:
             raise HTTPException(status_code=400, detail="Email already registered")
         current_user.email = payload.email

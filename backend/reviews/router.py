@@ -6,8 +6,17 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from database import get_db
 from models import (
-    Document, DocumentStatus, DocumentType, Review, AuditEvent, AuditAction, User, Notification,
-    AIAnalysis, DocumentChunk, PIIMapping,
+    Document,
+    DocumentStatus,
+    DocumentType,
+    Review,
+    AuditEvent,
+    AuditAction,
+    User,
+    Notification,
+    AIAnalysis,
+    DocumentChunk,
+    PIIMapping,
 )
 from audit_utils import record_view_if_new
 
@@ -112,18 +121,22 @@ def submit_decision(
         "rejected": "Your document was rejected.",
         "needs_revision": "Your document needs revision.",
     }
-    message = status_messages.get(payload.status.value, f"Your document status changed to {payload.status.value}.")
+    message = status_messages.get(
+        payload.status.value, f"Your document status changed to {payload.status.value}."
+    )
     if payload.comment:
         message += f" Comment: {payload.comment}"
 
     # TA-119: honor the advisor's "In-app notifications" preference --
     # skip creating the Notification row entirely when they've opted out.
     if document.advisor.in_app_notifications_enabled:
-        db.add(Notification(
-            user_id=document.advisor_id,
-            document_id=document_id,
-            message=message,
-        ))
+        db.add(
+            Notification(
+                user_id=document.advisor_id,
+                document_id=document_id,
+                message=message,
+            )
+        )
 
     db.commit()
     db.refresh(review)

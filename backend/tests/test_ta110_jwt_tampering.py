@@ -12,6 +12,7 @@ attacker without valid officer credentials would try. If any of these
 somehow succeed, that's a real hole: becomes a failing test first, a
 fix second, same pattern as TA-88.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration

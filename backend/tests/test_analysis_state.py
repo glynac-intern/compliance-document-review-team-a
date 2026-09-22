@@ -3,6 +3,7 @@ Tests for TA-41: analysis carries an explicit state (not_started,
 in_progress, succeeded, failed) instead of a client having to infer it
 from a bare 503.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration

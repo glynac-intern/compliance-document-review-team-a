@@ -28,6 +28,7 @@ from pathlib import Path
 
 from database import SessionLocal
 from models import Rule
+
 # Reuse the SAME embedding functions as everywhere else -- not a separate
 # copy (TA-34, TA-52, TA-54).
 from data_pipeline.embeddings.embed_client import embed_texts_batch
@@ -76,13 +77,15 @@ def main():
                 existing.is_active = True  # a previously-removed rule can come back
                 updated_count += 1
             else:
-                db.add(Rule(
-                    seed_id=seed_id,
-                    text=rule_data["text"],
-                    type=rule_data["type"],
-                    embedding=embedding,
-                    is_active=True,
-                ))
+                db.add(
+                    Rule(
+                        seed_id=seed_id,
+                        text=rule_data["text"],
+                        type=rule_data["type"],
+                        embedding=embedding,
+                        is_active=True,
+                    )
+                )
                 created_count += 1
 
         # Deliberately handle rules removed from rules.json: mark
@@ -101,9 +104,11 @@ def main():
         db.commit()
 
         final_active_count = db.query(Rule).filter(Rule.is_active).count()
-        print(f"\nDone. {updated_count} rule(s) updated in place, "
-              f"{created_count} new rule(s) created, "
-              f"{len(orphaned)} rule(s) marked inactive (removed from corpus).")
+        print(
+            f"\nDone. {updated_count} rule(s) updated in place, "
+            f"{created_count} new rule(s) created, "
+            f"{len(orphaned)} rule(s) marked inactive (removed from corpus)."
+        )
         print(f"{final_active_count} active rules total.")
     finally:
         db.close()

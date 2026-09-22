@@ -14,6 +14,7 @@ acceptance criterion).
 Run inside the backend container:
     docker compose run --rm backend python data_pipeline/prove_masking_demo.py
 """
+
 import json
 from datetime import datetime, timezone
 
@@ -54,8 +55,10 @@ def main():
     client.models.generate_content = _capturing_generate_content
 
     try:
-        print(f"Seeded fake values: name={FAKE_NAME!r}, email={FAKE_EMAIL!r}, "
-              f"phone={FAKE_PHONE!r}, account={FAKE_ACCOUNT!r}")
+        print(
+            f"Seeded fake values: name={FAKE_NAME!r}, email={FAKE_EMAIL!r}, "
+            f"phone={FAKE_PHONE!r}, account={FAKE_ACCOUNT!r}"
+        )
         print("Running the REAL pipeline (live Gemini calls)...")
         summary, flags, mapping, chunks_data = analyze_document.analyze_text(db, SEEDED_RAW_TEXT)
     finally:
@@ -78,7 +81,7 @@ def main():
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "seeded_fake_values_never_sent": seeded_values,
         "note": "The values above were in the ORIGINAL document text, for reference only. "
-                "They are NOT expected to appear anywhere below.",
+        "They are NOT expected to appear anywhere below.",
         "number_of_outbound_calls_captured": len(captured_payloads),
         "outbound_payloads_actually_sent_to_vendor": captured_payloads,
         "violations_found": violations,

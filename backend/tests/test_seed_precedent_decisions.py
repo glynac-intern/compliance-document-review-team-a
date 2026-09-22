@@ -3,6 +3,7 @@ Tests for TA-59: seeded documents carry a plausible decision and
 officer comment, with genuine variety (not one templated string
 repeated across dozens of documents), and no real client data.
 """
+
 import json
 from pathlib import Path
 import pytest

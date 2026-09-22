@@ -17,6 +17,7 @@ metadata every time.
 Run once (or whenever metadata.json's source issues change):
     python3 data_pipeline/enrich_seed_decisions.py
 """
+
 import hashlib
 import json
 from pathlib import Path
@@ -101,8 +102,10 @@ def main():
     print(f"Decisions: {decision_counts}")
 
     unique_comments = len(set(d["officer_comment"] for d in metadata))
-    print(f"Unique comment strings: {unique_comments} / {len(metadata)} "
-          f"(genuine variety, not one template repeated)")
+    print(
+        f"Unique comment strings: {unique_comments} / {len(metadata)} "
+        f"(genuine variety, not one template repeated)"
+    )
 
 
 if __name__ == "__main__":

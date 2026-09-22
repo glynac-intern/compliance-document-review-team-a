@@ -3,9 +3,11 @@ Test for TA-66: the review queue includes the submitting advisor's
 name, not just their raw id -- an officer needs to know who submitted
 each document.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration
+
 
 def test_queue_includes_advisor_name(client, db_session, advisor_token, officer_token):
     resp = client.post(

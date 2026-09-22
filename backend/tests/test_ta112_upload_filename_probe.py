@@ -18,6 +18,7 @@ comment, and separately check the DISPLAY-ONLY use of the filename
 (original_filename, truncated to 255 chars) doesn't crash on hostile
 input.
 """
+
 import pytest
 
 pytestmark = pytest.mark.integration

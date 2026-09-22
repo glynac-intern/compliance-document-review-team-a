@@ -66,4 +66,3 @@ markers = [
     "integration: tests requiring database and FastAPI TestClient",
     "large_upload: integration tests that push a real ~10MB payload through the endpoint -- confirmed to hang indefinitely under `pytest --cov` (a coverage/threading interaction, not an app bug; every other test using the same threaded TestClient fixture is unaffected). Run without --cov, in a separate CI step, per TA-126.",
 ]
-
