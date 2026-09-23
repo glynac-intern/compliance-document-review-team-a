@@ -64,9 +64,21 @@ Team A — Glynac Capture the Flag intern challenge.
    ```bash
    docker compose up -d frontend
    ```
-   Visit `http://localhost:3000`. Sign up as either role (advisor or
-   officer) from there -- there's no separate seed step for user
-   accounts.
+   *Note: Ensure Step 3 (`./scripts/setup.sh`) has completed first so the database and backend are running and seeded.*
+
+   - **Build-time env var note:** The frontend runs a production build (`next build` + `next start`). `NEXT_PUBLIC_API_BASE_URL` is passed as a build argument in `docker-compose.yml` and inlined into client JavaScript at image build time (defaults to `http://localhost:8000` from `.env`). If hosting on a remote VM, domain, or custom port, set `NEXT_PUBLIC_API_BASE_URL` in `.env` and **rebuild** the image:
+     ```bash
+     docker compose build frontend && docker compose up -d frontend
+     ```
+   - **Alternative (running locally outside Docker for dev):**
+     ```bash
+     cd frontend && npm install && npm run dev
+     ```
+     (In development mode, `api-client.ts` automatically defaults to `http://localhost:8000` if `NEXT_PUBLIC_API_BASE_URL` is not set).
+
+   - **User Accounts & Demo Workflow:**
+     Visit `http://localhost:3000`. User accounts are not seeded automatically. Click **Sign Up** (`/signup`) where you can choose between **Financial Advisor** and **Compliance Officer** via the interactive role selector. Accounts persist in Postgres once created.
+     *Tip for live testing/demos:* Open one standard browser window (Advisor) and one Incognito/Private window (Officer) side-by-side to showcase the full submit → AI analysis → review → decision lifecycle in real time without logging in and out.
 
 ## Try it out
 
@@ -128,6 +140,9 @@ user "compliance_user"`) after editing `.env` -- as of this fix,
 Docker Compose. It can still happen if you're running the backend
 outside Docker with a hand-written `DATABASE_URL` that doesn't match
 those three values -- keep them in sync.
+
+**Frontend loads, but API calls fail or show network errors** --
+`NEXT_PUBLIC_API_BASE_URL` is inlined into the client bundle at `next build` time, not dynamically at container start. If running on a remote VM, domain, or custom port, ensure `NEXT_PUBLIC_API_BASE_URL` in `.env` points to that address and explicitly rebuild: `docker compose build frontend && docker compose up -d frontend`. Also confirm `./scripts/setup.sh` finished so `compliance_backend` is running and healthy on port 8000.
 
 ## Git hooks (TA-128)
 
