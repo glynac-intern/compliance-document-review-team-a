@@ -10,7 +10,7 @@ consistently.
 ## Demo
 
 - **Live app**: https://104-211-102-169.sslip.io/login
-- **Overview slides**: [Verity Overview (Google Slides)](https://docs.google.com/presentation/d/1xa5Vs4O8gpSprHl8M82zewmyk9CUCsr-/edit?usp=sharing&ouid=105756314249134073234&rtpof=true&sd=true)
+- **Overview slides**: [Verity Overview (Google Slides)](https://docs.google.com/presentation/d/18AXqb-hxlS47rzBCkRFJdvCVM1ayCLei/edit?usp=sharing&ouid=105756314249134073234&rtpof=true&sd=true)
 - **Demo video**: _recording later today — link to be added_
 
 ## Team
@@ -87,7 +87,8 @@ core loop once, end to end, on top of that.
 
 1. **Sign up twice** -- once as `Financial Advisor`, once as
    `Compliance Officer` (two different emails; the role picker is on
-   the sign-up screen). Use a real-shaped email domain -- `.test` /
+   the sign-up screen only -- login is just email/password and routes
+   by role automatically). Use a real-shaped email domain -- `.test` /
    `.example` are RFC-reserved and will be rejected by the signup
    validator.
 2. **As the advisor:** go to New Submission, upload a PDF/DOCX/XLSX
@@ -103,6 +104,24 @@ core loop once, end to end, on top of that.
    If the decision was "Needs Revision," a **Revise & Resubmit**
    button appears; using it uploads a new version linked to the same
    document (tracked revision history), not a separate submission.
+
+## Demo tips
+
+- **Start from a fresh upload, not the queue's mock rows.** If a row
+  with an ID like `DOC-2026-0872` is visible, it's frontend
+  placeholder data, not a real backend UUID -- opening it shows a
+  degraded "AI analysis unavailable" state. Submit a real document as
+  the advisor first, then review that one as the officer.
+- **Prefer PDF for the walkthrough.** It renders natively in the
+  browser iframe, giving the highest-fidelity preview. DOCX/XLSX work
+  too (via client-side parsers), but PDF looks best live.
+- **Pace AI Assist queries.** The Gemini free tier caps at 15
+  requests/minute (100 req/min overall) -- avoid rapid-fire chat
+  questions back to back in the AI Assist panel.
+- **Decisions are final once submitted.** Approve/Reject/Needs
+  Revision can't be undone without a new revision upload -- walk
+  through comments and the AI Assist panel first, and submit the
+  decision last.
 
 ## Troubleshooting
 
@@ -368,7 +387,17 @@ they're both display/UX gaps:
   server-side masking requirement itself -- unmasked text never reaches
   the LLM vendor or gets embedded -- is independently verified and
   unaffected; this is only about whether an officer can *preview* the
-  masked version of a document from the UI. Not built yet.
+  masked version of a document from the UI. Not built yet. It's an
+  automatic server-side invariant, not meant to be optional -- there's
+  no toggle to add, on the UI or otherwise. To prove masking is
+  happening, run:
+  ```bash
+  docker compose run --rm backend python data_pipeline/prove_masking_demo.py
+  ```
+  This runs a real document through the actual pipeline and writes
+  `/app/masking_proof.json`, showing the outbound LLM/embedding
+  payloads only ever contained masked tokens (e.g. `[CLIENT_1]`),
+  never the real PII.
 
 ## Notes on the AI setup
 
