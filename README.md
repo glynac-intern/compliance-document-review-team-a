@@ -232,7 +232,7 @@ npx playwright test --ui
 npx playwright show-report
 ```
 
-See [e2e/README.md](e2e/README.md) for testing conventions, locators, and auth fixtures.
+See [tests/e2e/README.md](tests/e2e/README.md) for testing conventions, locators, and auth fixtures.
 
 
 ## API documentation

@@ -25,14 +25,14 @@ async function globalTeardown(config: FullConfig) {
     }
   }
 
-  const scriptPath = path.resolve(__dirname, "../scripts/cleanup_e2e_run.py");
+  const scriptPath = path.resolve(__dirname, "../../scripts/cleanup_e2e_run.py");
 
   // Attempt local Python cleanup first, fallback to docker compose or silent skip
   let cleaned = false;
 
   const pythonExecs = [
-    path.resolve(__dirname, "../.venv/Scripts/python.exe"),
-    path.resolve(__dirname, "../.venv/bin/python"),
+    path.resolve(__dirname, "../../.venv/Scripts/python.exe"),
+    path.resolve(__dirname, "../../.venv/bin/python"),
     "python",
     "python3",
   ];
