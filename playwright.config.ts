@@ -8,45 +8,57 @@ import { defineConfig, devices } from "@playwright/test";
  * and diagnostic capture (trace, screenshot, video) retained on failure.
  */
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./tests/e2e",
   testMatch: /.*\.spec\.ts/,
 
   /* Global timeout per test */
-  timeout: 30 * 1000,
+  timeout: process.env.PLAYWRIGHT_TIMEOUT
+    ? parseInt(process.env.PLAYWRIGHT_TIMEOUT, 10)
+    : 60000,
 
   /* Expect assertions timeout */
   expect: {
-    timeout: 5000,
+    timeout: 10000,
   },
 
-  /* Run tests sequentially in CI for determinism and avoid shared data races */
+  /* Run tests sequentially for determinism and avoid shared data races on live environment */
   fullyParallel: false,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.PLAYWRIGHT_WORKERS
+    ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
+    : 1,
 
   /* Fail build on CI if test.only is committed */
   forbidOnly: !!process.env.CI,
 
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  /* Retry on failure (default 1 for live environment resilience) */
+  retries:
+    process.env.PLAYWRIGHT_RETRIES !== undefined
+      ? parseInt(process.env.PLAYWRIGHT_RETRIES, 10)
+      : 1,
 
-  /* Reporter config: list + HTML report */
-  reporter: process.env.CI
-    ? [
-        ["list"],
-        ["html", { open: "never", outputFolder: "playwright-report" }],
-      ]
-    : [["list"], ["html", { open: "never" }]],
+  /* Reporter config: list + json (with live-results.json output) */
+  reporter: [
+    ["list"],
+    [
+      "json",
+      {
+        outputFile:
+          process.env.PLAYWRIGHT_JSON_OUTPUT_NAME ||
+          "test-results/live-results.json",
+      },
+    ],
+  ],
 
   /* Setup and teardown hooks */
-  globalSetup: require.resolve("./e2e/global-setup.ts"),
-  globalTeardown: require.resolve("./e2e/global-teardown.ts"),
+  globalSetup: require.resolve("./tests/e2e/global-setup.ts"),
+  globalTeardown: require.resolve("./tests/e2e/global-teardown.ts"),
 
   /* Shared settings for all projects */
   use: {
     baseURL:
       process.env.PLAYWRIGHT_TEST_BASE_URL ||
       process.env.BASE_URL ||
-      "http://localhost:3000",
+      "https://104-211-102-169.sslip.io",
 
     /* Diagnostics retained on failure for CI artifact inspection */
     trace: "retain-on-failure",
@@ -57,7 +69,7 @@ export default defineConfig({
     viewport: { width: 1280, height: 720 },
 
     /* Action timeout */
-    actionTimeout: 10000,
+    actionTimeout: 15000,
   },
 
   /* Output directory for test artifacts (traces, videos, screenshots) */

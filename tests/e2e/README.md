@@ -4,7 +4,7 @@ This directory contains the browser end-to-end (E2E) testing suite for the Compl
 
 ### Accessibility Checks (TA-134)
 
-Automated accessibility scanning is integrated via `@axe-core/playwright`. The shared helper in `e2e/axe-helper.ts` wraps axe-core with a deliberate impact threshold:
+Automated accessibility scanning is integrated via `@axe-core/playwright`. The shared helper in `tests/e2e/axe-helper.ts` wraps axe-core with a deliberate impact threshold:
 
 - **Fail on**: `serious` and `critical` violations (the threshold is set in code, not left at library default)
 - **Report without failing**: `moderate` and `minor` violations (logged to CI output for triage)
@@ -43,7 +43,7 @@ Never introduce manual delays, fixed sleeps, or `page.waitForTimeout()`:
 
 ### 3. Authentication Reuse via `storageState`
 Do **NOT** sign up or log in through the UI in every single test. This is the primary cause of slow, brittle test suites:
-- Use pre-authenticated sessions provided by `advisorTest` and `officerTest` in `e2e/fixtures.ts`:
+- Use pre-authenticated sessions provided by `advisorTest` and `officerTest` in `tests/e2e/fixtures.ts`:
   ```ts
   import { advisorTest, expect } from "./fixtures";
 
@@ -93,7 +93,7 @@ npx playwright test --ui
 npx playwright test --headed
 
 # Run against custom base URL
-PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test
+PLAYWRIGHT_TEST_BASE_URL=https://104-211-102-169.sslip.io npx playwright test
 ```
 
 ### Viewing Reports & Diagnostics

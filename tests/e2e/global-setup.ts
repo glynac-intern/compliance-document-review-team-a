@@ -2,7 +2,7 @@ import { chromium, type FullConfig, request } from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
-export const AUTH_DIR = path.resolve(__dirname, "../.auth");
+export const AUTH_DIR = path.resolve(__dirname, "../../.auth");
 export const ADVISOR_STORAGE_STATE = path.join(AUTH_DIR, "advisor.json");
 export const OFFICER_STORAGE_STATE = path.join(AUTH_DIR, "officer.json");
 export const RUN_INFO_PATH = path.join(AUTH_DIR, "run-info.json");
@@ -42,12 +42,12 @@ async function globalSetup(config: FullConfig) {
     config.projects[0]?.use?.baseURL ||
     process.env.PLAYWRIGHT_TEST_BASE_URL ||
     process.env.BASE_URL ||
-    "http://localhost:3000";
+    "https://104-211-102-169.sslip.io";
 
   const apiUrl =
     process.env.BACKEND_API_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "http://localhost:8000";
+    "https://api.104-211-102-169.sslip.io";
 
   // Record run info for teardown and test isolation
   fs.writeFileSync(
@@ -122,11 +122,11 @@ async function globalSetup(config: FullConfig) {
   }
 
   // Parse origin for storageState
-  let origin = "http://localhost:3000";
+  let origin = "https://104-211-102-169.sslip.io";
   try {
     origin = new URL(baseURL).origin;
   } catch {
-    origin = "http://localhost:3000";
+    origin = "https://104-211-102-169.sslip.io";
   }
 
   // Write storageState files

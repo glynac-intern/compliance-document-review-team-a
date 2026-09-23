@@ -2,7 +2,7 @@ import { test as base, expect, type Page } from "@playwright/test";
 import * as path from "path";
 import * as fs from "fs";
 
-export const AUTH_DIR = path.resolve(__dirname, "../.auth");
+export const AUTH_DIR = path.resolve(__dirname, "../../.auth");
 export const ADVISOR_STORAGE_STATE = path.join(AUTH_DIR, "advisor.json");
 export const OFFICER_STORAGE_STATE = path.join(AUTH_DIR, "officer.json");
 export const RUN_INFO_PATH = path.join(AUTH_DIR, "run-info.json");
