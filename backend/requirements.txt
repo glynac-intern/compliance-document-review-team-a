@@ -37,7 +37,7 @@ bcrypt==4.0.1
 # SECURITY.md; both are unreachable here since this app only ever calls
 # jose.jwt.encode/decode with a single hardcoded HS256 algorithm
 # (backend/auth/security.py), never an ECDSA operation or ASN.1 parse.
-python-jose[cryptography]==3.4.0
+python-jose[cryptography]==3.5.0
 google-genai==1.3.0
 # TA-127: 41 known findings against 5.1.0, all DoS-class (infinite
 # loop / memory exhaustion on a crafted PDF; nothing RCE or
