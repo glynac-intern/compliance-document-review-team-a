@@ -26,7 +26,7 @@ explore it):
 2026-09-22 due to an org-level GitHub Actions billing issue (unrelated
 to any code change -- being raised with the team today), so pushes to
 `main` no longer auto-deploy. The VM was manually brought current as
-of 2026-09-24 (commit `8660e59`, matching `main`) by running the same
+of 2026-09-24 (commit `d1d751a`, matching `main`) by running the same
 steps the `deploy` job would have. Until the billing issue is
 resolved, each new merge will need that same manual step, or the live
 app will drift behind `main` again.
