@@ -382,6 +382,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
             </p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-[12px] font-inter">
             <thead>
               <tr className="bg-[#1e4c77]/[0.03] dark:bg-[#7fb2e3]/[0.06] border-b border-[#1e4c77]/10 dark:border-[#7fb2e3]/15">
@@ -454,6 +455,7 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

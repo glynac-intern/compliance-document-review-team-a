@@ -580,6 +580,7 @@ export default function OfficerDashboardPage() {
                   </div>
                 ) : (
                   // Real Table
+                  <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-inter">
@@ -691,6 +692,7 @@ export default function OfficerDashboardPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 )}
               </div>
 

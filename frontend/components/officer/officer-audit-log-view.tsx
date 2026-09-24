@@ -295,6 +295,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
             </p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-xs font-inter">
             <thead>
               <tr className="bg-[#f8fafc]/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
@@ -357,6 +358,7 @@ export function OfficerAuditLogView({ onShowToast }: OfficerAuditLogViewProps) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
