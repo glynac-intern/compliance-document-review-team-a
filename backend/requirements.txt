@@ -16,7 +16,7 @@ sqlalchemy==2.0.35
 alembic==1.20.0
 psycopg2-binary==2.9.13
 # TA-127: PYSEC-2026-2270, fixed 1.2.2.
-python-dotenv==1.2.2
+python-dotenv==1.2.3
 # TA-127: PYSEC-2026-1851/1852/3036-3040, all fixed by 0.0.31. Same
 # reasoning as the starlette bump above -- this parses the same
 # document-upload request body.
