@@ -134,9 +134,23 @@ export function SubmissionsTable({
     });
   }, [documents, searchQuery, statusFilter, typeFilter, sortBy]);
 
+  // Overview variant deliberately shows no search/filter UI, so it must
+  // not silently inherit whatever searchQuery/statusFilter/sortBy was
+  // last left set in "My Submissions" (same lifted state, shared prop) --
+  // it always shows the 5 most recent documents, unfiltered, sorted by
+  // upload date regardless of the current sortBy selection.
+  const recentDocuments = React.useMemo(() => {
+    return filterAndSortDocuments(documents, {
+      searchQuery: "",
+      statusFilter: "all",
+      typeFilter: "all",
+      sortBy: "newest",
+    });
+  }, [documents]);
+
   // Overview variant shows only the top 5 recent documents; full variant shows all filtered
   const displayedDocuments =
-    variant === "overview" ? documents.slice(0, 5) : filteredDocuments;
+    variant === "overview" ? recentDocuments.slice(0, 5) : filteredDocuments;
 
   const hasActiveFilters =
     searchQuery.trim() !== "" || statusFilter !== "all" || typeFilter !== "all";
