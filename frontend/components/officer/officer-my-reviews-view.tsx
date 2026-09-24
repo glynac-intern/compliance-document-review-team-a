@@ -138,6 +138,15 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
         setError(null);
       })
       .catch((err) => {
+        // A 401 means api-client already cleared the session and is
+        // redirecting to /login (see setUnauthorizedHandler in
+        // auth-context.tsx). That redirect is async, so without this
+        // check the mock-data fallback below would render fake review
+        // rows on screen during the moment before navigation completes --
+        // indistinguishable from real data to whoever's looking.
+        if (err instanceof ApiError && err.status === 401) {
+          return;
+        }
         if (err instanceof ApiError) {
           setError(err.message);
         }
@@ -162,6 +171,11 @@ export function OfficerMyReviewsView({ onShowToast }: OfficerMyReviewsViewProps)
       })
       .catch((err) => {
         if (!ignore) {
+          // See handleRetry's comment above: a 401 already triggered a
+          // redirect to /login, so don't flash fake review rows first.
+          if (err instanceof ApiError && err.status === 401) {
+            return;
+          }
           // Fallback to mock data when backend is offline
           if (err instanceof ApiError) {
             setError(err.message);
