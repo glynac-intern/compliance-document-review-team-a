@@ -96,6 +96,19 @@ npx playwright test --headed
 PLAYWRIGHT_TEST_BASE_URL=https://104-211-102-169.sslip.io npx playwright test
 ```
 
+> ⚠️ **Running against a deployed URL creates real users and documents on
+> that environment's database** -- but global teardown's cleanup
+> (`docker compose run --rm backend python scripts/cleanup_e2e_run.py`)
+> connects to whatever Postgres *your local* `docker-compose.yml` points
+> at, not the deployed environment's database. `PLAYWRIGHT_TEST_BASE_URL`
+> only redirects Playwright's browser and API calls -- it has no effect
+> on the cleanup script's DB connection. So the TA-104 cleanup guarantee
+> above does **not** hold when run this way: test data will accumulate
+> on the deployed environment run after run. To actually clean up after
+> a deployed-environment run, invoke the cleanup script with
+> `DATABASE_URL` pointed at that environment's database, or plan on
+> removing the rows manually.
+
 ### Viewing Reports & Diagnostics
 When tests complete (or fail), Playwright retains traces, screenshots, and videos in `test-results/`:
 ```bash

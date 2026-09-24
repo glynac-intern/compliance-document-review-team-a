@@ -11,7 +11,24 @@ consistently.
 
 - **Live app**: https://104-211-102-169.sslip.io/login
 - **Overview slides**: [Verity Overview (Google Slides)](https://docs.google.com/presentation/d/18AXqb-hxlS47rzBCkRFJdvCVM1ayCLei/edit?usp=sharing&ouid=105756314249134073234&rtpof=true&sd=true)
-- **Demo video**: _recording later today — link to be added_
+- **Demo video**: [Verity Demo Walkthrough (Google Drive)](https://drive.google.com/file/d/1sTu9NxpxQaoI2fLnVMBLpuzIYA8xwPOO/view?usp=sharing)
+
+**Demo accounts** (pre-seeded on the live app -- no signup needed to
+explore it):
+
+| Role     | Email                      | Password     |
+|----------|-----------------------------|--------------|
+| Advisor  | `advisor.demo@verity.com`   | `DemoPass2026` |
+| Officer  | `officer.demo@verity.com`   | `DemoPass2026` |
+
+**Note on the live app:** CI's `deploy` job has been failing since
+2026-09-22 due to an org-level GitHub Actions billing issue (unrelated
+to any code change -- being raised with the team today), so pushes to
+`main` no longer auto-deploy. The VM was manually brought current as
+of 2026-09-24 (commit `8660e59`, matching `main`) by running the same
+steps the `deploy` job would have. Until the billing issue is
+resolved, each new merge will need that same manual step, or the live
+app will drift behind `main` again.
 
 ## Team
 

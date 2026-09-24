@@ -12,3 +12,4 @@ test-results/
 htmlcov/
 coverage-report.txt
 frontend/coverage/
+masking_proof*.json
