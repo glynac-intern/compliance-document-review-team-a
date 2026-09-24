@@ -385,6 +385,20 @@ read) where marked "live," or a direct code/test read where marked
 
 18 of 20 fully confirmed. The remaining 2 aren't failures -- they're the one requirement that structurally can't be verified from inside the team, which is what TA-81 exists for.
 
+## Live API verification (2026-09-24)
+
+Every backend route was also spot-checked directly against the deployed
+API at https://api.104-211-102-169.sslip.io (not just local tests):
+auth (signup/login/logout/me), documents (list/detail/analysis), the
+officer review queue and decision endpoint, the AI Assist chat
+endpoint, notifications (list/unread-count/mark-read), and audit
+(global log, per-document trail, CSV export). Role boundaries held
+under direct API calls in every case -- an advisor token gets `403` on
+every officer-only route (`/review/queue`, `/audit`,
+`/review/documents/{id}/decision`, `/review/documents/{id}/chat`),
+confirming Definition of Done #13 above against the live deployment,
+not just code.
+
 ## Known limitations
 
 Found via an end-to-end click-through of the live app (not just a code
