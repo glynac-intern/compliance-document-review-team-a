@@ -101,6 +101,20 @@ export default function AdvisorDashboardPage() {
     }
   }, [isReady, loadDocuments]);
 
+  // Poll periodically so a decision made elsewhere (an officer
+  // approving/rejecting/requesting revision on this advisor's document)
+  // shows up in the Overview stats and submissions table without the
+  // advisor needing to manually hit Refresh or reload the page --
+  // previously loadDocuments only ran on mount or after the advisor's
+  // own submit/revision actions.
+  React.useEffect(() => {
+    if (!isReady) return;
+    const id = setInterval(() => {
+      void loadDocuments();
+    }, 20_000);
+    return () => clearInterval(id);
+  }, [isReady, loadDocuments]);
+
   // Table filtering and search states
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");

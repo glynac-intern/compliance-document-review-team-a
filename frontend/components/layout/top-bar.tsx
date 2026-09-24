@@ -53,45 +53,47 @@ export function TopBar({
 
   const notificationsRef = React.useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
-    let ignore = false;
-    Promise.all([
-      notificationsApi.list(),
-      notificationsApi.getUnreadCount(),
-    ])
-      .then(([list, countRes]) => {
-        if (!ignore) {
-          setNotifications(list);
-          setUnreadCount(countRes.unread_count);
-        }
-      })
-      .catch(() => {});
+  const mountedRef = React.useRef(true);
 
-    return () => {
-      ignore = true;
-    };
+  const fetchNotifications = React.useCallback(async () => {
+    try {
+      const [list, countRes] = await Promise.all([
+        notificationsApi.list(),
+        notificationsApi.getUnreadCount(),
+      ]);
+      if (mountedRef.current) {
+        setNotifications(list);
+        setUnreadCount(countRes.unread_count);
+      }
+    } catch {
+      // Next poll tick (or the next dropdown open) will retry.
+    }
   }, []);
 
+  // Poll periodically, not just on mount -- previously this only
+  // refetched on mount, on opening the dropdown, or a manual Refresh
+  // click, so a decision made elsewhere (e.g. an officer deciding on
+  // this advisor's document) never surfaced in the bell, or in the
+  // Overview stats that also depend on a fresh fetch, until one of
+  // those happened.
+  React.useEffect(() => {
+    mountedRef.current = true;
+    const kickoff = setTimeout(fetchNotifications, 0);
+    const id = setInterval(fetchNotifications, 20_000);
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(kickoff);
+      clearInterval(id);
+    };
+  }, [fetchNotifications]);
+
+  // Still refresh immediately on these interactions rather than making
+  // the user wait for the next poll tick.
   React.useEffect(() => {
     if (!showNotifications && !isRefreshing) return;
-    let ignore = false;
-
-    Promise.all([
-      notificationsApi.list(),
-      notificationsApi.getUnreadCount(),
-    ])
-      .then(([list, countRes]) => {
-        if (!ignore) {
-          setNotifications(list);
-          setUnreadCount(countRes.unread_count);
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      ignore = true;
-    };
-  }, [showNotifications, isRefreshing]);
+    const id = setTimeout(fetchNotifications, 0);
+    return () => clearTimeout(id);
+  }, [showNotifications, isRefreshing, fetchNotifications]);
 
   const handleMarkAllRead = async () => {
     const unread = notifications.filter((n) => !n.is_read);
