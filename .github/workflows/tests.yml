@@ -414,6 +414,20 @@ jobs:
     needs: [test, test-frontend, dependency-scan, pre-commit, test-e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    # Without this, several pushes to main in quick succession (e.g. merging
+    # a batch of Dependabot PRs back to back) each trigger their own deploy
+    # run against the same Azure VM at roughly the same time. Docker
+    # Compose's container-recreate step (rename old -> create new -> remove
+    # old) isn't safe against two invocations racing on the same host --
+    # confirmed in production: an overlapping run left a stray renamed
+    # container blocking every subsequent deploy from recreating the
+    # backend container. cancel-in-progress is deliberately false: cutting
+    # off a deploy mid-recreate would leave the same kind of half-swapped
+    # state, just via a different path -- queueing is what actually fixes
+    # the race, not a race to cancel it.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
 
     steps:
       - name: Deploy to Azure VM
