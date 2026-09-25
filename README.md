@@ -13,6 +13,8 @@ consistently.
 - **Backend API**: https://api.104-211-102-169.sslip.io | https://api.104-211-102-169.sslip.io/docs
 - **Overview slides**: [Verity Overview (Google Slides)](https://docs.google.com/presentation/d/18AXqb-hxlS47rzBCkRFJdvCVM1ayCLei/edit?usp=sharing&ouid=105756314249134073234&rtpof=true&sd=true)
 - **Demo video**: [Verity Demo Walkthrough (Google Drive)](https://drive.google.com/file/d/1sTu9NxpxQaoI2fLnVMBLpuzIYA8xwPOO/view?usp=sharing)
+- **Blueprint (Confluence)**: [Blueprint Team A](https://aufatapiopa.atlassian.net/wiki/spaces/SD/pages/262145/Blueprint+Team+A) — kept in sync with the app as built
+- **Jira board**: [Team A (TA)](https://aufatapiopa.atlassian.net/jira/software/projects/TA/boards/1?filter=&groupBy=none)
 
 **Demo accounts** (pre-seeded on the live app -- no signup needed to
 explore it):
@@ -30,6 +32,28 @@ of 2026-09-24 (commit `d1d751a`, matching `main`) by running the same
 steps the `deploy` job would have. Until the billing issue is
 resolved, each new merge will need that same manual step, or the live
 app will drift behind `main` again.
+
+**Jira tickets** (full backlog on the board linked above; the epics
+`TA-1`–`TA-10` map one-to-one to the tracks in the blueprint, each
+broken into the stories/tasks/bugs below it — this table is a curated
+path through the ~135 tickets, not the full list):
+
+| Ticket(s)                    | What we used them for |
+|-------------------------------|------------------------|
+| `TA-1`–`TA-10`                 | Epics — one per track (auth/roles, submission & state machine, audit/notifications, PII masking, AI assist, retrieval, seed corpora, UI, setup/CI/delivery, testing/hardening) |
+| `TA-13`, `TA-110`, `TA-111`    | Server-side role boundary, plus proving it holds against a tampered JWT role claim and a deactivated user's still-unexpired token |
+| `TA-30`, `TA-32`–`TA-34`       | PII masker, persisted mapping, and proof the outbound vendor/embedding payload is masked, not just prompted |
+| `TA-36`, `TA-37`, `TA-40`      | AI-generated flags grounded in retrieved rule text, with hallucinated rule IDs rejected |
+| `TA-39`, `TA-41`, `TA-87`      | Graceful degradation (and tests for it) when the AI vendor is unavailable |
+| `TA-16`, `TA-19`, `TA-22`, `TA-65` | Document state machine, revision linking, and the revision thread read back as one ordered history |
+| `TA-26`, `TA-27`, `TA-93`      | Append-only audit trail, per-thread audit read, and CSV export |
+| `TA-83`–`TA-88`, `TA-107`–`TA-109`, `TA-112` | Week-4 hardening: attacked our own role boundary and masker, then fixed what broke (a CSV formula-injection bug, an unmasked-comment PII leak, a decision race condition, path-traversal upload probing) |
+| `TA-79`, `TA-80`, `TA-82`, `TA-122`–`TA-128` | Reproducible one-command setup, README accuracy, and the test/coverage/lint/dependency-scan/pre-commit CI gates |
+| `TA-81`                         | Outside-the-team clean-checkout rehearsal (rubric row 7) |
+| `TA-130`–`TA-134`               | Playwright end-to-end suite (full submit→revise→approve loop, role boundary, degraded states) plus automated accessibility checks |
+| `TA-89`                         | TLS reverse proxy in front of the live deploy |
+| `TA-115`–`TA-121`               | Settings page and dark-mode bugs found and fixed post-launch |
+| `TA-135`                        | Open — pypdf/starlette dependency upgrade |
 
 ## Team
 
