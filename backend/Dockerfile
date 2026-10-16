@@ -6,7 +6,7 @@
 # (ai.masking.masker, data_pipeline.chunking.chunker, ...) instead of a
 # sys.path hack per file, and lets the same imports resolve identically
 # outside Docker (see pyproject.toml's [tool.pytest.ini_options] pythonpath).
-FROM python:3.12-slim
+FROM python:3.14-slim
 WORKDIR /app
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
