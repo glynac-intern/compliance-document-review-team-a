@@ -9,7 +9,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.49.1",
     "@types/node": "^26.6.2"
   }
